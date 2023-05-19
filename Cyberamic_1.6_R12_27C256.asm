@@ -160,9 +160,9 @@
 81b5: bd 9b 19     jsr (0x9B19)
 81b8: c6 02        ldab 0x02
 81ba: bd 8c 02     jsr (0x8C02)
-81bd: f6 10 2d     ldab (0x102D)
+81bd: f6 10 2d     ldab (SCCR2)
 81c0: c4 df        andb 0xDF
-81c2: f7 10 2d     stab (0x102D)
+81c2: f7 10 2d     stab (SCCR2)
 81c5: bd 9a f7     jsr (0x9AF7)
 81c8: c6 fd        ldab 0xFD
 81ca: bd 86 e7     jsr (0x86E7)
@@ -360,9 +360,9 @@
 8349: bd 86 a4     jsr (0x86A4)
 834c: 24 03        bcc [0x8351]
 834e: 7e 82 76     jmp (0x8276)
-8351: f6 10 2d     ldab (0x102D)
+8351: f6 10 2d     ldab (SCCR2)
 8354: ca 20        orab 0x20
-8356: f7 10 2d     stab (0x102D)
+8356: f7 10 2d     stab (SCCR2)
 8359: 7f 00 aa     clr (0x00AA)
 835c: d6 62        ldab (0x0062)
 835e: c4 df        andb 0xDF
@@ -646,7 +646,7 @@
 85f9: bd 8c 22     jsr (0x8C22)
 85fc: 7f 00 30     clr (0x0030)
 85ff: bd 9b 19     jsr (0x9B19)
-8602: b6 10 0a     ldaa (0x100A)
+8602: b6 10 0a     ldaa (PORTE)
 8605: 84 10        anda 0x10
 8607: 27 0b        beq [0x8614]
 8609: b6 18 04     ldaa (0x1804)
@@ -716,12 +716,12 @@
 86a7: 7f 00 23     clr (0x0023)
 86aa: 86 19        ldaa 0x19
 86ac: 97 24        staa (0x0024)
-86ae: b6 10 0a     ldaa (0x100A)
+86ae: b6 10 0a     ldaa (PORTE)
 86b1: 84 80        anda 0x80
 86b3: 27 02        beq [0x86B7]
 86b5: 0d           sec
 86b6: 39           rts
-86b7: b6 10 0a     ldaa (0x100A)
+86b7: b6 10 0a     ldaa (PORTE)
 86ba: 84 80        anda 0x80
 86bc: 26 f7        bne [0x86B5]
 86be: 96 24        ldaa (0x0024)
@@ -909,12 +909,12 @@
 8820: ce 88 32     ldx 0x8832
 8823: ff 01 01     stx (0x0101)
 8826: b7 01 00     staa (0x0100)
-8829: b6 10 2d     ldaa (0x102D)
+8829: b6 10 2d     ldaa (SCCR2)
 882c: 8a 20        oraa 0x20
-882e: b7 10 2d     staa (0x102D)
+882e: b7 10 2d     staa (SCCR2)
 8831: 39           rts
-8832: b6 10 2e     ldaa (0x102E)
-8835: b6 10 2f     ldaa (0x102F)
+8832: b6 10 2e     ldaa (SCSR)
+8835: b6 10 2f     ldaa (SCDR)
 8838: 7c 00 48     inc (0x0048)
 883b: 7e 88 62     jmp (0x8862)
 883e: 86 01        ldaa 0x01
@@ -1341,7 +1341,7 @@
 8bbc: bd a3 41     jsr (0xA341)
 8bbf: 39           rts
 8bc0: 86 80        ldaa 0x80
-8bc2: b7 10 22     staa (0x1022)
+8bc2: b7 10 22     staa (TMSK1)
 8bc5: ce ab cc     ldx 0xABCC
 8bc8: ff 01 19     stx (0x0119)
 8bcb: ce ad 0c     ldx 0xAD0C
@@ -1360,9 +1360,9 @@
 8bea: dd 21        std (0x0021)
 8bec: dd 23        std (0x0023)
 8bee: 86 c0        ldaa 0xC0
-8bf0: b7 10 23     staa (0x1023)
+8bf0: b7 10 23     staa (TFLG1)
 8bf3: 39           rts
-8bf4: b6 10 0a     ldaa (0x100A)
+8bf4: b6 10 0a     ldaa (PORTE)
 8bf7: 88 ff        eora 0xFF
 8bf9: 16           tab
 8bfa: d7 62        stab (0x0062)
@@ -1405,12 +1405,12 @@
 8c3a: 32           pula
 8c3b: 39           rts
 8c3c: 86 ff        ldaa 0xFF
-8c3e: b7 10 01     staa (0x1001)
+8c3e: b7 10 01     staa (DDRA)
 8c41: 86 ff        ldaa 0xFF
-8c43: b7 10 03     staa (0x1003)
-8c46: b6 10 02     ldaa (0x1002)
+8c43: b7 10 03     staa (DDRG)
+8c46: b6 10 02     ldaa (PORTG)
 8c49: 8a 02        oraa 0x02
-8c4b: b7 10 02     staa (0x1002)
+8c4b: b7 10 02     staa (PORTG)
 8c4e: 86 38        ldaa 0x38
 8c50: bd 8c 86     jsr (0x8C86)
 8c53: 86 38        ldaa 0x38
@@ -1427,36 +1427,36 @@
 8c6c: 09           dex
 8c6d: 26 fb        bne [0x8C6A]
 8c6f: 39           rts
-8c70: b6 10 02     ldaa (0x1002)
+8c70: b6 10 02     ldaa (PORTG)
 8c73: 84 fd        anda 0xFD
-8c75: b7 10 02     staa (0x1002)
+8c75: b7 10 02     staa (PORTG)
 8c78: 8a 02        oraa 0x02
-8c7a: b7 10 02     staa (0x1002)
+8c7a: b7 10 02     staa (PORTG)
 8c7d: 39           rts
 8c7e: cc 05 00     ldd 0x0500
 8c81: dd 46        std (0x0046)
 8c83: dd 44        std (0x0044)
 8c85: 39           rts
 8c86: bd 8c bd     jsr (0x8CBD)
-8c89: b7 10 00     staa (0x1000)
-8c8c: b6 10 02     ldaa (0x1002)
+8c89: b7 10 00     staa (PORTA)
+8c8c: b6 10 02     ldaa (PORTG)
 8c8f: 84 f3        anda 0xF3
-8c91: b7 10 02     staa (0x1002)
+8c91: b7 10 02     staa (PORTG)
 8c94: bd 8c 70     jsr (0x8C70)
 8c97: 39           rts
 8c98: bd 8c bd     jsr (0x8CBD)
-8c9b: b7 10 00     staa (0x1000)
-8c9e: b6 10 02     ldaa (0x1002)
+8c9b: b7 10 00     staa (PORTA)
+8c9e: b6 10 02     ldaa (PORTG)
 8ca1: 84 fb        anda 0xFB
 8ca3: 8a 08        oraa 0x08
 8ca5: 20 ea        bra [0x8C91]
 8ca7: bd 8c bd     jsr (0x8CBD)
-8caa: b6 10 02     ldaa (0x1002)
+8caa: b6 10 02     ldaa (PORTG)
 8cad: 84 f7        anda 0xF7
 8caf: 8a 08        oraa 0x08
 8cb1: 20 de        bra [0x8C91]
 8cb3: bd 8c bd     jsr (0x8CBD)
-8cb6: b6 10 02     ldaa (0x1002)
+8cb6: b6 10 02     ldaa (PORTG)
 8cb9: 8a 0c        oraa 0x0C
 8cbb: 20 d4        bra [0x8C91]
 8cbd: 36           psha
@@ -1464,22 +1464,22 @@
 8cbf: c6 ff        ldab 0xFF
 8cc1: 5d           tstb
 8cc2: 27 1a        beq [0x8CDE]
-8cc4: b6 10 02     ldaa (0x1002)
+8cc4: b6 10 02     ldaa (PORTG)
 8cc7: 84 f7        anda 0xF7
 8cc9: 8a 04        oraa 0x04
-8ccb: b7 10 02     staa (0x1002)
+8ccb: b7 10 02     staa (PORTG)
 8cce: bd 8c 70     jsr (0x8C70)
-8cd1: 7f 10 01     clr (0x1001)
-8cd4: b6 10 00     ldaa (0x1000)
+8cd1: 7f 10 01     clr (DDRA)
+8cd4: b6 10 00     ldaa (PORTA)
 8cd7: 2b 08        bmi [0x8CE1]
 8cd9: 86 ff        ldaa 0xFF
-8cdb: b7 10 01     staa (0x1001)
+8cdb: b7 10 01     staa (DDRA)
 8cde: 33           pulb
 8cdf: 32           pula
 8ce0: 39           rts
 8ce1: 5a           decb
 8ce2: 86 ff        ldaa 0xFF
-8ce4: b7 10 01     staa (0x1001)
+8ce4: b7 10 01     staa (DDRA)
 8ce7: 20 d8        bra [0x8CC1]
 8ce9: bd 8c bd     jsr (0x8CBD)
 8cec: 86 01        ldaa 0x01
@@ -1717,7 +1717,7 @@
 8f0c: 27 02        beq [0x8F10]
 8f0e: 6f 2d        clr (X+0x2D)
 8f10: 20 f3        bra [0x8F05]
-8f12: b6 10 0a     ldaa (0x100A)
+8f12: b6 10 0a     ldaa (PORTE)
 8f15: 97 51        staa (0x0051)
 8f17: ce 00 00     ldx 0x0000
 8f1a: 8c 00 08     cpx 0x0008
@@ -4024,22 +4024,22 @@ a1e1: c1 63        cmpb 0x63
 a1e3: 26 01        bne [0xA1E6]
 a1e5: 39           rts
 a1e6: 86 0e        ldaa 0x0E
-a1e8: b7 10 3b     staa (0x103B)
+a1e8: b7 10 3b     staa (PPROG)
 a1eb: 86 ff        ldaa 0xFF
 a1ed: b7 0e 00     staa (0x0E00)
-a1f0: b6 10 3b     ldaa (0x103B)
+a1f0: b6 10 3b     ldaa (PPROG)
 a1f3: 8a 01        oraa 0x01
-a1f5: b7 10 3b     staa (0x103B)
+a1f5: b7 10 3b     staa (PPROG)
 a1f8: ce 1b 58     ldx 0x1B58
 a1fb: 09           dex
 a1fc: 26 fd        bne [0xA1FB]
-a1fe: b6 10 3b     ldaa (0x103B)
+a1fe: b6 10 3b     ldaa (PPROG)
 a201: 84 fe        anda 0xFE
-a203: b7 10 3b     staa (0x103B)
+a203: b7 10 3b     staa (PPROG)
 a206: ce 0e 00     ldx 0x0E00
 a209: 18 ce a2 26  ldy 0xA226
 a20d: c6 02        ldab 0x02
-a20f: f7 10 3b     stab (0x103B)
+a20f: f7 10 3b     stab (PPROG)
 a212: 18 a6 00     ldaa (Y+0x00)
 a215: 18 08        iny
 a217: a7 00        staa (X+0x00)
@@ -4047,7 +4047,7 @@ a219: bd a2 32     jsr (0xA232)
 a21c: 08           inx
 a21d: 8c 0e 0c     cpx 0x0E0C
 a220: 26 eb        bne [0xA20D]
-a222: 7f 10 3b     clr (0x103B)
+a222: 7f 10 3b     clr (PPROG)
 a225: 39           rts
 a226: 29 64        bvs [0xA28C]
 a228: 2a 21        bpl [0xA24B]
@@ -4059,12 +4059,12 @@ a22e: 21 65        brn [0xA295]
 a230: 63 71        com (X+0x71)
 a232: 18 3c        pshy
 a234: c6 03        ldab 0x03
-a236: f7 10 3b     stab (0x103B)
+a236: f7 10 3b     stab (PPROG)
 a239: 18 ce 1b 58  ldy 0x1B58
 a23d: 18 09        dey
 a23f: 26 fc        bne [0xA23D]
 a241: c6 02        ldab 0x02
-a243: f7 10 3b     stab (0x103B)
+a243: f7 10 3b     stab (PPROG)
 a246: 18 38        puly
 a248: 39           rts
 a249: 0f           sei
@@ -4088,18 +4088,18 @@ a274: 39           rts
 a275: 0f           sei
 a276: 7f 04 0f     clr (0x040F)
 a279: 86 0e        ldaa 0x0E
-a27b: b7 10 3b     staa (0x103B)
+a27b: b7 10 3b     staa (PPROG)
 a27e: 86 ff        ldaa 0xFF
 a280: b7 0e 20     staa (0x0E20)
-a283: b6 10 3b     ldaa (0x103B)
+a283: b6 10 3b     ldaa (PPROG)
 a286: 8a 01        oraa 0x01
-a288: b7 10 3b     staa (0x103B)
+a288: b7 10 3b     staa (PPROG)
 a28b: ce 1b 58     ldx 0x1B58
 a28e: 09           dex
 a28f: 26 fd        bne [0xA28E]
-a291: b6 10 3b     ldaa (0x103B)
+a291: b6 10 3b     ldaa (PPROG)
 a294: 84 fe        anda 0xFE
-a296: 7f 10 3b     clr (0x103B)
+a296: 7f 10 3b     clr (PPROG)
 a299: bd f9 d8     jsr (0xF9D8)
 a29c: 45           ?
 a29d: 6e 74        jmp (X+0x74)
@@ -4118,20 +4118,20 @@ a2b0: f9 45 24     adcb (0x4524)
 a2b3: fb bd f9     addb (0xBDF9)
 a2b6: 6f c6        clr (X+0xC6)
 a2b8: 02           idiv
-a2b9: f7 10 3b     stab (0x103B)
+a2b9: f7 10 3b     stab (PPROG)
 a2bc: a7 00        staa (X+0x00)
 a2be: bd a2 32     jsr (0xA232)
 a2c1: 08           inx
 a2c2: 8c 0e 24     cpx 0x0E24
 a2c5: 26 e8        bne [0xA2AF]
 a2c7: c6 02        ldab 0x02
-a2c9: f7 10 3b     stab (0x103B)
+a2c9: f7 10 3b     stab (PPROG)
 a2cc: 86 db        ldaa 0xDB
 a2ce: b7 0e 24     staa (0x0E24)
 a2d1: bd a2 32     jsr (0xA232)
-a2d4: 7f 10 3b     clr (0x103B)
+a2d4: 7f 10 3b     clr (PPROG)
 a2d7: 86 1e        ldaa 0x1E
-a2d9: b7 10 35     staa (0x1035)
+a2d9: b7 10 35     staa (BPROT)
 a2dc: 7e f8 00     jmp (0xF800)
 a2df: 38           pulx
 a2e0: 3c           pshx
@@ -4451,7 +4451,7 @@ a520: bd f9 6f     jsr (0xF96F)
 a523: 7e a3 8e     jmp (0xA38E)
 a526: 5f           clrb
 a527: bd f9 c5     jsr (0xF9C5)
-a52a: f6 10 0a     ldab (0x100A)
+a52a: f6 10 0a     ldab (PORTE)
 a52d: c8 ff        eorb 0xFF
 a52f: bd f9 c5     jsr (0xF9C5)
 a532: c1 80        cmpb 0x80
@@ -5292,10 +5292,10 @@ abc9: 39           rts
 abca: 20 f5        bra [0xABC1]
 abcc: dc 10        ldd (0x0010)
 abce: c3 02 71     addd 0x0271
-abd1: fd 10 16     std (0x1016)
+abd1: fd 10 16     std (TOC1)
 abd4: dd 10        std (0x0010)
 abd6: 86 80        ldaa 0x80
-abd8: b7 10 23     staa (0x1023)
+abd8: b7 10 23     staa (TFLG1)
 abdb: 7d 00 78     tst (0x0078)
 abde: 27 1c        beq [0xABFC]
 abe0: dc 25        ldd (0x0025)
@@ -5360,14 +5360,14 @@ ac5b: 27 55        beq [0xACB2]
 ac5d: de 44        ldx (0x0044)
 ac5f: a6 00        ldaa (X+0x00)
 ac61: 27 23        beq [0xAC86]
-ac63: b7 10 00     staa (0x1000)
-ac66: b6 10 02     ldaa (0x1002)
+ac63: b7 10 00     staa (PORTA)
+ac66: b6 10 02     ldaa (PORTG)
 ac69: 84 f3        anda 0xF3
-ac6b: b7 10 02     staa (0x1002)
+ac6b: b7 10 02     staa (PORTG)
 ac6e: 84 fd        anda 0xFD
-ac70: b7 10 02     staa (0x1002)
+ac70: b7 10 02     staa (PORTG)
 ac73: 8a 02        oraa 0x02
-ac75: b7 10 02     staa (0x1002)
+ac75: b7 10 02     staa (PORTG)
 ac78: 08           inx
 ac79: 08           inx
 ac7a: 8c 05 80     cpx 0x0580
@@ -5377,15 +5377,15 @@ ac82: df 44        stx (0x0044)
 ac84: 20 2c        bra [0xACB2]
 ac86: a6 01        ldaa (X+0x01)
 ac88: 27 25        beq [0xACAF]
-ac8a: b7 10 00     staa (0x1000)
-ac8d: b6 10 02     ldaa (0x1002)
+ac8a: b7 10 00     staa (PORTA)
+ac8d: b6 10 02     ldaa (PORTG)
 ac90: 84 fb        anda 0xFB
 ac92: 8a 08        oraa 0x08
-ac94: b7 10 02     staa (0x1002)
+ac94: b7 10 02     staa (PORTG)
 ac97: 84 fd        anda 0xFD
-ac99: b7 10 02     staa (0x1002)
+ac99: b7 10 02     staa (PORTG)
 ac9c: 8a 02        oraa 0x02
-ac9e: b7 10 02     staa (0x1002)
+ac9e: b7 10 02     staa (PORTG)
 aca1: 08           inx
 aca2: 08           inx
 aca3: 8c 05 80     cpx 0x0580
@@ -5428,18 +5428,18 @@ acf3: bf 01 3c     sts (0x013C)
 acf6: be 01 3e     lds (0x013E)
 acf9: dc 10        ldd (0x0010)
 acfb: 83 01 f4     subd 0x01F4
-acfe: fd 10 18     std (0x1018)
+acfe: fd 10 18     std (TOC2)
 ad01: 86 40        ldaa 0x40
-ad03: b7 10 23     staa (0x1023)
+ad03: b7 10 23     staa (TFLG1)
 ad06: 86 c0        ldaa 0xC0
-ad08: b7 10 22     staa (0x1022)
+ad08: b7 10 22     staa (TMSK1)
 ad0b: 3b           rti
 ad0c: 86 40        ldaa 0x40
-ad0e: b7 10 23     staa (0x1023)
+ad0e: b7 10 23     staa (TFLG1)
 ad11: bf 01 3e     sts (0x013E)
 ad14: be 01 3c     lds (0x013C)
 ad17: 86 80        ldaa 0x80
-ad19: b7 10 22     staa (0x1022)
+ad19: b7 10 22     staa (TMSK1)
 ad1c: 3b           rti
 
 ad1d: 7d 04 2a     tst (0x042A)
@@ -6930,25 +6930,25 @@ f7fd: ff ff ff     stx (0xFFFF)
 
 f800: 0f           sei
 f801: 86 03        ldaa 0x03
-f803: b7 10 24     staa (0x1024)
+f803: b7 10 24     staa (TMSK2)
 f806: 86 80        ldaa 0x80
-f808: b7 10 22     staa (0x1022)
+f808: b7 10 22     staa (TMSK1)
 f80b: 86 fe        ldaa 0xFE
-f80d: b7 10 35     staa (0x1035)
+f80d: b7 10 35     staa (BPROT)
 f810: 96 07        ldaa (0x0007)
 f812: 81 db        cmpa 0xDB
 f814: 26 06        bne [0xF81C]
-f816: 7f 10 35     clr (0x1035)
+f816: 7f 10 35     clr (BPROT)
 f819: 7f 00 07     clr (0x0007)
 f81c: 8e 01 ff     lds 0x01FF
 f81f: 86 a5        ldaa 0xA5
-f821: b7 10 5d     staa (0x105D)
+f821: b7 10 5d     staa (CSCTL)
 f824: 86 01        ldaa 0x01
-f826: b7 10 5f     staa (0x105F)
+f826: b7 10 5f     staa (CSGSIZ)
 f829: 86 00        ldaa 0x00
-f82b: b7 10 5e     staa (0x105E)
+f82b: b7 10 5e     staa (CSGADR)
 f82e: 86 f0        ldaa 0xF0
-f830: b7 10 5c     staa (0x105C)
+f830: b7 10 5c     staa (CSSTRH)
 f833: 7f 00 00     clr (0x0000)
 f836: 86 30        ldaa 0x30
 f838: b7 18 05     staa (0x1805)
@@ -6990,11 +6990,11 @@ f873: b7 18 0d     staa (0x180D)
 f876: 08           inx
 f877: 20 f4        bra [0xF86D]
 f879: 86 00        ldaa 0x00
-f87b: b7 10 2c     staa (0x102C)
+f87b: b7 10 2c     staa (SCCR1)
 f87e: 86 0c        ldaa 0x0C
-f880: b7 10 2d     staa (0x102D)
+f880: b7 10 2d     staa (SCCR2)
 f883: 86 31        ldaa 0x31
-f885: b7 10 2b     staa (0x102B)
+f885: b7 10 2b     staa (BAUD)
 
 ; Initialize all RAM vectors to RTI: 
 ; Opcode 0x3b into vectors at 0x0100 through 0x0139
@@ -7040,7 +7040,7 @@ f8c8: 97 00        staa (0x0000)
 
 f8ca: c6 01        ldab 0x01
 f8cc: bd f9 95     jsr (0xF995)
-f8cf: b6 10 35     ldaa (0x1035)
+f8cf: b6 10 35     ldaa (BPROT)
 f8d2: 26 0f        bne [0xF8E3]
 f8d4: b6 30 00     ldaa (0x3000)
 f8d7: 81 7e        cmpa 0x7E
@@ -7096,25 +7096,25 @@ f93c: 81 3a        cmpa 0x3A
 f93e: 25 02        bcs [0xF942]
 f940: 8b 07        adda 0x07
 f942: 7e f9 6f     jmp (0xF96F)
-f945: b6 10 2e     ldaa (0x102E)
+f945: b6 10 2e     ldaa (SCSR)
 f948: 85 20        bita 0x20
 f94a: 26 09        bne [0xF955]
 f94c: 0c           clc
 f94d: 39           rts
 
-f94e: b6 10 2e     ldaa (0x102E)
+f94e: b6 10 2e     ldaa (SCSR)
 f951: 85 20        bita 0x20
 f953: 27 f9        beq [0xF94E]
-f955: b6 10 2e     ldaa (0x102E)
+f955: b6 10 2e     ldaa (SCSR)
 f958: 85 02        bita 0x02
 f95a: 26 09        bne [0xF965]
 f95c: 85 08        bita 0x08
 f95e: 26 05        bne [0xF965]
-f960: b6 10 2f     ldaa (0x102F)
+f960: b6 10 2f     ldaa (SCDR)
 f963: 0d           sec
 f964: 39           rts
 
-f965: b6 10 2f     ldaa (0x102F)
+f965: b6 10 2f     ldaa (SCDR)
 f968: 86 2f        ldaa 0x2F
 f96a: bd f9 6f     jsr (0xF96F)
 f96d: 20 df        bra [0xF94E]
@@ -7125,10 +7125,10 @@ f973: 20 07        bra [0xF97C]
 f975: 86 0d        ldaa 0x0D
 f977: bd f9 7c     jsr (0xF97C)
 f97a: 86 0a        ldaa 0x0A
-f97c: f6 10 2e     ldab (0x102E)
+f97c: f6 10 2e     ldab (SCSR)
 f97f: c5 40        bitb 0x40
 f981: 27 f9        beq [0xF97C]
-f983: b7 10 2f     staa (0x102F)
+f983: b7 10 2f     staa (SCDR)
 f986: 39           rts
 
 f987: bd f9 4e     jsr (0xF94E)
@@ -7166,7 +7166,7 @@ f9c2: 86 8e        ldaa 0x8E
 f9c4: ff           ???
 
 f9c5: 36           psha
-f9c6: f7 18 06     stab (0x102D)
+f9c6: f7 18 06     stab (SCCR2)
 f9c9: b6 18 04     ldaa (0x1804)
 f9cc: 84 ef        anda 0xEF
 f9ce: b7 18 04     staa (0x1804)
