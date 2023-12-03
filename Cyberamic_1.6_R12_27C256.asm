@@ -263,8 +263,12 @@
 82a8: 7e a3 66     jmp (0xA366)
 82ab: 81 53        cmpa 0x53
 82ad: 26 f2        bne [0x82A1]
+
 82af: bd f9 d8     jsr (0xF9D8)
-82b2: 0a           clv
+
+'\n\rEnter security code: '
+
+82b2: 0a           clv  
 82b3: 0d           sec
 82b4: 45           ?
 82b5: 6e 74        jmp (X+0x74)
@@ -279,11 +283,18 @@
 82c4: 6f 64        clr (X+0x64)
 82c6: 65           ?
 82c7: 3a           abx
-82c8: a0 0f        suba (X+0x0F)
+82c8: a0 
+
+82c9: 0f           sei
 82ca: bd a2 ea     jsr (0xA2EA)
 82cd: 0e           cli
 82ce: 25 61        bcs [0x8331]
+
 82d0: bd f9 d8     jsr (0xF9D8)
+
+'\r\nEEPROM serial number programming enabled.'
+'\r\nPlease RESET the processor to continue\r\n'
+
 82d3: 0a           clv
 82d4: 0d           sec
 82d5: 45           ?
@@ -341,8 +352,9 @@
 8324: 75           ?
 8325: 65           ?
 8326: 0a           clv
-8327: 8d 86        bsr [0x82AF]
-8329: 01           nop
+8327: 8d 
+
+8328: 86 01        ldaa 0x01
 832a: b7 04 0f     staa (0x040F)
 832d: 86 db        ldaa 0xDB
 832f: 97 07        staa (0x0007)
@@ -4100,7 +4112,11 @@ a28f: 26 fd        bne [0xA28E]
 a291: b6 10 3b     ldaa (PPROG)
 a294: 84 fe        anda 0xFE
 a296: 7f 10 3b     clr (PPROG)
+
 a299: bd f9 d8     jsr (0xF9D8)
+
+'Enter serial #: '
+
 a29c: 45           ?
 a29d: 6e 74        jmp (X+0x74)
 a29f: 65           ?
@@ -4111,13 +4127,13 @@ a2a4: 72           ?
 a2a5: 69 61        rol (X+0x61)
 a2a7: 6c 20        inc (X+0x20)
 a2a9: 23 3a        bls [0xA2E5]
-a2ab: a0 ce        suba (X+0xCE)
-a2ad: 0e           cli
-a2ae: 20 bd        bra [0xA26D]
-a2b0: f9 45 24     adcb (0x4524)
-a2b3: fb bd f9     addb (0xBDF9)
-a2b6: 6f c6        clr (X+0xC6)
-a2b8: 02           idiv
+a2ab: a0 
+
+a2ac: ce 0e 20     ldx 0x0E20
+a2af: bd f9 45     jsr (0xF945)
+a2b2: 24 fb        bcc [0xA2AF]
+a2b4: bd f9 6f     jsr (0xF9CF)
+a2b7: c6 02        ldab 0x02
 a2b9: f7 10 3b     stab (PPROG)
 a2bc: a7 00        staa (X+0x00)
 a2be: bd a2 32     jsr (0xA232)
@@ -4203,7 +4219,10 @@ a365: 39           rts
 a366: 7f 00 4e     clr (0x004E)
 a369: bd 86 c4     jsr (0x86C4)
 a36c: 7f 04 2a     clr (0x042A)
+
 a36f: bd f9 d8     jsr (0xF9D8)
+'Enter security code:'
+
 a372: 45           ?
 a373: 6e 74        jmp (X+0x74)
 a375: 65           ?
@@ -4216,11 +4235,15 @@ a37d: 69 74        rol (X+0x74)
 a37f: 79 20 63     rol (0x2063)
 a382: 6f 64        clr (X+0x64)
 a384: 65           ?
-a385: ba bd a2     oraa (0xBDA2)
-a388: ea 24        orab (X+0x24)
-a38a: 03           fdiv
+a385: ba 
+
+a386: bd a2 ea     jsr (0xA2EA)
+a389: 24 03        bcc [0xA38E]
 a38b: 7e 83 31     jmp (0x8331)
+
 a38e: bd f9 d8     jsr (0xF9D8)
+; Dave's setup utility - BIG MENU - TBD
+
 a391: 0c           clc
 a392: 0a           clv
 a393: 0d           sec
@@ -4391,9 +4414,11 @@ a48b: 6f 20        clr (X+0x20)
 a48d: 73 79 73     com (0x7973)
 a490: 74 65 6d     lsr (0x656D)
 a493: 0a           clv
-a494: 8d bd        bsr [0xA453]
-a496: f9 45 24     adcb (0x4524)
-a499: fb 81 43     addb (0x8143)
+a494: 8d 
+
+a495: bd f9 45     jsr (0xF945)
+a498: 24 fb        bcc [0xA495]
+a49A: 81 43        cmpa 0x43
 a49c: 26 09        bne [0xA4A7]
 a49e: 7f 04 01     clr (0x0401)
 a4a1: 7f 04 2b     clr (0x042B)
@@ -6849,6 +6874,8 @@ b64a: a0 13        suba (X+0x13)
 b64c: a2 11        sbca (X+0x11)
 b64e: a0 ff        suba (X+0xFF)
 
+; All empty (0xFFs) in this gap
+
 f780: 57
 f781: 0b           sev
 f782: 00           test
@@ -6930,58 +6957,52 @@ f7fd: ff ff ff     stx (0xFFFF)
 
 f800: 0f           sei
 f801: 86 03        ldaa 0x03
-f803: b7 10 24     staa (TMSK2)
+f803: b7 10 24     staa (TMSK2)     ; disable irqs, set prescaler to 16
 f806: 86 80        ldaa 0x80
-f808: b7 10 22     staa (TMSK1)
+f808: b7 10 22     staa (TMSK1)     ; enable OC1 (LCD?) irq
 f80b: 86 fe        ldaa 0xFE
-f80d: b7 10 35     staa (BPROT)
-f810: 96 07        ldaa (0x0007)
+f80d: b7 10 35     staa (BPROT)     ; protect everything except $xE00-$xE1F
+f810: 96 07        ldaa (0x0007)    ; ?????
 f812: 81 db        cmpa 0xDB
-f814: 26 06        bne [0xF81C]
-f816: 7f 10 35     clr (BPROT)
-f819: 7f 00 07     clr (0x0007)
-f81c: 8e 01 ff     lds 0x01FF
+f814: 26 06        bne $1
+f816: 7f 10 35     clr (BPROT)      ; unprotect everything
+f819: 7f 00 07     clr (0x0007)     ; ?????
+$1:
+f81c: 8e 01 ff     lds 0x01FF       ; init SP
 f81f: 86 a5        ldaa 0xA5
-f821: b7 10 5d     staa (CSCTL)
+f821: b7 10 5d     staa (CSCTL)     ; enable external IO:
+                                    ; IO1EN, BUSSEL, active LOW
+                                    ; IO2EN, LCRS, active LOW
+                                    ; CSPROM, ROMSEL, 32K ROM mapping $8000-FFFF
+
 f824: 86 01        ldaa 0x01
-f826: b7 10 5f     staa (CSGSIZ)
+f826: b7 10 5f     staa (CSGSIZ)    ; general purpose chip select size, 32K
 f829: 86 00        ldaa 0x00
-f82b: b7 10 5e     staa (CSGADR)
+f82b: b7 10 5e     staa (CSGADR)    ; RAMSEL = $0000-$7FFF (except internal regs)
 f82e: 86 f0        ldaa 0xF0
-f830: b7 10 5c     staa (CSSTRH)
+f830: b7 10 5c     staa (CSSTRH)    ; 3 cycle clock stretching on BUSSEL and LCRS
 f833: 7f 00 00     clr (0x0000)
-f836: 86 30        ldaa 0x30
+f836: 86 30        ldaa 0x30        ; '0'
 f838: b7 18 05     staa (0x1805)
 f83b: b7 18 07     staa (0x1807)
 f83e: 86 ff        ldaa 0xFF
 f840: b7 18 06     staa (0x1806)
-f843: 86 78        ldaa 0x78
+f843: 86 78        ldaa 0x78        ; 'x'
 f845: b7 18 04     staa (0x1804)
-f848: 86 34        ldaa 0x34
+f848: 86 34        ldaa 0x34        ; '4'
 f84a: b7 18 05     staa (0x1805)
 f84d: b7 18 07     staa (0x1807)
 
 f850: c6 ff        ldab 0xFF
 f852: bd f9 c5     jsr (0xF9C5)
-f855: 20 13        bra [0xF86A]
+f855: 20 13        bra $1           ; jump past data table
 
-// Data loaded into (0x180D)
-f857: 09           dex
-f858: 4a           deca
-f859: 01           nop
-f85a: 10           sba
-f85b: 0c           clc
-f85c: 18 0d        ?
-f85e: 00           test
-f85f: 04           lsrd
-f860: 44           lsra
-f861: 0e           cli
-f862: 63 05        com (X+0x05)
-f864: 68 0b        asl (X+0x0B)
-f866: 56           rorb
-f867: 03           fdiv
-f868: c1 ff        cmpb 0xFF
+// Data loaded into (0x180D-0x181F)
+f857: 09 4a 01 
+f85a: 10 0c 18 0d 00 04 44 0e
+f862: 63 05 68 0b 56 03 c1 ff
 
+$1:
 f86a: ce f8 57     ldx 0xF857
 f86d: a6 00        ldaa (X+0x00)
 f86f: 81 ff        cmpa 0xFF
@@ -6989,6 +7010,11 @@ f871: 27 06        beq [0xF879]
 f873: b7 18 0d     staa (0x180D)
 f876: 08           inx
 f877: 20 f4        bra [0xF86D]
+
+; Setup normal SCI, 8 data bits, 1 stop bit
+; Interrupts disabled, Transmitter and Receiver enabled
+; prescaler = /13, SCR=/2, rate = 9600 baud at 16Mhz clock
+
 f879: 86 00        ldaa 0x00
 f87b: b7 10 2c     staa (SCCR1)
 f87e: 86 0c        ldaa 0x0C
@@ -7000,7 +7026,7 @@ f885: b7 10 2b     staa (BAUD)
 ; Opcode 0x3b into vectors at 0x0100 through 0x0139
 
 f888: ce 01 00     ldx 0x0100
-f88b: 86 3b        ldaa 0x3B
+f88b: 86 3b        ldaa 0x3B        ; RTI opcode
 f88d: a7 00        staa (X+0x00)
 f88f: 08           inx
 f890: 08           inx
@@ -7068,23 +7094,29 @@ f905: 0f           sei
 f906: 20 ee        bra [0xF8F6]
 f908: c6 10        ldab 0x10
 f90a: bd f9 95     jsr (0xF995)
+
 f90d: bd f9 d8     jsr (0xF9D8)
-f910: 4d           tsta
-f911: 49           rola
-f912: 4e           ?
-f913: 49           rola
-f914: 2d 4d        blt [0xF963]
-f916: 4f           clra
-f917: ce c6 10     ldx 0xC610
+
+'MINI-MO.'
+
+f910: 4d 49 4e 49 2d 4d 4f ce
+
+f918: c6 10        ldab 0x10
 f91a: bd f9 95     jsr (0xF995)
 f91d: 7f 00 05     clr (0x0005)
 f920: 7f 00 04     clr (0x0004)
 f923: 7f 00 02     clr (0x0002)
 f926: 7f 00 06     clr (0x0006)
+
 f929: bd f9 d8     jsr (0xF9D8)
+'\r\n:'
+
 f92c: 0d           sec
 f92d: 0a           clv
-f92e: be 36 44     lds (0x3644)
+f92e: be 
+
+f92f: 36           psha
+f930L 44           lsra
 f931: 44           lsra
 f932: 44           lsra
 f933: 44           lsra
@@ -7102,33 +7134,38 @@ f94a: 26 09        bne [0xF955]
 f94c: 0c           clc
 f94d: 39           rts
 
-f94e: b6 10 2e     ldaa (SCSR)
+; wait for a serial character
+f94e: b6 10 2e     ldaa (SCSR)      ; read serial status
 f951: 85 20        bita 0x20
-f953: 27 f9        beq [0xF94E]
-f955: b6 10 2e     ldaa (SCSR)
+f953: 27 f9        beq [0xF94E]     ; if RDRF=0, loop
+
+; read serial data, (assumes it's ready)
+f955: b6 10 2e     ldaa (SCSR)      ; read serial status
 f958: 85 02        bita 0x02
-f95a: 26 09        bne [0xF965]
+f95a: 26 09        bne [0xF965]     ; if FE=1, clear it
 f95c: 85 08        bita 0x08
-f95e: 26 05        bne [0xF965]
-f960: b6 10 2f     ldaa (SCDR)
+f95e: 26 05        bne [0xF965]     ; if OR=1, clear it
+f960: b6 10 2f     ldaa (SCDR)      ; otherwise, good data
 f963: 0d           sec
 f964: 39           rts
 
-f965: b6 10 2f     ldaa (SCDR)
-f968: 86 2f        ldaa 0x2F
+f965: b6 10 2f     ldaa (SCDR)      ; clear any error
+f968: 86 2f        ldaa 0x2F        ; '/'   
 f96a: bd f9 6f     jsr (0xF96F)
-f96d: 20 df        bra [0xF94E]
+f96d: 20 df        bra [0xF94E]     ; go to wait for a character
 
-f96f: 81 0d        cmpa 0x0D
-f971: 27 02        beq [0xF975]
-f973: 20 07        bra [0xF97C]
+f96f: 81 0d        cmpa 0x0D        ; CR?
+f971: 27 02        beq [0xF975]     ; if so echo CR+LF
+f973: 20 07        bra [0xF97C]     ; else just echo it
 f975: 86 0d        ldaa 0x0D
 f977: bd f9 7c     jsr (0xF97C)
 f97a: 86 0a        ldaa 0x0A
-f97c: f6 10 2e     ldab (SCSR)
+
+; send a char to SCI
+f97c: f6 10 2e     ldab (SCSR)      ; wait for ready to send
 f97f: c5 40        bitb 0x40
 f981: 27 f9        beq [0xF97C]
-f983: b7 10 2f     staa (SCDR)
+f983: b7 10 2f     staa (SCDR)      ; send it
 f986: 39           rts
 
 f987: bd f9 4e     jsr (0xF94E)
@@ -7175,19 +7212,24 @@ f9d3: b7 18 04     staa (0x1804)
 f9d6: 32           pula
 f9d7: 39           rts
 
+; Send rom message via SCI
+
 f9d8: 18 38        puly
 f9da: 18 a6 00     ldaa (Y+0x00)
-f9dd: 27 09        beq [0xF9E8]
-f9df: 2b 0c        bmi [0xF9ED]
-f9e1: bd f9 7c     jsr (0xF97C)
+f9dd: 27 09        beq [0xF9E8]     ; if zero terminated, return
+f9df: 2b 0c        bmi [0xF9ED]     ; if high bit set..do last char and return
+f9e1: bd f9 7c     jsr (0xF97C)     ; else send char
 f9e4: 18 08        iny
-f9e6: 20 f2        bra [0xF9DA]
-f9e8: 18 08        iny
+f9e6: 20 f2        bra [0xF9DA]     ; and loop for next one
+
+f9e8: 18 08        iny              ; setup return address and return
 f9ea: 18 3c        pshy
 f9ec: 39           rts
-f9ed: 84 7f        anda 0x7F
-f9ef: bd f9 7c     jsr (0xF97C)
-f9f2: 20 f4        bra [0xF9E8]
+
+f9ed: 84 7f        anda 0x7F        ; remove top bit
+f9ef: bd f9 7c     jsr (0xF97C)     ; send char
+f9f2: 20 f4        bra [0xF9E8]     ; and we're done
+
 f9f4: 39           rts
 f9f5: 39           rts
 
