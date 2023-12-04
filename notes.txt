@@ -1,0 +1,20 @@
+
+
+1804-1807 PIASEL
+180C-180F SCCSEL
+
+Main PIA pins:
+
+PA0 - ENTER button, input, active low
+PA1 - DOWN button, input, active low
+PA2 - UP button, input, active low
+PA3 - MSGLED backlight, output, active high
+PA4 - Button lights clock, output, rising edge active
+PA5 - Diagnostic indicator, output, active low
+PA6 - RESET button light, output, active high?
+PA7 - Tape deck connector input, active low
+
+PB0-PB7 - local DATA bus, output (DA0-DA7)
+
+CA2 - A/V Connector clock, output, rising edge active
+CB2 - Tape Deck Connector clock, output, rising edge active
