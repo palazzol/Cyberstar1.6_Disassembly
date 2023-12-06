@@ -9,22 +9,23 @@
 8051: fc 04 26     ldd (0x0426)         ; increment boot cycle counter?
 8054: c3 00 01     addd 0x0001
 8057: fd 04 26     std (0x0426)
+
 805a: ce ad 1d     ldx 0xAD1D
 805d: ff 01 ce     stx (0x01CE)         ; store this vector here?
 8060: 7f 01 c7     clr (0x01C7)
 8063: cc 01 c6     ldd 0x01C6
-8066: fd 01 3e     std (0x013E)         ; store this vector here?
+8066: fd 01 3e     std (0x013E)         ; store this vector here? Some sort of RTI setup
 8069: 7f 00 b0     clr (0x00B0)
 806c: 7f 00 4e     clr (0x004E)
 806f: 7f 00 b6     clr (0x00B6)
 8072: 7f 00 4d     clr (0x004D)
 8075: 86 03        ldaa 0x03
-8077: b7 10 a8     staa (0x10A8)        ; ???
+8077: b7 10 a8     staa (0x10A8)        ; board 11??
 807a: 18 ce 00 80  ldy 0x0080           ; delay loop
 807e: 18 09        dey
 8080: 26 fc        bne [0x807E]
 8082: 86 11        ldaa 0x11
-8084: b7 10 a8     staa (0x10A8)        ; ???
+8084: b7 10 a8     staa (0x10A8)        ; board 11??
 
 8087: c6 10        ldab 0x10
 8089: bd f9 95     jsr (0xF995)         ; blank the diag display
@@ -34,7 +35,7 @@
 8091: b7 18 04     staa (0x1804)
 8094: 86 ff        ldaa 0xFF
 8096: 97 ac        staa (0x00AC)        ; ???
-8098: bd 86 c4     jsr (0x86C4)         ; main1?
+8098: bd 86 c4     jsr (0x86C4)         ; Init PIAs on cards?
 809b: bd 99 a6     jsr (0x99A6)         ; main2?
 809e: bd 8c 3c     jsr (0x8C3C)         ; reset LCD?
 80a1: bd 87 e8     jsr (0x87E8)         ; SCC something?
@@ -49,12 +50,12 @@
 80ba: 81 01        cmpa 0x01            ; 1 means erase EEPROM!
 80bc: 26 03        bne [0x80C1]
 80be: 7e a2 75     jmp (0xA275)         ; erase EEPROM: skipped if 0x40f !=1
-80c1: fc 04 0b     ldd (0x040B)         ; security code??
+80c1: fc 04 0b     ldd (0x040B)         ; copyright checksum
 80c4: 1a 83 19 7b  cpd 0x197B           ; check copyright checksum
 80c8: 26 4f        bne [0x8119]         ; bye bye
 80ca: 5f           clrb
-80cb: d7 62        stab (0x0062)        
-80cd: bd f9 c5     jsr (0xF9C5)
+80cb: d7 62        stab (0x0062)        ; button light buffer?
+80cd: bd f9 c5     jsr (0xF9C5)         ; turn off? button lights
 80d0: bd a3 41     jsr (0xA341)
 80d3: b6 04 00     ldaa (0x0400)
 80d6: 81 07        cmpa 0x07
@@ -103,16 +104,8 @@
 8141: 24 16        bcc [0x8159]
 8143: bd 8d e4     jsr (0x8DE4)
 
-'Invalid CPU!'
-8146: 49           rola
-8147: 6e 76        jmp (X+0x76)
-8149: 61           ?
-814a: 6c 69        inc (X+0x69)
-814c: 64 20        lsr (X+0x20)
-814e: 43           coma
-814f: 50           negb
-8150: 55           ?
-8151: a1
+; 'Invalid CPU!'
+8146: 49 6e 76 61 6c 69 64 20 43 50 55 a1
 
 8152: 86 53        ldaa 0x53
 8154: 7e 82 a4     jmp (0x82A4)
@@ -123,52 +116,30 @@
 8162: 27 15        beq [0x8179]
 8164: bd 8d e4     jsr (0x8DE4)
 
-'RAM test failed!'
-8167: 52           ?
-8168: 41           ?
-8169: 4d           tsta
-816a: 20 74        bra [0x81E0]
-816c: 65           ?
-816d: 73 74 20     com (0x7420)
-8170: 66 61        ror (X+0x61)
-8172: 69 6c        rol (X+0x6C)
-8174: 65           ?
-8175: 64 a1        lsr (X+0xA1)
+; 'RAM test failed!'
+8167: 52 41 4d 20 74 65 73 74 20 66 61 69 6c 65 64 a1
 
 8177: 20 44        bra [0x81BD]
 8179: bd 8d e4     jsr (0x8DE4)
 
-'32K RAM OK'
-817c: 33           pulb
-817d: 32           pula
-817e: 4b           ?
-817f: 20 52        bra [0x81D3]
-8181: 41           ?
-8182: 4d           tsta
-8183: 20 4f        bra [0x81D4]
-8185: cb 
+; '32K RAM OK'
+817c: 33 32 4b 20 52 41 4d 20 4f cb 
 
 8186: 7d 04 5c     tst (0x045C)
 8189: 26 08        bne [0x8193]
 818b: cc 52 0f     ldd 0x520F
-818e: bd 8d b5     jsr (0x8DB5)
+818e: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 8191: 20 06        bra [0x8199]
 8193: cc 43 0f     ldd 0x430F
-8196: bd 8d b5     jsr (0x8DB5)
+8196: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 8199: bd 8d dd     jsr (0x8DDD)
 
-'ROM Chksum='
-819c: 52           ?
-819d: 4f           clra
-819e: 4d           tsta
-819f: 20 43        bra [0x81E4]
-81a1: 68 6b        asl (X+0x6B)
-81a3: 73 75 6d     com (0x756D)
-81a6: bd 
+; 'ROM Chksum='
+819c: 52 4f 4d 20 43 68 6b 73 75 6d bd 
 
-81a7: bd 97 5f     jsr (0x975F)     ; good
+81a7: bd 97 5f     jsr (0x975F)     ; print the checksum on the LCD
 81aa: c6 02        ldab 0x02
-81ac: bd 8c 02     jsr (0x8C02)
+81ac: bd 8c 02     jsr (0x8C02)     
 81af: bd 9a 27     jsr (0x9A27)
 81b2: bd 9e cc     jsr (0x9ECC)
 81b5: bd 9b 19     jsr (0x9B19)
@@ -186,24 +157,17 @@
 81d4: bd f9 c5     jsr (0xF9C5)
 81d7: bd 8d e4     jsr (0x8DE4)
 
-' Cyberstar v1.6'
-81da: 20 43        bra [0x821F]
-81dc: 79 62 65     rol (0x6265)
-81df: 72           ?
-81e0: 73 74 61     com (0x7461)
-81e3: 72           ?
-81e4: 20 76        bra [0x825C]
-81e6: 31           ins
-81e7: 2e b6        bgt [0x819F]
+; ' Cyberstar v1.6'
+81da: 20 43 79 62 65 72 73 74 61 72 20 76 31 2e b6
 
 81e9: bd a2 df     jsr (0xA2DF)
 81ec: 24 11        bcc [0x81FF]
 81ee: cc 52 0f     ldd 0x520F
-81f1: bd 8d b5     jsr (0x8DB5)
+81f1: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 81f4: 7d 04 2a     tst (0x042A)
 81f7: 27 06        beq [0x81FF]
 81f9: cc 4b 0f     ldd 0x4B0F
-81fc: bd 8d b5     jsr (0x8DB5)
+81fc: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 81ff: bd 8d 03     jsr (0x8D03)
 8202: fc 02 9c     ldd (0x029C)
 8205: 1a 83 00 01  cpd 0x0001
@@ -211,14 +175,7 @@
 820b: bd 8d dd     jsr (0x8DDD)
 
 ' Dave's system  '
-820e: 20 44        bra [0x8254]
-8210: 61           ?
-8211: 76 65 27     ror (0x6527)
-8214: 73 20 73     com (0x2073)
-8217: 79 73 74     rol (0x7374)
-821a: 65           ?
-821b: 6d 20        tst (X+0x20)
-821d: a0 
+820e: 20 44 61 76 65 27 73 20 73 79 73 74 65 6d 20 a0 
 
 821e: 20 47        bra [0x8267]
 8220: 1a 83 03 e8  cpd 0x03E8
@@ -228,15 +185,7 @@
 822c: bd 8d dd     jsr (0x8DDD)
 
 '   SPT Studio   '
-822f: 20 20        bra [0x8251]
-8231: 20 53        bra [0x8286]
-8233: 50           negb
-8234: 54           lsrb
-8235: 20 53        bra [0x828A]
-8237: 74 75 64     lsr (0x7564)
-823a: 69 6f        rol (X+0x6F)
-823c: 20 20        bra [0x825E]
-823e: a0 
+822f: 20 20 20 53 50 54 20 53 74 75 64 69 6f 20 20 a0 
 
 823f: 20 26        bra [0x8267]
 8241: cc 0e 0c     ldd 0x0E0C
@@ -253,7 +202,7 @@
 825c: 08           inx
 825d: 5c           incb
 825e: 3c           pshx
-825f: bd 8d b5     jsr (0x8DB5)
+825f: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 8262: 38           pulx
 8263: 9c ad        cpx (0x00AD)
 8265: 26 f2        bne [0x8259]
@@ -289,24 +238,8 @@
 
 82af: bd f9 d8     jsr (0xF9D8)
 
-'\n\rEnter security code: '
-
-82b2: 0a           clv  
-82b3: 0d           sec
-82b4: 45           ?
-82b5: 6e 74        jmp (X+0x74)
-82b7: 65           ?
-82b8: 72           ?
-82b9: 20 73        bra [0x832E]
-82bb: 65           ?
-82bc: 63 75        com (X+0x75)
-82be: 72           ?
-82bf: 69 74        rol (X+0x74)
-82c1: 79 20 63     rol (0x2063)
-82c4: 6f 64        clr (X+0x64)
-82c6: 65           ?
-82c7: 3a           abx
-82c8: a0 
+; '\n\rEnter security code: '
+82b2: 0a 0d 45 6e 74 65 72 20 73 65 63 75 72 69 74 79 20 63 6f 64 65 3a a0 
 
 82c9: 0f           sei
 82ca: bd a2 ea     jsr (0xA2EA)
@@ -315,67 +248,15 @@
 
 82d0: bd f9 d8     jsr (0xF9D8)
 
-'\r\nEEPROM serial number programming enabled.'
-'\r\nPlease RESET the processor to continue\r\n'
+; '\r\nEEPROM serial number programming enabled.'
+; '\r\nPlease RESET the processor to continue\r\n'
 
-82d3: 0a           clv
-82d4: 0d           sec
-82d5: 45           ?
-82d6: 45           ?
-82d7: 50           negb
-82d8: 52           ?
-82d9: 4f           clra
-82da: 4d           tsta
-82db: 20 73        bra [0x8350]
-82dd: 65           ?
-82de: 72           ?
-82df: 69 61        rol (X+0x61)
-82e1: 6c 20        inc (X+0x20)
-82e3: 6e 75        jmp (X+0x75)
-82e5: 6d 62        tst (X+0x62)
-82e7: 65           ?
-82e8: 72           ?
-82e9: 20 70        bra [0x835B]
-82eb: 72           ?
-82ec: 6f 67        clr (X+0x67)
-82ee: 72           ?
-82ef: 61           ?
-82f0: 6d 6d        tst (X+0x6D)
-82f2: 69 6e        rol (X+0x6E)
-82f4: 67 20        asr (X+0x20)
-82f6: 65           ?
-82f7: 6e 61        jmp (X+0x61)
-82f9: 62           ?
-82fa: 6c 65        inc (X+0x65)
-82fc: 64 2e        lsr (X+0x2E)
-82fe: 0a           clv
-82ff: 0d           sec
-8300: 50           negb
-8301: 6c 65        inc (X+0x65)
-8303: 61           ?
-8304: 73 65 20     com (0x6520)
-8307: 52           ?
-8308: 45           ?
-8309: 53           comb
-830a: 45           ?
-830b: 54           lsrb
-830c: 20 74        bra [0x8382]
-830e: 68 65        asl (X+0x65)
-8310: 20 70        bra [0x8382]
-8312: 72           ?
-8313: 6f 63        clr (X+0x63)
-8315: 65           ?
-8316: 73 73 6f     com (0x736F)
-8319: 72           ?
-831a: 20 74        bra [0x8390]
-831c: 6f 20        clr (X+0x20)
-831e: 63 6f        com (X+0x6F)
-8320: 6e 74        jmp (X+0x74)
-8322: 69 6e        rol (X+0x6E)
-8324: 75           ?
-8325: 65           ?
-8326: 0a           clv
-8327: 8d 
+82d3: 0a 0d 45 45 50 52 4f 4d 20 73 65 72 69 61 6c 20 
+82e3: 6e 75 6d 62 65 72 20 70 72 6f 67 72 61 6d 6d 69 
+82f3: 6e 67 20 65 6e 61 62 6c 65 64 2e 0a 0d 50 6c 65
+8303: 61 73 65 20 52 45 53 45 54 20 74 68 65 20 70 72
+8313: 6f 63 65 73 73 6f 72 20 74 6f 20 63 6f 6e 74 69
+8323: 6e 75 65 0a 8d 
 
 8328: 86 01        ldaa 0x01
 832a: b7 04 0f     staa (0x040F)
@@ -454,15 +335,8 @@
 83d8: 7e 9a 7f     jmp (0x9A7F)
 83db: bd 8d e4     jsr (0x8DE4)
 
-'   Tape start   '
-83de: 20 20        bra [0x8400]
-83e0: 20 54        bra [0x8436]
-83e2: 61           ?
-83e3: 70 65 20     neg (0x6520)
-83e6: 73 74 61     com (0x7461)
-83e9: 72           ?
-83ea: 74 20 20     lsr (0x2020)
-83ed: a0
+; '   Tape start   '
+83de: 20 20 20 54 61 70 65 20 73 74 61 72 74 20 20 a0
 
 83ee: d6 62        ldab (0x0062)
 83f0: ca 80        orab 0x80
@@ -472,23 +346,13 @@
 83f9: bd 86 e7     jsr (0x86E7)
 83fc: bd 8d cf     jsr (0x8DCF)
 
-'68HC11 Proto'
-83ff: 36           psha
-8400: 38           pulx
-8401: 48           asla
-8402: 43           coma
-8403: 31           ins
-8404: 31           ins
-8405: 20 50        bra [0x8457]
-8407: 72           ?
-8408: 6f 74        clr (X+0x74)
-840a: ef 
+; '68HC11 Proto'
+83ff: 36 38 48 43 31 31 20 50 72 6f 74 ef 
 
 840b: bd 8d d6     jsr (0x8DD6)
 
-'dbp'
-840e: 64 62        lsr (X+0x62)
-8410: f0 
+; 'dbp'
+840e: 64 62 f0 
 
 8411: c6 03        ldab 0x03
 8413: bd 8c 02     jsr (0x8C02)
@@ -775,11 +639,10 @@
 86c2: 0c           clc
 86c3: 39           rts
 
-; main1 - init peripherals at:
+; main1 - init boards 1-9 at:
 ;         0x1080, 0x1084, 0x1088, 0x108c
 ;         0x1090, 0x1094, 0x1098, 0x109c
 ;         0x10a0
-; PIA's on other cards?
 
 86c4: ce 10 80     ldx 0x1080
 86c7: 86 30        ldaa 0x30
@@ -817,7 +680,7 @@
 8701: 84 f7        anda 0xF7
 8703: 97 ac        staa (0x00AC)
 8705: b7 18 06     staa (0x1806)
-8708: bd 87 3a     jsr (0x873A)
+8708: bd 87 3a     jsr (0x873A)     ; clock diagnostic indicator
 870b: 96 7a        ldaa (0x007A)
 870d: 84 01        anda 0x01
 870f: 97 7a        staa (0x007A)
@@ -836,10 +699,11 @@
 872e: 8a 49        oraa 0x49
 8730: 97 ac        staa (0x00AC)
 8732: b7 18 06     staa (0x1806)
-8735: bd 87 3a     jsr (0x873A)
+8735: bd 87 3a     jsr (0x873A)     ; clock diagnostic indicator
 8738: 32           pula
 8739: 39           rts
 
+; clock diagnostic indicator
 873a: b6 18 04     ldaa (0x1804)
 873d: 8a 20        oraa 0x20
 873f: b7 18 04     staa (0x1804)
@@ -863,7 +727,7 @@
 8760: 84 df        anda 0xDF
 8762: b7 18 06     staa (0x1806)
 8765: 97 ac        staa (0x00AC)
-8767: bd 87 3a     jsr (0x873A)
+8767: bd 87 3a     jsr (0x873A)     ; clock diagnostic indicator
 876a: 33           pulb
 876b: f7 18 06     stab (0x1806)
 876e: d7 7b        stab (0x007B)
@@ -897,7 +761,7 @@
 87a2: bd 87 75     jsr (0x8775)
 87a5: 96 ac        ldaa (0x00AC)
 87a7: b7 18 06     staa (0x1806)
-87aa: bd 87 3a     jsr (0x873A)
+87aa: bd 87 3a     jsr (0x873A)     ; clock diagnostic indicator
 87ad: 39           rts
 
 87ae: 96 7a        ldaa (0x007A)
@@ -1366,28 +1230,13 @@
 8b48: bd a3 2e     jsr (0xA32E)
 8b4b: bd 8d e4     jsr (0x8DE4)
 
-'Light Diagnostic'
-8b4e: 4c           inca
-8b4f: 69 67        rol (X+0x67)
-8b51: 68 74        asl (X+0x74)
-8b53: 20 44        bra [0x8B99]
-8b55: 69 61        rol (X+0x61)
-8b57: 67 6e        asr (X+0x6E)
-8b59: 6f 73        clr (X+0x73)
-8b5b: 74 69 e3     lsr (0x69E3)
+; 'Light Diagnostic'
+8b4e: 4c 69 67 68 74 20 44 69 61 67 6e 6f 73 74 69 e3
 
 8b5e: bd 8d dd     jsr (0x8DDD)
 
-'Curtains opening'
-8b61: 43           coma
-8b62: 75           ?
-8b63: 72           ?
-8b64: 74 61 69     lsr (0x6169)
-8b67: 6e 73        jmp (X+0x73)
-8b69: 20 6f        bra [0x8BDA]
-8b6b: 70 65 6e     neg (0x656E)
-8b6e: 69 6e        rol (X+0x6E)
-8b70: e7 
+; 'Curtains opening'
+8b61: 43 75 72 74 61 69 6e 73 20 6f 70 65 6e 69 6e e7 
 
 8b71: c6 14        ldab 0x14
 8b73: bd 8c 30     jsr (0x8C30)
@@ -1402,29 +1251,13 @@
 8b8c: b7 18 04     staa (0x1804)
 8b8f: bd 8d e4     jsr (0x8DE4)
 
-' Press ENTER to '
-8b92: 20 50        bra [0x8BE4]
-8b94: 72           ?
-8b95: 65           ?
-8b96: 73 73 20     com (0x7320)
-8b99: 45           ?
-8b9a: 4e           ?
-8b9b: 54           lsrb
-8b9c: 45           ?
-8b9d: 52           ?
-8b9e: 20 74        bra [0x8C14]
-8ba0: 6f a0        clr (X+0xA0)
+; ' Press ENTER to '
+8b92: 20 50 72 65 73 73 20 45 4e 54 45 52 20 74 6f a0
 
 8ba2: bd 8d dd     jsr (0x8DDD)
 
-'turn lights  off'
-8ba5: 74 75 72     lsr (0x7572)
-8ba8: 6e 20        jmp (X+0x20)
-8baa: 6c 69        inc (X+0x69)
-8bac: 67 68        asr (X+0x68)
-8bae: 74 73 20     lsr (0x7320)
-8bb1: 20 6f        bra [0x8C22]
-8bb3: 66 e6        ror (X+0xE6)
+; 'turn lights  off'
+8ba5: 74 75 72 6e 20 6c 69 67 68 74 73 20 20 6f 66 e6
 
 8bb5: bd 8e 95     jsr (0x8E95)
 8bb8: 81 0d        cmpa 0x0D
@@ -1912,7 +1745,7 @@
 8f64: c6 2c        ldab 0x2C
 8f66: a6 00        ldaa (X+0x00)
 8f68: 08           inx
-8f69: bd 8d b5     jsr (0x8DB5)
+8f69: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 8f6c: 5c           incb
 8f6d: c1 2f        cmpb 0x2F
 8f6f: 26 f5        bne [0x8F66]
@@ -1930,11 +1763,7 @@
 8f83: bd 8d e4     jsr (0x8DE4)
 
 'Chuck    '
-8f86: 43           coma
-8f87: 68 75        asl (X+0x75)
-8f89: 63 6b        com (X+0x6B)
-8f8b: 20 20        bra [0x8FAD]
-8f8d: 20 a0        bra [0x8F2F]
+8f86: 43 68 75 63 6b 20 20 20 a0
 
 8f8f: ce 90 72     ldx 0x9072
 8f92: 20 4d        bra [0x8FE1]
@@ -1943,12 +1772,7 @@
 8f98: bd 8d e4     jsr (0x8DE4)
 
 'Jasper   '
-8f9b: 4a           deca
-8f9c: 61           ?
-8f9d: 73 70 65     com (0x7065)
-8fa0: 72           ?
-8fa1: 20 20        bra [0x8FC3]
-8fa3: a0 
+8f9b: 4a 61 73 70 65 72 20 20 a0 
 
 8fa4: ce 90 de     ldx 0x90DE
 8fa7: 20 38        bra [0x8FE1]
@@ -1957,12 +1781,7 @@
 8fad: bd 8d e4     jsr (0x8DE4)
 
 'Pasqually'
-8fb0: 50           negb
-8fb1: 61           ?
-8fb2: 73 71 75     com (0x7175)
-8fb5: 61           ?
-8fb6: 6c 6c        inc (X+0x6C)
-8fb8: f9
+8fb0: 50 61 73 71 75 61 6c 6c f9
 
 8fb9: ce 91 45     ldx 0x9145
 8fbc: 20 23        bra [0x8FE1]
@@ -1971,23 +1790,14 @@
 8fc2: bd 8d e4     jsr (0x8DE4)
 
 'Munch    '
-8fc5: 4d           tsta
-8fc6: 75           ?
-8fc7: 6e 63        jmp (X+0x63)
-8fc9: 68 20        asl (X+0x20)
-8fcb: 20 20        bra [0x8FED]
-8fcd: a0
+8fc5: 4d 75 6e 63 68 20 20 20 a0
 
 8fce: ce 91 ba     ldx 0x91BA
 8fd1: 20 0e        bra [0x8FE1]
 8fd3: bd 8d e4     jsr (0x8DE4)
 
 'Helen   '
-8fd6: 48           asla
-8fd7: 65           ?
-8fd8: 6c 65        inc (X+0x65)
-8fda: 6e 20        jmp (X+0x20)
-8fdc: 20 a0        bra [0x8F7E]
+8fd6: 48 65 6c 65 6e 20 20 a0
 
 8fde: ce 92 26     ldx 0x9226
 8fe1: 96 b4        ldaa (0x00B4)
@@ -2028,19 +1838,19 @@
 901e: 27 16        beq [0x9036]
 9020: 86 4f        ldaa 0x4F
 9022: c6 0c        ldab 0x0C
-9024: bd 8d b5     jsr (0x8DB5)
+9024: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9027: 86 6e        ldaa 0x6E
 9029: c6 0d        ldab 0x0D
-902b: bd 8d b5     jsr (0x8DB5)
+902b: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 902e: cc 20 0e     ldd 0x200E
-9031: bd 8d b5     jsr (0x8DB5)
+9031: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9034: 20 0e        bra [0x9044]
 9036: 86 66        ldaa 0x66
 9038: c6 0d        ldab 0x0D
-903a: bd 8d b5     jsr (0x8DB5)
+903a: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 903d: 86 66        ldaa 0x66
 903f: c6 0e        ldab 0x0E
-9041: bd 8d b5     jsr (0x8DB5)
+9041: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9044: d6 12        ldab (0x0012)
 9046: bd 8c 30     jsr (0x8C30)
 9049: bd 8e 95     jsr (0x8E95)
@@ -2403,25 +2213,12 @@
 929a: bd 8d e4     jsr (0x8DE4)
 
 '  Diagnostics   '
-929d: 20 20        bra [0x92BF]
-929f: 44           lsra
-92a0: 69 61        rol (X+0x61)
-92a2: 67 6e        asr (X+0x6E)
-92a4: 6f 73        clr (X+0x73)
-92a6: 74 69 63     lsr (0x6963)
-92a9: 73 20 20     com (0x2020)
-92ac: a0 
+929d: 20 20 44 69 61 67 6e 6f 73 74 69 63 73 20 20 a0
+
 92ad: bd 8d dd     jsr (0x8DDD)
 
 '                '
-92b0: 20 20        bra [0x92D2]
-92b2: 20 20        bra [0x92D4]
-92b4: 20 20        bra [0x92D6]
-92b6: 20 20        bra [0x92D8]
-92b8: 20 20        bra [0x92DA]
-92ba: 20 20        bra [0x92DC]
-92bc: 20 20        bra [0x92DE]
-92be: 20 a0        bra [0x9260]
+92b0: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 a0
 
 92c0: c6 01        ldab 0x01
 92c2: bd 8c 30     jsr (0x8C30)
@@ -2479,13 +2276,7 @@
 9341: bd 8d e4     jsr (0x8DE4)
 
 'Reset System!'
-9344: 52           ?
-9345: 65           ?
-9346: 73 65 74     com (0x6574)
-9349: 20 53        bra [0x939E]
-934b: 79 73 74     rol (0x7374)
-934e: 65           ?
-934f: 6d a1        tst (X+0xA1)
+9344: 52 65 73 65 74 20 53 79 73 74 65 6d a1
 
 9351: 7e a2 49     jmp (0xA249)
 9354: c6 02        ldab 0x02
@@ -2507,26 +2298,12 @@
 937a: bd 8d e4     jsr (0x8DE4)
 
 '  Button  test'
-937d: 20 20        bra [0x939F]
-937f: 42           ?
-9380: 75           ?
-9381: 74 74 6f     lsr (0x746F)
-9384: 6e 20        jmp (X+0x20)
-9386: 20 74        bra [0x93FC]
-9388: 65           ?
-9389: 73 f4
+937d: 20 20 42 75 74 74 6f 6e 20 20 74 65 73 f4
 
 938A: bd 8d dd     bsr [0x936B]
 
 '   PROG exits'
-938e: 20 20        bra [0x93B0]
-9390: 20 50        bra [0x93E2]
-9392: 52           ?
-9393: 4f           clra
-9394: 47           asra
-9395: 20 65        bra [0x93FC]
-9397: 78 69 74     asl (0x6974)
-939a: f3
+938e: 20 20 20 50 52 4f 47 20 65 78 69 74 f3
 
 939b: bd a5 26     jsr (0xA526)
 939e: 5f           clrb
@@ -2665,59 +2442,23 @@
 949f: bd 8d e4     jsr (0x8DE4)
 
 'King is Enabled'
-94a2: 4b           ?
-94a3: 69 6e        rol (X+0x6E)
-94a5: 67 20        asr (X+0x20)
-94a7: 69 73        rol (X+0x73)
-94a9: 20 45        bra [0x94F0]
-94ab: 6e 61        jmp (X+0x61)
-94ad: 62           ?
-94ae: 6c 65        inc (X+0x65)
-94b0: e4 
+94a2: 4b 69 6e 67 20 69 73 20 45 6e 61 62 6c 65 e4 
 
 94b1: bd 8d dd     jsr (0x8DDD)
 
 'ENTER to disable'
-94b4: 45           ?
-94b5: 4e           ?
-94b6: 54           lsrb
-94b7: 45           ?
-94b8: 52           ?
-94b9: 20 74        bra [0x952F]
-94bb: 6f 20        clr (X+0x20)
-94bd: 64 69        lsr (X+0x69)
-94bf: 73 61 62     com (0x6162)
-94c2: 6c e5        inc (X+0xE5)
+94b4: 45 4e 54 45 52 20 74 6f 20 64 69 73 61 62 6c e5
 
 94c4: 20 25        bra [0x94EB]
 94c6: bd 8d e4     jsr (0x8DE4)
 
 'King is Disabled'
-94c9: 4b           ?
-94ca: 69 6e        rol (X+0x6E)
-94cc: 67 20        asr (X+0x20)
-94ce: 69 73        rol (X+0x73)
-94d0: 20 44        bra [0x9516]
-94d2: 69 73        rol (X+0x73)
-94d4: 61           ?
-94d5: 62           ?
-94d6: 6c 65        inc (X+0x65)
-94d8: e4 
+94c9: 4b 69 6e 67 20 69 73 20 44 69 73 61 62 6c 65 e4 
 
 94d9: bd 8d dd     jsr (0x8DDD)
 
 'ENTER to enable'
-94dc: 45           ?
-94dd: 4e           ?
-94de: 54           lsrb
-94df: 45           ?
-94e0: 52           ?
-94e1: 20 74        bra [0x9557]
-94e3: 6f 20        clr (X+0x20)
-94e5: 65           ?
-94e6: 6e 61        jmp (X+0x61)
-94e8: 62           ?
-94e9: 6c e5        inc (X+0xE5)
+94dc: 45 4e 54 45 52 20 74 6f 20 65 6e 61 62 6c e5
 
 94eb: bd 8e 95     jsr (0x8E95)
 94ee: 4d           tsta
@@ -2815,49 +2556,18 @@
 95bf: bd 8d e4     jsr (0x8DE4)
 
 'Current: CNR   '
-95c2: 43           coma
-95c3: 75           ?
-95c4: 72           ?
-95c5: 72           ?
-95c6: 65           ?
-95c7: 6e 74        jmp (X+0x74)
-95c9: 3a           abx
-95ca: 20 43        bra [0x960F]
-95cc: 4e           ?
-95cd: 52           ?
-95ce: 20 20        bra [0x95F0]
-95d0: a0 
+95c2: 43 75 72 72 65 6e 74 3a 20 43 4e 52 20 20 a0 
 
 95d1: 20 12        bra [0x95E5]
 95d3: bd 8d e4     jsr (0x8DE4)
 
 'Current: R12   '
-95d6: 43           coma
-95d7: 75           ?
-95d8: 72           ?
-95d9: 72           ?
-95da: 65           ?
-95db: 6e 74        jmp (X+0x74)
-95dd: 3a           abx
-95de: 20 52        bra [0x9632]
-95e0: 31           ins
-95e1: 32           pula
-95e2: 20 20        bra [0x9604]
-95e4: a0 
+95d6: 43 75 72 72 65 6e 74 3a 20 52 31 32 20 20 a0 
 
 95e5: bd 8d dd     jsr (0x8DDD)
 
 '<Enter> to chg.'
-95e8: 3c           pshx
-95e9: 45           ?
-95ea: 6e 74        jmp (X+0x74)
-95ec: 65           ?
-95ed: 72           ?
-95ee: 3e           wai
-95ef: 20 74        bra [0x9665]
-95f1: 6f 20        clr (X+0x20)
-95f3: 63 68        com (X+0x68)
-95f5: 67 ae        asr (X+0xAE)
+95e8: 3c 45 6e 74 65 72 3e 20 74 6f 20 63 68 67 ae
 
 95f7: bd 8e 95     jsr (0x8E95)
 95fa: 27 fb        beq [0x95F7]
@@ -2930,15 +2640,7 @@
 9675: bd 8d e4     jsr (0x8DE4)
 
 'Random          '
-9678: 52           ?
-9679: 61           ?
-967a: 6e 64        jmp (X+0x64)
-967c: 6f 6d        clr (X+0x6D)
-967e: 20 20        bra [0x96A0]
-9680: 20 20        bra [0x96A2]
-9682: 20 20        bra [0x96A4]
-9684: 20 20        bra [0x96A6]
-9686: 20 a0        bra [0x9628]
+9678: 52 61 6e 64 6f 6d 20 20 20 20 20 20 20 20 20 a0
 
 9688: ce 96 10     ldx 0x9610
 968b: bd 95 04     jsr (0x9504)
@@ -2954,16 +2656,7 @@
 96a1: bd 8d e4     jsr (0x8DE4)
 
 'All Rnd Cleared!'
-96a4: 41           ?
-96a5: 6c 6c        inc (X+0x6C)
-96a7: 20 52        bra [0x96FB]
-96a9: 6e 64        jmp (X+0x64)
-96ab: 20 43        bra [0x96F0]
-96ad: 6c 65        inc (X+0x65)
-96af: 61           ?
-96b0: 72           ?
-96b1: 65           ?
-96b2: 64 a1        lsr (X+0xA1)
+96a4: 41 6c 6c 20 52 6e 64 20 43 6c 65 61 72 65 64 a1
 
 96b4: c6 64        ldab 0x64
 96b6: bd 8c 22     jsr (0x8C22)
@@ -2983,7 +2676,7 @@
 96cd: c8 ff        eorb 0xFF
 96cf: d7 13        stab (0x0013)
 96d1: cc 20 34     ldd 0x2034
-96d4: bd 8d b5     jsr (0x8DB5)
+96d4: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 96d7: 33           pulb
 96d8: 37           pshb
 96d9: 5d           tstb
@@ -3003,7 +2696,7 @@
 96f8: 4f           clra
 96f9: 66 e6        ror (X+0xE6)
 96fb: cc 20 34     ldd 0x2034
-96fe: bd 8d b5     jsr (0x8DB5)
+96fe: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9701: bd 8e 95     jsr (0x8E95)
 9704: 27 fb        beq [0x9701]
 9706: 81 01        cmpa 0x01
@@ -3369,30 +3062,19 @@
 9a27: bd 8d e4     jsr (0x8DE4)
 
 'Serial# '
-9a2a: 53           comb
-9a2b: 65           ?
-9a2c: 72           ?
-9a2d: 69 61        rol (X+0x61)
-9a2f: 6c 23        inc (X+0x23)
-9a31: a0 
+9a2a: 53 65 72 69 61 6c 23 a0 
 
 9a32: bd 8d dd     jsr (0x8DDD)
 
 '               '
-9a35: 20 20        bra [0x9A57]
-9a37: 20 20        bra [0x9A59]
-9a39: 20 20        bra [0x9A5B]
-9a3b: 20 20        bra [0x9A5D]
-9a3d: 20 20        bra [0x9A5F]
-9a3f: 20 20        bra [0x9A61]
-9a41: 20 20        bra [0x9A63]
-9a43: a0 c6        suba (X+0xC6)
-9a45: 08           inx
+9a35: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 a0 
+
+9a44: c6 08        ldab 0x08
 9a46: 18 ce 0e 20  ldy 0x0E20
 9a4a: 18 a6 00     ldaa (Y+0x00)
 9a4d: 18 3c        pshy
 9a4f: 37           pshb
-9a50: bd 8d b5     jsr (0x8DB5)
+9a50: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9a53: 33           pulb
 9a54: 18 38        puly
 9a56: 5c           incb
@@ -3494,31 +3176,32 @@
 9b34: 32           pula
 9b35: 39           rts
 
-; do subroutines based on bits in 0x0401???
+; do subroutines based on bits 0-4 of 0x0401?
 9b36: b6 04 01     ldaa (0x0401)
 9b39: 84 01        anda 0x01
 9b3b: 27 03        beq [0x9B40]
-9b3d: bd 9b 6b     jsr (0x9B6B)
+9b3d: bd 9b 6b     jsr (0x9B6B)     ; bit 0 routine
 9b40: b6 04 01     ldaa (0x0401)
 9b43: 84 02        anda 0x02
 9b45: 27 03        beq [0x9B4A]
-9b47: bd 9b 99     jsr (0x9B99)
+9b47: bd 9b 99     jsr (0x9B99)     ; bit 1 routine
 9b4a: b6 04 01     ldaa (0x0401)
 9b4d: 84 04        anda 0x04
 9b4f: 27 03        beq [0x9B54]
-9b51: bd 9b c7     jsr (0x9BC7)
+9b51: bd 9b c7     jsr (0x9BC7)     ; bit 2 routine
 9b54: b6 04 01     ldaa (0x0401)
 9b57: 84 08        anda 0x08
 9b59: 27 03        beq [0x9B5E]
-9b5b: bd 9b f5     jsr (0x9BF5)
+9b5b: bd 9b f5     jsr (0x9BF5)     ; bit 3 routine
 9b5e: b6 04 01     ldaa (0x0401)
 9b61: 84 10        anda 0x10
 9b63: 27 03        beq [0x9B68]
-9b65: bd 9c 23     jsr (0x9C23)
+9b65: bd 9c 23     jsr (0x9C23)     ; bit 4 routine
 9b68: 33           pulb
 9b69: 32           pula
 9b6a: 39           rts
 
+; bit 0 routine
 9b6b: 18 3c        pshy
 9b6d: 18 de 65     ldy (0x0065)
 9b70: 18 a6 00     ldaa (Y+0x00)
@@ -3533,7 +3216,6 @@
 9b85: 18 df 65     sty (0x0065)
 9b88: 18 38        puly
 9b8a: 39           rts
-
 9b8b: 18 ce b2 eb  ldy 0xB2EB
 9b8f: 18 df 65     sty (0x0065)
 9b92: 86 fa        ldaa 0xFA
@@ -3554,11 +3236,14 @@
 9bb6: 18 38        puly
 9bb8: 39           rts
 
+; bit 1 routine
 9bb9: 18 ce b3 bd  ldy 0xB3BD
 9bbd: 18 df 67     sty (0x0067)
 9bc0: 86 e6        ldaa 0xE6
 9bc2: 97 71        staa (0x0071)
 9bc4: 7e 9b b6     jmp (0x9BB6)
+
+; bit 2 routine
 9bc7: 18 3c        pshy
 9bc9: 18 de 69     ldy (0x0069)
 9bcc: 18 a6 00     ldaa (Y+0x00)
@@ -3573,12 +3258,13 @@
 9be1: 18 df 69     sty (0x0069)
 9be4: 18 38        puly
 9be6: 39           rts
-
 9be7: 18 ce b5 31  ldy 0xB531
 9beb: 18 df 69     sty (0x0069)
 9bee: 86 d2        ldaa 0xD2
 9bf0: 97 72        staa (0x0072)
 9bf2: 7e 9b e4     jmp (0x9BE4)
+
+; bit 3 routine
 9bf5: 18 3c        pshy
 9bf7: 18 de 6b     ldy (0x006B)
 9bfa: 18 a6 00     ldaa (Y+0x00)
@@ -3593,12 +3279,13 @@
 9c0f: 18 df 6b     sty (0x006B)
 9c12: 18 38        puly
 9c14: 39           rts
-
 9c15: 18 ce b4 75  ldy 0xB475
 9c19: 18 df 6b     sty (0x006B)
 9c1c: 86 be        ldaa 0xBE
 9c1e: 97 73        staa (0x0073)
 9c20: 7e 9c 12     jmp (0x9C12)
+
+; bit 4 routine
 9c23: 18 3c        pshy
 9c25: 18 de 6d     ldy (0x006D)
 9c28: 18 a6 00     ldaa (Y+0x00)
@@ -3613,7 +3300,6 @@
 9c3d: 18 df 6d     sty (0x006D)
 9c40: 18 38        puly
 9c42: 39           rts
-
 9c43: 18 ce b5 c3  ldy 0xB5C3
 9c47: 18 df 6d     sty (0x006D)
 9c4a: 86 aa        ldaa 0xAA
@@ -3685,29 +3371,12 @@
 9cf1: bd 8d e4     jsr (0x8DE4)
 
 '   Program by   '
-9cf4: 20 20        bra [0x9D16]
-9cf6: 20 50        bra [0x9D48]
-9cf8: 72           ?
-9cf9: 6f 67        clr (X+0x67)
-9cfb: 72           ?
-9cfc: 61           ?
-9cfd: 6d 20        tst (X+0x20)
-9cff: 62           ?
-9d00: 79 20 20     rol (0x2020)
-9d03: a0 
+9cf4: 20 20 20 50 72 6f 67 72 61 6d 20 62 79 20 20 a0 
 
 9d04: bd 8d dd     jsr (0x8DDD)
 
 'David  Philipsen'
-9d07: 44           lsra
-9d08: 61           ?
-9d09: 76 69 64     ror (0x6964)
-9d0c: 20 20        bra [0x9D2E]
-9d0e: 50           negb
-9d0f: 68 69        asl (X+0x69)
-9d11: 6c 69        inc (X+0x69)
-9d13: 70 73 65     neg (0x7365)
-9d16: ee 
+9d07: 44 61 76 69 64 20 20 50 68 69 6c 69 70 73 65 ee 
 
 9d17: 39           rts
 
@@ -3716,7 +3385,7 @@
 9d1d: bd 8d 03     jsr (0x8D03)
 9d20: 86 2a        ldaa 0x2A
 9d22: c6 28        ldab 0x28
-9d24: bd 8d b5     jsr (0x8DB5)
+9d24: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9d27: cc 0b b8     ldd 0x0BB8
 9d2a: dd 1b        std (0x001B)
 9d2c: bd 9b 19     jsr (0x9B19)
@@ -3755,12 +3424,12 @@
 9d73: 26 b7        bne [0x9D2C]
 9d75: 86 23        ldaa 0x23
 9d77: c6 29        ldab 0x29
-9d79: bd 8d b5     jsr (0x8DB5)
+9d79: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9d7c: 20 6c        bra [0x9DEA]
 9d7e: 7f 00 49     clr (0x0049)
 9d81: 86 2a        ldaa 0x2A
 9d83: c6 29        ldab 0x29
-9d85: bd 8d b5     jsr (0x8DB5)
+9d85: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9d88: 7f 00 4a     clr (0x004A)
 9d8b: ce 02 99     ldx 0x0299
 9d8e: bd 9b 19     jsr (0x9B19)
@@ -3776,27 +3445,20 @@
 9da5: 24 09        bcc [0x9DB0]
 9da7: 86 23        ldaa 0x23
 9da9: c6 2a        ldab 0x2A
-9dab: bd 8d b5     jsr (0x8DB5)
+9dab: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9dae: 20 3a        bra [0x9DEA]
 9db0: 86 2a        ldaa 0x2A
 9db2: c6 2a        ldab 0x2A
-9db4: bd 8d b5     jsr (0x8DB5)
+9db4: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9db7: b6 02 99     ldaa (0x0299)
 9dba: 81 39        cmpa 0x39
 9dbc: 26 15        bne [0x9DD3]
 9dbe: bd 8d dd     jsr (0x8DDD)
 
 'Generic Showtape'
-9dc1: 47           asra
-9dc2: 65           ?
-9dc3: 6e 65        jmp (X+0x65)
-9dc5: 72           ?
-9dc6: 69 63        rol (X+0x63)
-9dc8: 20 53        bra [0x9E1D]
-9dca: 68 6f        asl (X+0x6F)
-9dcc: 77 74 61     asr (0x7461)
-9dcf: 70 e5 0c     neg (0xE50C)
+9dc1: 47 65 6e 65 72 69 63 20 53 68 6f 77 74 61 70 e5 
 
+9dd1: 0c           clc
 9dd2: 39           rts
 
 9dd3: b6 02 98     ldaa (0x0298)
@@ -3900,16 +3562,7 @@
 9e9d: bd 8d dd     jsr (0x8DDD)
 
 'Reg # cleared!'
-9ea0: 52           ?
-9ea1: 65           ?
-9ea2: 67 20        asr (X+0x20)
-9ea4: 23 20        bls [0x9EC6]
-9ea6: 63 6c        com (X+0x6C)
-9ea8: 65           ?
-9ea9: 61           ?
-9eaa: 72           ?
-9eab: 65           ?
-9eac: 64 a1        lsr (X+0xA1)
+9ea0: 52 65 67 20 23 20 63 6c 65 61 72 65 64 a1
 
 9eae: 39           rts
 
@@ -3920,35 +3573,27 @@
 9eba: bd 8d dd     jsr (0x8DDD)
 
 'Liv # cleared!'
-9ebd: 4c           inca
-9ebe: 69 76        rol (X+0x76)
-9ec0: 20 23        bra [0x9EE5]
-9ec2: 20 63        bra [0x9F27]
-9ec4: 6c 65        inc (X+0x65)
-9ec6: 61           ?
-9ec7: 72           ?
-9ec8: 65           ?
-9ec9: 64 a1        lsr (X+0xA1)
+9ebd: 4c 69 76 20 23 20 63 6c 65 61 72 65 64 a1
 
 9ecb: 39           rts
 
 9ecc: 86 52        ldaa 0x52
 9ece: c6 2b        ldab 0x2B
-9ed0: bd 8d b5     jsr (0x8DB5)
+9ed0: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9ed3: 86 4c        ldaa 0x4C
 9ed5: c6 32        ldab 0x32
-9ed7: bd 8d b5     jsr (0x8DB5)
+9ed7: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9eda: ce 04 02     ldx 0x0402
 9edd: c6 2c        ldab 0x2C
 9edf: a6 00        ldaa (X+0x00)
-9ee1: bd 8d b5     jsr (0x8DB5)
+9ee1: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9ee4: 5c           incb
 9ee5: 08           inx
 9ee6: 8c 04 05     cpx 0x0405
 9ee9: 26 f4        bne [0x9EDF]
 9eeb: c6 33        ldab 0x33
 9eed: a6 00        ldaa (X+0x00)
-9eef: bd 8d b5     jsr (0x8DB5)
+9eef: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9ef2: 5c           incb
 9ef3: 08           inx
 9ef4: 8c 04 08     cpx 0x0408
@@ -3987,14 +3632,7 @@
 9f33: bd 8d e4     jsr (0x8DE4)
 
 'Password bypass '
-9f36: 50           negb
-9f37: 61           ?
-9f38: 73 73 77     com (0x7377)
-9f3b: 6f 72        clr (X+0x72)
-9f3d: 64 20        lsr (X+0x20)
-9f3f: 62           ?
-9f40: 79 70 61     rol (0x7061)
-9f43: 73 73 a0     com (0x73A0)
+9f36: 50 61 73 73 77 6f 72 64 20 62 79 70 61 73 73 a0
 
 9f46: c6 04        ldab 0x04
 9f48: bd 8c 30     jsr (0x8C30)
@@ -4006,10 +3644,7 @@
 9f53: bd 8d e4     jsr (0x8DE4)
 
 'Code:'
-9f56: 43           coma
-9f57: 6f 64        clr (X+0x64)
-9f59: 65           ?
-9f5a: ba 
+9f56: 43 6f 64 65 ba
 
 9f5b: ce 02 90     ldx 0x0290
 9f5e: 7f 00 16     clr (0x0016)
@@ -4035,9 +3670,7 @@
 9f86: bd 8d dd     jsr (0x8DDD)
 
 'Pswd:'
-9f89: 50           negb
-9f8a: 73 77 64     com (0x7764)
-9f8d: ba 
+9f89: 50 73 77 64 ba 
 
 9f8e: ce 02 88     ldx 0x0288
 9f91: 86 41        ldaa 0x41
@@ -4198,16 +3831,7 @@ a0cd: bd 8c f2     jsr (0x8CF2)
 a0d0: bd 8d dd     jsr (0x8DDD)
 
 'Failed!         '
-a0d3: 46           rora
-a0d4: 61           ?
-a0d5: 69 6c        rol (X+0x6C)
-a0d7: 65           ?
-a0d8: 64 21        lsr (X+0x21)
-a0da: 20 20        bra [0xA0FC]
-a0dc: 20 20        bra [0xA0FE]
-a0de: 20 20        bra [0xA100]
-a0e0: 20 20        bra [0xA102]
-a0e2: a0 
+a0d3: 46 61 69 6c 65 64 21 20 20 20 20 20 20 20 20 a0 
 
 a0e3: c6 02        ldab 0x02
 a0e5: bd 8c 30     jsr (0x8C30)
@@ -4223,29 +3847,12 @@ a0f9: bd 8c e9     jsr (0x8CE9)
 a0fc: bd 8d e4     jsr (0x8DE4)
 
 '   VCR adjust'
-a0ff: 20 20        bra [0xA121]
-a101: 20 56        bra [0xA159]
-a103: 43           coma
-a104: 52           ?
-a105: 20 61        bra [0xA168]
-a107: 64 6a        lsr (X+0x6A)
-a109: 75           ?
-a10a: 73 f4
+a0ff: 20 20 20 56 43 52 20 61 64 6a 75 73 f4
 
 a10c: bd 8d dd     jsr (0x8DDD)
 
 'UP to clear bits'
-a10f: 55           ?
-a110: 50           negb
-a111: 20 74        bra [0xA187]
-a113: 6f 20        clr (X+0x20)
-a115: 63 6c        com (X+0x6C)
-a117: 65           ?
-a118: 61           ?
-a119: 72           ?
-a11a: 20 62        bra [0xA17E]
-a11c: 69 74        rol (X+0x74)
-a11e: f3 
+a10f: 55 50 20 74 6f 20 63 6c 65 61 72 20 62 69 74 f3 
 
 a11f: 5f           clrb
 a120: d7 62        stab (0x0062)
@@ -4416,18 +4023,7 @@ a296: 7f 10 3b     clr (PPROG)
 a299: bd f9 d8     jsr (0xF9D8)     ; display "enter serial number"
 
 'Enter serial #: '
-
-a29c: 45           ?
-a29d: 6e 74        jmp (X+0x74)
-a29f: 65           ?
-a2a0: 72           ?
-a2a1: 20 73        bra [0xA316]
-a2a3: 65           ?
-a2a4: 72           ?
-a2a5: 69 61        rol (X+0x61)
-a2a7: 6c 20        inc (X+0x20)
-a2a9: 23 3a        bls [0xA2E5]
-a2ab: a0 
+a29c: 45 6e 74 65 72 20 73 65 72 69 61 6c 20 23 3a a0 
 
 a2ac: ce 0e 20     ldx 0x0E20
 a2af: bd f9 45     jsr (0xF945)     ; wait for serial data
@@ -4538,20 +4134,7 @@ a36c: 7f 04 2a     clr (0x042A)
 a36f: bd f9 d8     jsr (0xF9D8)
 
 'Enter security code:'
-
-a372: 45           ?
-a373: 6e 74        jmp (X+0x74)
-a375: 65           ?
-a376: 72           ?
-a377: 20 73        bra [0xA3EC]
-a379: 65           ?
-a37a: 63 75        com (X+0x75)
-a37c: 72           ?
-a37d: 69 74        rol (X+0x74)
-a37f: 79 20 63     rol (0x2063)
-a382: 6f 64        clr (X+0x64)
-a384: 65           ?
-a385: ba 
+a372: 45 6e 74 65 72 20 73 65 63 75 72 69 74 79 20 63 6f 64 65 ba 
 
 a386: bd a2 ea     jsr (0xA2EA)
 a389: 24 03        bcc [0xA38E]
@@ -4561,177 +4144,23 @@ a38e: bd f9 d8     jsr (0xF9D8)
 
 '\f\n\rDave's Setup Utility\n\r<K>ing enable\n\r<C>lear random\n\r<5> character random\n\r<L>ive tape number clear\n\r<R>egular tape number clear\n\r<T>est driver boards\n\r<B>ub test\n\r<D>eck test (with tape inserted)\n\r<7>5% adjustment\n\r<S>how re-valid tapes\n\r<J>ump to system\n\r'
 
-a391: 0c           clc
-a392: 0a           clv
-a393: 0d           sec
-a394: 44           lsra
-a395: 61           ?
-a396: 76 65 27     ror (0x6527)
-a399: 73 20 53     com (0x2053)
-a39c: 65           ?
-a39d: 74 75 70     lsr (0x7570)
-a3a0: 20 55        bra [0xA3F7]
-a3a2: 74 69 6c     lsr (0x696C)
-a3a5: 69 74        rol (X+0x74)
-a3a7: 79 0a 0d     rol (0x0A0D)
-a3aa: 3c           pshx
-a3ab: 4b           ?
-a3ac: 3e           wai
-a3ad: 69 6e        rol (X+0x6E)
-a3af: 67 20        asr (X+0x20)
-a3b1: 65           ?
-a3b2: 6e 61        jmp (X+0x61)
-a3b4: 62           ?
-a3b5: 6c 65        inc (X+0x65)
-a3b7: 0a           clv
-a3b8: 0d           sec
-a3b9: 3c           pshx
-a3ba: 43           coma
-a3bb: 3e           wai
-a3bc: 6c 65        inc (X+0x65)
-a3be: 61           ?
-a3bf: 72           ?
-a3c0: 20 72        bra [0xA434]
-a3c2: 61           ?
-a3c3: 6e 64        jmp (X+0x64)
-a3c5: 6f 6d        clr (X+0x6D)
-a3c7: 0a           clv
-a3c8: 0d           sec
-a3c9: 3c           pshx
-a3ca: 35           txs
-a3cb: 3e           wai
-a3cc: 20 63        bra [0xA431]
-a3ce: 68 61        asl (X+0x61)
-a3d0: 72           ?
-a3d1: 61           ?
-a3d2: 63 74        com (X+0x74)
-a3d4: 65           ?
-a3d5: 72           ?
-a3d6: 20 72        bra [0xA44A]
-a3d8: 61           ?
-a3d9: 6e 64        jmp (X+0x64)
-a3db: 6f 6d        clr (X+0x6D)
-a3dd: 0a           clv
-a3de: 0d           sec
-a3df: 3c           pshx
-a3e0: 4c           inca
-a3e1: 3e           wai
-a3e2: 69 76        rol (X+0x76)
-a3e4: 65           ?
-a3e5: 20 74        bra [0xA45B]
-a3e7: 61           ?
-a3e8: 70 65 20     neg (0x6520)
-a3eb: 6e 75        jmp (X+0x75)
-a3ed: 6d 62        tst (X+0x62)
-a3ef: 65           ?
-a3f0: 72           ?
-a3f1: 20 63        bra [0xA456]
-a3f3: 6c 65        inc (X+0x65)
-a3f5: 61           ?
-a3f6: 72           ?
-a3f7: 0a           clv
-a3f8: 0d           sec
-a3f9: 3c           pshx
-a3fa: 52           ?
-a3fb: 3e           wai
-a3fc: 65           ?
-a3fd: 67 75        asr (X+0x75)
-a3ff: 6c 61        inc (X+0x61)
-a401: 72           ?
-a402: 20 74        bra [0xA478]
-a404: 61           ?
-a405: 70 65 20     neg (0x6520)
-a408: 6e 75        jmp (X+0x75)
-a40a: 6d 62        tst (X+0x62)
-a40c: 65           ?
-a40d: 72           ?
-a40e: 20 63        bra [0xA473]
-a410: 6c 65        inc (X+0x65)
-a412: 61           ?
-a413: 72           ?
-a414: 0a           clv
-a415: 0d           sec
-a416: 3c           pshx
-a417: 54           lsrb
-a418: 3e           wai
-a419: 65           ?
-a41a: 73 74 20     com (0x7420)
-a41d: 64 72        lsr (X+0x72)
-a41f: 69 76        rol (X+0x76)
-a421: 65           ?
-a422: 72           ?
-a423: 20 62        bra [0xA487]
-a425: 6f 61        clr (X+0x61)
-a427: 72           ?
-a428: 64 73        lsr (X+0x73)
-a42a: 0a           clv
-a42b: 0d           sec
-a42c: 3c           pshx
-a42d: 42           ?
-a42e: 3e           wai
-a42f: 75           ?
-a430: 62           ?
-a431: 20 74        bra [0xA4A7]
-a433: 65           ?
-a434: 73 74 0a     com (0x740A)
-a437: 0d           sec
-a438: 3c           pshx
-a439: 44           lsra
-a43a: 3e           wai
-a43b: 65           ?
-a43c: 63 6b        com (X+0x6B)
-a43e: 20 74        bra [0xA4B4]
-a440: 65           ?
-a441: 73 74 20     com (0x7420)
-a444: 28 77        bvc [0xA4BD]
-a446: 69 74        rol (X+0x74)
-a448: 68 20        asl (X+0x20)
-a44a: 74 61 70     lsr (0x6170)
-a44d: 65           ?
-a44e: 20 69        bra [0xA4B9]
-a450: 6e 73        jmp (X+0x73)
-a452: 65           ?
-a453: 72           ?
-a454: 74 65 64     lsr (0x6564)
-a457: 29 0a        bvs [0xA463]
-a459: 0d           sec
-a45a: 3c           pshx
-a45b: 37           pshb
-a45c: 3e           wai
-a45d: 35           txs
-a45e: 25 20        bcs [0xA480]
-a460: 61           ?
-a461: 64 6a        lsr (X+0x6A)
-a463: 75           ?
-a464: 73 74 6d     com (0x746D)
-a467: 65           ?
-a468: 6e 74        jmp (X+0x74)
-a46a: 0a           clv
-a46b: 0d           sec
-a46c: 3c           pshx
-a46d: 53           comb
-a46e: 3e           wai
-a46f: 68 6f        asl (X+0x6F)
-a471: 77 20 72     asr (0x2072)
-a474: 65           ?
-a475: 2d 76        blt [0xA4ED]
-a477: 61           ?
-a478: 6c 69        inc (X+0x69)
-a47a: 64 20        lsr (X+0x20)
-a47c: 74 61 70     lsr (0x6170)
-a47f: 65           ?
-a480: 73 0a 0d     com (0x0A0D)
-a483: 3c           pshx
-a484: 4a           deca
-a485: 3e           wai
-a486: 75           ?
-a487: 6d 70        tst (X+0x70)
-a489: 20 74        bra [0xA4FF]
-a48b: 6f 20        clr (X+0x20)
-a48d: 73 79 73     com (0x7973)
-a490: 74 65 6d     lsr (0x656D)
-a493: 0a           clv
-a494: 8d 
+a391: 0c 0a 0d 44 61 76 65 27 73 20 53 65 74 75 70 20 
+a3a1: 55 74 69 6c 69 74 79 0a 0d 3c 4b 3e 69 6e 67 20
+a3b1: 65 6e 61 62 6c 65 0a 0d 3c 43 3e 6c 65 61 72 20 
+a3c1: 72 61 6e 64 6f 6d 0a 0d 3c 35 3e 20 63 68 61 72
+a3d1: 61 63 74 65 72 20 72 61 6e 64 6f 6d 0a 0d 3c 4c
+a3e1: 3e 69 76 65 20 74 61 70 65 20 6e 75 6d 62 65 72
+a3f1: 20 63 6c 65 61 72 0a 0d 3c 52 3e 65 67 75 6c 61
+a401: 72 20 74 61 70 65 20 6e 75 6d 62 65 72 20 63 6c
+a411: 65 61 72 0a 0d 3c 54 3e 65 73 74 20 64 72 69 76
+a421: 65 72 20 62 6f 61 72 64 73 0a 0d 3c 42 3e 75 62
+a431: 20 74 65 73 74 0a 0d 3c 44 3e 65 63 6b 20 74 65
+a441: 73 74 20 28 77 69 74 68 20 74 61 70 65 20 69 6e
+a451: 73 65 72 74 65 64 29 0a 0d 3c 37 3e 35 25 20 61
+a461: 64 6a 75 73 74 6d 65 6e 74 0a 0d 3c 53 3e 68 6f
+a471: 77 20 72 65 2d 76 61 6c 69 64 20 74 61 70 65 73 
+a481: 0a 0d 3c 4a 3e 75 6d 70 20 74 6f 20 73 79 73 74 
+a491: 65 6d 0a 8d 
 
 a495: bd f9 45     jsr (0xF945)
 a498: 24 fb        bcc [0xA495]
@@ -4859,7 +4288,7 @@ a5b1: c6 27        ldab 0x27
 a5b3: 96 15        ldaa (0x0015)
 a5b5: 0c           clc
 a5b6: 89 30        adca 0x30
-a5b8: bd 8d b5     jsr (0x8DB5)
+a5b8: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a5bb: 33           pulb
 a5bc: 32           pula
 a5bd: 5d           tstb
@@ -4889,7 +4318,7 @@ a5f1: c6 27        ldab 0x27
 a5f3: 96 15        ldaa (0x0015)
 a5f5: 0c           clc
 a5f6: 89 30        adca 0x30
-a5f8: bd 8d b5     jsr (0x8DB5)
+a5f8: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a5fb: 33           pulb
 a5fc: 32           pula
 a5fd: 7d 00 15     tst (0x0015)
@@ -4916,7 +4345,7 @@ a625: 32           pula
 a626: 36           psha
 a627: 0c           clc
 a628: 89 30        adca 0x30
-a62a: bd 8d b5     jsr (0x8DB5)
+a62a: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a62d: 33           pulb
 a62e: 38           pulx
 a62f: 08           inx
@@ -5232,27 +4661,12 @@ a86a: bd a3 2e     jsr (0xA32E)
 a86d: bd 8d e4     jsr (0x8DE4)
 
 '    Warm-Up  '
-a870: 20 20        bra [0xA892]
-a872: 20 20        bra [0xA894]
-a874: 57           asrb
-a875: 61           ?
-a876: 72           ?
-a877: 6d 2d        tst (X+0x2D)
-a879: 55           ?
-a87a: 70 20 a0     neg (0x20A0)
+a870: 20 20 20 20 57 61 72 6d 2d 55 70 20 a0
 
 a87d: bd 8d dd     jsr (0x8DDD)
 
 'Curtains opening'
-a880: 43           coma
-a881: 75           ?
-a882: 72           ?
-a883: 74 61 69     lsr (0x6169)
-a886: 6e 73        jmp (X+0x73)
-a888: 20 6f        bra [0xA8F9]
-a88a: 70 65 6e     neg (0x656E)
-a88d: 69 6e        rol (X+0x6E)
-a88f: e7 
+a880: 43 75 72 74 61 69 6e 73 20 6f 70 65 6e 69 6e e7 
 
 a890: c6 14        ldab 0x14
 a892: bd 8c 30     jsr (0x8C30)
@@ -5280,12 +4694,12 @@ a8c1: bd 88 e5     jsr (0x88E5)
 a8c4: 38           pulx
 a8c5: 86 4f        ldaa 0x4F
 a8c7: c6 0c        ldab 0x0C
-a8c9: bd 8d b5     jsr (0x8DB5)
+a8c9: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a8cc: 86 6e        ldaa 0x6E
 a8ce: c6 0d        ldab 0x0D
-a8d0: bd 8d b5     jsr (0x8DB5)
+a8d0: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a8d3: cc 20 0e     ldd 0x200E
-a8d6: bd 8d b5     jsr (0x8DB5)
+a8d6: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a8d9: 7a 00 4c     dec (0x004C)
 a8dc: 32           pula
 a8dd: 36           psha
@@ -5312,10 +4726,10 @@ a904: bd 88 e5     jsr (0x88E5)
 a907: 38           pulx
 a908: 86 66        ldaa 0x66
 a90a: c6 0d        ldab 0x0D
-a90c: bd 8d b5     jsr (0x8DB5)
+a90c: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a90f: 86 66        ldaa 0x66
 a911: c6 0e        ldab 0x0E
-a913: bd 8d b5     jsr (0x8DB5)
+a913: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a916: 32           pula
 a917: c6 64        ldab 0x64
 a919: 3d           mul
@@ -5392,26 +4806,12 @@ a9a3: bd 8c e9     jsr (0x8CE9)
 a9a6: bd 8d e4     jsr (0x8DE4)
 
 '     STUDIO'
-a9a9: 20 20        bra [0xA9CB]
-a9ab: 20 20        bra [0xA9CD]
-a9ad: 20 53        bra [0xAA02]
-a9af: 54           lsrb
-a9b0: 55           ?
-a9b1: 44           lsra
-a9b2: 49           rola
-a9b3: cf           stop
+a9a9: 20 20 20 20 20 53 54 55 44 49 cf
 
 a9b4: bd 8d dd     jsr (0x8DDD)
 
 'programming mode'
-a9b7: 70 72 6f     neg (0x726F)
-a9ba: 67 72        asr (X+0x72)
-a9bc: 61           ?
-a9bd: 6d 6d        tst (X+0x6D)
-a9bf: 69 6e        rol (X+0x6E)
-a9c1: 67 20        asr (X+0x20)
-a9c3: 6d 6f        tst (X+0x6F)
-a9c5: 64 e5        lsr (X+0xE5)
+a9b7: 70 72 6f 67 72 61 6d 6d 69 6e 67 20 6d 6f 64 e5
 
 a9c7: bd a3 2e     jsr (0xA32E)
 a9ca: bd 99 9e     jsr (0x999E)
@@ -5443,7 +4843,7 @@ aa08: 25 f1        bcs [0xA9FB]
 aa0a: 39           rts
 aa0b: 39           rts
 aa0c: cc 48 37     ldd 0x4837
-aa0f: bd 8d b5     jsr (0x8DB5)
+aa0f: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 aa12: 39           rts
 aa13: cc 20 37     ldd 0x2037
 aa16: 20 f7        bra [0xAA0F]
@@ -5885,11 +5285,7 @@ ada3: 25 fb        bcs [0xADA0]
 ada5: bd b2 4f     jsr (0xB24F)
 
 'RING'
-ada8: 52           ?
-ada9: 49           rola
-adaa: 4e           ?
-adab: 47           asra
-adac: 00           test
+ada8: 52 49 4e 47 00
 
 adad: 39           rts
 adae: ce ae 2c     ldx 0xAE2C
@@ -5947,6 +5343,8 @@ ae18: 26 fc        bne [0xAE16]
 ae1a: 5a           decb
 ae1b: 26 f6        bne [0xAE13]
 ae1d: 39           rts
+
+; text??
 ae1e: 2b 2b        bmi [0xAE4B]
 ae20: 2b 00        bmi [0xAE22]
 ae22: 41           ?
@@ -6602,6 +6000,8 @@ b1ce: 38           pulx
 b1cf: 34           des
 b1d0: 30           tsx
 b1d1: 00           test
+
+; back to code
 b1d2: ce b1 d8     ldx 0xB1D8
 b1d5: 7e 8a 1a     jmp (0x8A1A)
 b1d8: 1b           aba
@@ -6742,6 +6142,7 @@ b2c0: ce b2 c7     ldx 0xB2C7
 b2c3: bd 8a 1a     jsr (0x8A1A)
 b2c6: 39           rts
 
+; text / data
 b2c7: 5e           ?
 b2c8: 32           pula
 b2c9: 30           tsx
@@ -7369,7 +6770,7 @@ f850: c6 ff        ldab 0xFF
 f852: bd f9 c5     jsr (0xF9C5)     ; clear dignostic digit display
 f855: 20 13        bra $1           ; jump past data table
 
-// Data loaded into (0x180D)        ; SCC
+; Data loaded into (0x180D)        ; SCC
 f857: 09 4a 01 10 0c 18 0d 00 04 44 0e 63 05 68 0b 56 03 c1 
 f869: ff                            ; end of table marker
 
@@ -7427,7 +6828,7 @@ f89e: 97 03        staa (0x0003)    ; Put a jump instruction here???
 ; Non-destructive ram test:
 ;
 ; HC11 Internal RAM: 0x0000-0x3ff
-; External NVRAM:   0x2000-0x7fff
+; External NVRAM:    0x2000-0x7fff
 ;
 ; Note:
 ; External NVRAM:    0x0400-0xfff is also available, but not tested
@@ -7500,7 +6901,6 @@ f90a: bd f9 95     jsr (0xF995)     ; blank the diag display
 f90d: bd f9 d8     jsr (0xF9D8)     ; enter the mini-monitor???
 
 'MINI-MON'
-
 f910: 4d 49 4e 49 2d 4d 4f ce
 
 f918: c6 10        ldab 0x10
@@ -7514,10 +6914,7 @@ f926: 7f 00 06     clr (0x0006)
 f929: bd f9 d8     jsr (0xF9D8)
 
 '\r\n:'
-
-f92c: 0d           sec
-f92d: 0a           clv
-f92e: be 
+f92c: 0d 0a be 
 
 ; convert A to 2 hex digits and transmit??
 f92f: 36           psha
