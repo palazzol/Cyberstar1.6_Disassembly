@@ -75,14 +75,14 @@
 80f6: 26 f3        bne [0x80EB]
 80f8: 20 05        bra [0x80FF]
 80fa: bd 9f 1e     jsr (0x9F1E)
-80fd: 25 1a        bcs [0x8119]
-80ff: bd 9e af     jsr (0x9EAF)
-8102: bd 9e 92     jsr (0x9E92)
+80fd: 25 1a        bcs [0x8119]     ; bye bye
+80ff: bd 9e af     jsr (0x9EAF)     ; reset L counts
+8102: bd 9e 92     jsr (0x9E92)     ; reset R counts
 8105: 86 39        ldaa 0x39
 8107: b7 04 08     staa (0x0408)
 810a: bd a1 d5     jsr (0xA1D5)
 810d: bd ab 17     jsr (0xAB17)
-8110: b6 f7 c0     ldaa (0xF7C0)
+8110: b6 f7 c0     ldaa (0xF7C0)    ; a 00
 8113: b7 04 5c     staa (0x045C)    ; ??? NVRAM
 8116: 7e f8 00     jmp (0xF800)     ; reset!
 
@@ -125,12 +125,12 @@
 ; '32K RAM OK'
 817c: 33 32 4b 20 52 41 4d 20 4f cb 
 
-8186: 7d 04 5c     tst (0x045C)
+8186: 7d 04 5c     tst (0x045C)         ; if this location is 0, good
 8189: 26 08        bne [0x8193]
-818b: cc 52 0f     ldd 0x520F
+818b: cc 52 0f     ldd 0x520F           ; else print 'R' on the far left of the first line
 818e: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 8191: 20 06        bra [0x8199]
-8193: cc 43 0f     ldd 0x430F
+8193: cc 43 0f     ldd 0x430F           ; print 'C' on the far left of the first line
 8196: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 8199: bd 8d dd     jsr (0x8DDD)
 
@@ -138,22 +138,29 @@
 819c: 52 4f 4d 20 43 68 6b 73 75 6d bd 
 
 81a7: bd 97 5f     jsr (0x975F)     ; print the checksum on the LCD
+
 81aa: c6 02        ldab 0x02
-81ac: bd 8c 02     jsr (0x8C02)     
+81ac: bd 8c 02     jsr (0x8C02)
+
 81af: bd 9a 27     jsr (0x9A27)
-81b2: bd 9e cc     jsr (0x9ECC)
+81b2: bd 9e cc     jsr (0x9ECC)     ; display R and L counts?
 81b5: bd 9b 19     jsr (0x9B19)
+
 81b8: c6 02        ldab 0x02
 81ba: bd 8c 02     jsr (0x8C02)
+
 81bd: f6 10 2d     ldab (SCCR2)
 81c0: c4 df        andb 0xDF
 81c2: f7 10 2d     stab (SCCR2)
+
 81c5: bd 9a f7     jsr (0x9AF7)
 81c8: c6 fd        ldab 0xFD
 81ca: bd 86 e7     jsr (0x86E7)
 81cd: bd 87 91     jsr (0x8791)
+
 81d0: c6 00        ldab 0x00
 81d2: d7 62        stab (0x0062)
+
 81d4: bd f9 c5     jsr (0xF9C5)
 81d7: bd 8d e4     jsr (0x8DE4)
 
@@ -163,11 +170,11 @@
 81e9: bd a2 df     jsr (0xA2DF)
 81ec: 24 11        bcc [0x81FF]
 81ee: cc 52 0f     ldd 0x520F
-81f1: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
+81f1: bd 8d b5     jsr (0x8DB5)         ; display 'R' at far right of 1st line
 81f4: 7d 04 2a     tst (0x042A)
 81f7: 27 06        beq [0x81FF]
 81f9: cc 4b 0f     ldd 0x4B0F
-81fc: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
+81fc: bd 8d b5     jsr (0x8DB5)         ; display 'K' at far right of 1st line
 81ff: bd 8d 03     jsr (0x8D03)
 8202: fc 02 9c     ldd (0x029C)
 8205: 1a 83 00 01  cpd 0x0001
@@ -230,10 +237,10 @@
 829f: 25 03        bcs [0x82A4]
 82a1: 7e 83 33     jmp (0x8333)
 
-82a4: 81 44        cmpa 0x44
+82a4: 81 44        cmpa 0x44        ;'$'
 82a6: 26 03        bne [0x82AB]
 82a8: 7e a3 66     jmp (0xA366)
-82ab: 81 53        cmpa 0x53
+82ab: 81 53        cmpa 0x53        ;'S'
 82ad: 26 f2        bne [0x82A1]
 
 82af: bd f9 d8     jsr (0xF9D8)
@@ -1532,10 +1539,10 @@
 8dc2: 0c           clc
 8dc3: c9 80        adcb 0x80
 8dc5: 17           tba
-8dc6: bd 8e 4b     jsr (0x8E4B)
+8dc6: bd 8e 4b     jsr (0x8E4B)     ; send lcd command
 8dc9: 33           pulb
 8dca: 32           pula
-8dcb: bd 8e 70     jsr (0x8E70)
+8dcb: bd 8e 70     jsr (0x8E70)     ; send lcd char
 8dce: 39           rts
 
 ; 4 routines to write to the LCD display?
@@ -1723,6 +1730,14 @@
 
 8f42: 6f 52        clr (X+0x52)
 8f44: 20 f8        bra [0x8F3E]
+
+'0.5
+ 1.0
+ 1.5
+ 2.0
+ 2.5
+ 3.0'
+
 8f46: 30           tsx
 8f47: 2e 35        bgt [0x8F7E]
 8f49: 31           ins
@@ -1735,11 +1750,13 @@
 8f53: 2e 35        bgt [0x8F8A]
 8f55: 33           pulb
 8f56: 2e 30        bgt [0x8F88]
+
 8f58: 3c           pshx
 8f59: 96 12        ldaa (0x0012)
 8f5b: 80 01        suba 0x01
 8f5d: c6 03        ldab 0x03
 8f5f: 3d           mul
+
 8f60: ce 8f 46     ldx 0x8F46
 8f63: 3a           abx
 8f64: c6 2c        ldab 0x2C
@@ -1836,19 +1853,19 @@
 901a: a7 00        staa (X+0x00)
 901c: 6d 00        tst (X+0x00)
 901e: 27 16        beq [0x9036]
-9020: 86 4f        ldaa 0x4F
-9022: c6 0c        ldab 0x0C
+9020: 86 4f        ldaa 0x4F            ;'O'
+9022: c6 0c        ldab 0x0C        
 9024: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-9027: 86 6e        ldaa 0x6E
+9027: 86 6e        ldaa 0x6E            ;'n'
 9029: c6 0d        ldab 0x0D
 902b: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-902e: cc 20 0e     ldd 0x200E
+902e: cc 20 0e     ldd 0x200E           ' '
 9031: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9034: 20 0e        bra [0x9044]
-9036: 86 66        ldaa 0x66
+9036: 86 66        ldaa 0x66            ;'f'
 9038: c6 0d        ldab 0x0D
 903a: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-903d: 86 66        ldaa 0x66
+903d: 86 66        ldaa 0x66            ;'f'
 903f: c6 0e        ldab 0x0E
 9041: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9044: d6 12        ldab (0x0012)
@@ -2258,13 +2275,13 @@
 9314: bd 9f 1e     jsr (0x9F1E)
 9317: 24 03        bcc [0x931C]
 9319: 7e 92 95     jmp (0x9295)
-931c: bd 9e 92     jsr (0x9E92)
+931c: bd 9e 92     jsr (0x9E92)     ; reset R counts
 931f: 7e 92 95     jmp (0x9295)
 9322: 81 0a        cmpa 0x0A
 9324: 26 0b        bne [0x9331]
 9326: bd 9f 1e     jsr (0x9F1E)
 9329: 25 03        bcs [0x932E]
-932b: bd 9e af     jsr (0x9EAF)
+932b: bd 9e af     jsr (0x9EAF)     ; reset L counts
 932e: 7e 92 95     jmp (0x9295)
 9331: 81 01        cmpa 0x01
 9333: 26 03        bne [0x9338]
@@ -2675,7 +2692,7 @@
 96cb: d7 12        stab (0x0012)
 96cd: c8 ff        eorb 0xFF
 96cf: d7 13        stab (0x0013)
-96d1: cc 20 34     ldd 0x2034
+96d1: cc 20 34     ldd 0x2034           ;' '
 96d4: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 96d7: 33           pulb
 96d8: 37           pshb
@@ -2695,7 +2712,7 @@
 96f5: bd 8d fd     jsr (0x8DFD)
 96f8: 4f           clra
 96f9: 66 e6        ror (X+0xE6)
-96fb: cc 20 34     ldd 0x2034
+96fb: cc 20 34     ldd 0x2034           ;' '
 96fe: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9701: bd 8e 95     jsr (0x8E95)
 9704: 27 fb        beq [0x9701]
@@ -3069,6 +3086,7 @@
 '               '
 9a35: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 a0 
 
+; display 4-digit serial number
 9a44: c6 08        ldab 0x08
 9a46: 18 ce 0e 20  ldy 0x0E20
 9a4a: 18 a6 00     ldaa (Y+0x00)
@@ -3383,7 +3401,7 @@
 9d18: 97 49        staa (0x0049)
 9d1a: 7f 00 b8     clr (0x00B8)
 9d1d: bd 8d 03     jsr (0x8D03)
-9d20: 86 2a        ldaa 0x2A
+9d20: 86 2a        ldaa 0x2A            ;'*'
 9d22: c6 28        ldab 0x28
 9d24: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9d27: cc 0b b8     ldd 0x0BB8
@@ -3422,12 +3440,12 @@
 9d6f: 20 0d        bra [0x9D7E]
 9d71: dc 1b        ldd (0x001B)
 9d73: 26 b7        bne [0x9D2C]
-9d75: 86 23        ldaa 0x23
+9d75: 86 23        ldaa 0x23            ;'#'
 9d77: c6 29        ldab 0x29
 9d79: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9d7c: 20 6c        bra [0x9DEA]
 9d7e: 7f 00 49     clr (0x0049)
-9d81: 86 2a        ldaa 0x2A
+9d81: 86 2a        ldaa 0x2A            ;'*'
 9d83: c6 29        ldab 0x29
 9d85: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9d88: 7f 00 4a     clr (0x004A)
@@ -3443,11 +3461,11 @@
 9da0: 26 ec        bne [0x9D8E]
 9da2: bd 9d f5     jsr (0x9DF5)
 9da5: 24 09        bcc [0x9DB0]
-9da7: 86 23        ldaa 0x23
+9da7: 86 23        ldaa 0x23            ;'#'
 9da9: c6 2a        ldab 0x2A
 9dab: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9dae: 20 3a        bra [0x9DEA]
-9db0: 86 2a        ldaa 0x2A
+9db0: 86 2a        ldaa 0x2A            ;'*'
 9db2: c6 2a        ldab 0x2A
 9db4: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9db7: b6 02 99     ldaa (0x0299)
@@ -3555,7 +3573,8 @@
 9e8f: a7 00        staa (X+0x00)
 9e91: 39           rts
 
-9e92: 86 30        ldaa 0x30
+; reset R counts
+9e92: 86 30        ldaa 0x30        
 9e94: b7 04 02     staa (0x0402)
 9e97: b7 04 03     staa (0x0403)
 9e9a: b7 04 04     staa (0x0404)
@@ -3566,6 +3585,7 @@
 
 9eae: 39           rts
 
+; reset L counts
 9eaf: 86 30        ldaa 0x30
 9eb1: b7 04 05     staa (0x0405)
 9eb4: b7 04 06     staa (0x0406)
@@ -3577,23 +3597,24 @@
 
 9ecb: 39           rts
 
-9ecc: 86 52        ldaa 0x52
+; display R and L counts?
+9ecc: 86 52        ldaa 0x52            ;'R'
 9ece: c6 2b        ldab 0x2B
 9ed0: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-9ed3: 86 4c        ldaa 0x4C
+9ed3: 86 4c        ldaa 0x4C            ;'L'
 9ed5: c6 32        ldab 0x32
 9ed7: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9eda: ce 04 02     ldx 0x0402
 9edd: c6 2c        ldab 0x2C
 9edf: a6 00        ldaa (X+0x00)
-9ee1: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
+9ee1: bd 8d b5     jsr (0x8DB5)         ; display 3 chars here on LCD display
 9ee4: 5c           incb
 9ee5: 08           inx
 9ee6: 8c 04 05     cpx 0x0405
 9ee9: 26 f4        bne [0x9EDF]
 9eeb: c6 33        ldab 0x33
 9eed: a6 00        ldaa (X+0x00)
-9eef: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
+9eef: bd 8d b5     jsr (0x8DB5)         ; display 3 chars here on LCD display
 9ef2: 5c           incb
 9ef3: 08           inx
 9ef4: 8c 04 08     cpx 0x0408
@@ -3989,8 +4010,8 @@ a24d: 6f 00        clr (X+0x00)
 a24f: 08           inx
 a250: 8c 0e 00     cpx 0x0E00
 a253: 26 f8        bne [0xA24D]
-a255: bd 9e af     jsr (0x9EAF)
-a258: bd 9e 92     jsr (0x9E92)
+a255: bd 9e af     jsr (0x9EAF)     ; reset L counts
+a258: bd 9e 92     jsr (0x9E92)     ; reset R counts
 a25b: 7e f8 00     jmp (0xF800)
 
 a25e: 18 ce 80 03  ldy 0x8003       ; copyright message
@@ -4127,6 +4148,7 @@ a360: c4 f7        andb 0xF7
 a362: f7 18 04     stab (0x1804)
 a365: 39           rts
 
+;'$' command goes here?
 a366: 7f 00 4e     clr (0x004E)
 a369: bd 86 c4     jsr (0x86C4)
 a36c: 7f 04 2a     clr (0x042A)
@@ -4142,7 +4164,18 @@ a38b: 7e 83 31     jmp (0x8331)
 
 a38e: bd f9 d8     jsr (0xF9D8)
 
-'\f\n\rDave's Setup Utility\n\r<K>ing enable\n\r<C>lear random\n\r<5> character random\n\r<L>ive tape number clear\n\r<R>egular tape number clear\n\r<T>est driver boards\n\r<B>ub test\n\r<D>eck test (with tape inserted)\n\r<7>5% adjustment\n\r<S>how re-valid tapes\n\r<J>ump to system\n\r'
+'\f\n\rDave's Setup Utility\n\r
+ <K>ing enable\n\r
+ <C>lear random\n\r
+ <5> character random\n\r
+ <L>ive tape number clear\n\r
+ <R>egular tape number clear\n\r
+ <T>est driver boards\n\r
+ <B>ub test\n\r
+ <D>eck test (with tape inserted)\n\r
+ <7>5% adjustment\n\r
+ <S>how re-valid tapes\n\r
+ <J>ump to system\n\r'
 
 a391: 0c 0a 0d 44 61 76 65 27 73 20 53 65 74 75 70 20 
 a3a1: 55 74 69 6c 69 74 79 0a 0d 3c 4b 3e 69 6e 67 20
@@ -4164,53 +4197,53 @@ a491: 65 6d 0a 8d
 
 a495: bd f9 45     jsr (0xF945)
 a498: 24 fb        bcc [0xA495]
-a49A: 81 43        cmpa 0x43
+a49A: 81 43        cmpa 0x43        ;'C'
 a49c: 26 09        bne [0xA4A7]
-a49e: 7f 04 01     clr (0x0401)
+a49e: 7f 04 01     clr (0x0401)     ;clear random
 a4a1: 7f 04 2b     clr (0x042B)
 a4a4: 7e a5 14     jmp (0xA514)
-a4a7: 81 35        cmpa 0x35
+a4a7: 81 35        cmpa 0x35        ;'5'
 a4a9: 26 0d        bne [0xA4B8]
-a4ab: b6 04 01     ldaa (0x0401)
+a4ab: b6 04 01     ldaa (0x0401)    ;5 character random
 a4ae: 84 7f        anda 0x7F
 a4b0: 8a 7f        oraa 0x7F
 a4b2: b7 04 01     staa (0x0401)
 a4b5: 7e a5 14     jmp (0xA514)
-a4b8: 81 4c        cmpa 0x4C
+a4b8: 81 4c        cmpa 0x4C        ;'L'
 a4ba: 26 06        bne [0xA4C2]
-a4bc: bd 9e af     jsr (0x9EAF)
+a4bc: bd 9e af     jsr (0x9EAF)     ; reset Liv counts
 a4bf: 7e a5 14     jmp (0xA514)
-a4c2: 81 52        cmpa 0x52
+a4c2: 81 52        cmpa 0x52        ;'R'
 a4c4: 26 06        bne [0xA4CC]
-a4c6: bd 9e 92     jsr (0x9E92)
+a4c6: bd 9e 92     jsr (0x9E92)     ; reset Reg counts
 a4c9: 7e a5 14     jmp (0xA514)
-a4cc: 81 54        cmpa 0x54
+a4cc: 81 54        cmpa 0x54        ;'T'
 a4ce: 26 06        bne [0xA4D6]
-a4d0: bd a5 65     jsr (0xA565)
+a4d0: bd a5 65     jsr (0xA565)     ;test driver boards
 a4d3: 7e a5 14     jmp (0xA514)
-a4d6: 81 42        cmpa 0x42
+a4d6: 81 42        cmpa 0x42        ;'B'
 a4d8: 26 06        bne [0xA4E0]
-a4da: bd a5 26     jsr (0xA526)
+a4da: bd a5 26     jsr (0xA526)     ;bulb test?
 a4dd: 7e a5 14     jmp (0xA514)
-a4e0: 81 44        cmpa 0x44
+a4e0: 81 44        cmpa 0x44        ;'D'
 a4e2: 26 06        bne [0xA4EA]
-a4e4: bd a5 3c     jsr (0xA53C)
+a4e4: bd a5 3c     jsr (0xA53C)     ;deck test
 a4e7: 7e a5 14     jmp (0xA514)
-a4ea: 81 37        cmpa 0x37
+a4ea: 81 37        cmpa 0x37        ;'7'
 a4ec: 26 08        bne [0xA4F6]
 a4ee: c6 fb        ldab 0xFB
-a4f0: bd 86 e7     jsr (0x86E7)
+a4f0: bd 86 e7     jsr (0x86E7)     ;5% adjustment
 a4f3: 7e a5 14     jmp (0xA514)
-a4f6: 81 4a        cmpa 0x4A
+a4f6: 81 4a        cmpa 0x4A        ;'J'
 a4f8: 26 03        bne [0xA4FD]
-a4fa: 7e f8 00     jmp (0xF800)
-a4fd: 81 4b        cmpa 0x4B
+a4fa: 7e f8 00     jmp (0xF800)     ;jump to system (reset)
+a4fd: 81 4b        cmpa 0x4B        ;'K'
 a4ff: 26 06        bne [0xA507]
-a501: 7c 04 2a     inc (0x042A)
+a501: 7c 04 2a     inc (0x042A)     ;King enable
 a504: 7e a5 14     jmp (0xA514)
-a507: 81 53        cmpa 0x53
+a507: 81 53        cmpa 0x53        ;'S'
 a509: 26 06        bne [0xA511]
-a50b: bd ab 7c     jsr (0xAB7C)
+a50b: bd ab 7c     jsr (0xAB7C)     ;show re-valid tapes
 a50e: 7e a5 14     jmp (0xA514)
 a511: 7e a4 95     jmp (0xA495)
 a514: 86 07        ldaa 0x07
@@ -4220,6 +4253,8 @@ a51b: bd 8c 30     jsr (0x8C30)
 a51e: 86 07        ldaa 0x07
 a520: bd f9 6f     jsr (0xF96F)
 a523: 7e a3 8e     jmp (0xA38E)
+
+; bulb test
 a526: 5f           clrb
 a527: bd f9 c5     jsr (0xF9C5)
 a52a: f6 10 0a     ldab (PORTE)
@@ -4231,6 +4266,7 @@ a536: c6 02        ldab 0x02
 a538: bd 8c 30     jsr (0x8C30)
 a53b: 39           rts
 
+; deck test
 a53c: c6 fd        ldab 0xFD
 a53e: bd 86 e7     jsr (0x86E7)
 a541: c6 06        ldab 0x06
@@ -4249,13 +4285,13 @@ a55f: c6 ef        ldab 0xEF
 a561: bd 86 e7     jsr (0x86E7)
 a564: 39           rts
 
+; test driver boards
 a565: bd f9 45     jsr (0xF945)
 a568: 24 08        bcc [0xA572]
 a56a: 81 1b        cmpa 0x1B
 a56c: 26 04        bne [0xA572]
 a56e: bd 86 c4     jsr (0x86C4)
 a571: 39           rts
-
 a572: 86 08        ldaa 0x08
 a574: 97 15        staa (0x0015)
 a576: bd 86 c4     jsr (0x86C4)
@@ -4692,13 +4728,13 @@ a8bd: 7c 00 4c     inc (0x004C)
 a8c0: 3c           pshx
 a8c1: bd 88 e5     jsr (0x88E5)
 a8c4: 38           pulx
-a8c5: 86 4f        ldaa 0x4F
+a8c5: 86 4f        ldaa 0x4F            ;'O'
 a8c7: c6 0c        ldab 0x0C
 a8c9: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-a8cc: 86 6e        ldaa 0x6E
+a8cc: 86 6e        ldaa 0x6E            ;'n'
 a8ce: c6 0d        ldab 0x0D
 a8d0: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-a8d3: cc 20 0e     ldd 0x200E
+a8d3: cc 20 0e     ldd 0x200E           ;' '
 a8d6: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a8d9: 7a 00 4c     dec (0x004C)
 a8dc: 32           pula
@@ -4724,10 +4760,10 @@ a900: 7e a9 35     jmp (0xA935)
 a903: 3c           pshx
 a904: bd 88 e5     jsr (0x88E5)
 a907: 38           pulx
-a908: 86 66        ldaa 0x66
+a908: 86 66        ldaa 0x66            ;'f'
 a90a: c6 0d        ldab 0x0D
 a90c: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-a90f: 86 66        ldaa 0x66
+a90f: 86 66        ldaa 0x66            ;'f'
 a911: c6 0e        ldab 0x0E
 a913: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a916: 32           pula
@@ -4842,14 +4878,14 @@ aa05: 8c 20 10     cpx 0x2010
 aa08: 25 f1        bcs [0xA9FB]
 aa0a: 39           rts
 aa0b: 39           rts
-aa0c: cc 48 37     ldd 0x4837
+aa0c: cc 48 37     ldd 0x4837           ;'H'
 aa0f: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 aa12: 39           rts
-aa13: cc 20 37     ldd 0x2037
+aa13: cc 20 37     ldd 0x2037           ;' '
 aa16: 20 f7        bra [0xAA0F]
-aa18: cc 42 0f     ldd 0x420F
+aa18: cc 42 0f     ldd 0x420F           ;'B'
 aa1b: 20 f2        bra [0xAA0F]
-aa1d: cc 20 0f     ldd 0x200F
+aa1d: cc 20 0f     ldd 0x200F           ;' '
 aa20: 20 ed        bra [0xAA0F]
 aa22: 7f 00 4f     clr (0x004F)
 aa25: cc 00 01     ldd 0x0001
@@ -5025,6 +5061,7 @@ ab79: 39           rts
 ab7a: 0c           clc
 ab7b: 39           rts
 
+;show re-valid tapes
 ab7c: ce 04 2c     ldx 0x042C
 ab7f: a6 00        ldaa (X+0x00)
 ab81: 81 30        cmpa 0x30
