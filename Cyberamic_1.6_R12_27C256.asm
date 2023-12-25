@@ -1,6 +1,7 @@
 
 ; 68HC11 Registers
 
+PORTE       .equ    0x100a
 TMSK1       .equ    0x1022
 TMSK2       .equ    0x1024
 BAUD        .equ    0x102b
@@ -14,6 +15,35 @@ CSCTL       .equ    0x105d
 CSGADR      .equ    0x105e
 CSGSIZ      .equ    0x105f
 
+; RAM locations
+
+T1NXT       .equ    0x0010      ; 0x0010/0x0011
+
+; if not zero, these are decremented every 0.1 second by the timer 
+CDTIMR1     .equ    0x001b      ; 0x001b/0x001c
+CDTIMR2     .equ    0x001d      ; 0x001d/0x001e
+CDTIMR3     .equ    0x001f      ; 0x001f/0x0020
+CDTIMR4     .equ    0x0021      ; 0x0021/0x0022
+CDTIMR5     .equ    0x0023      ; 0x0023/0x0024
+
+T30MS       .equ    0x0027      ; used to count t1 irqs for 30ms tasks
+
+; offset counters
+OFFCNT1     .equ    0x0070
+OFFCNT2     .equ    0x0071
+OFFCNT3     .equ    0x0072
+OFFCNT4     .equ    0x0073
+OFFCNT5     .equ    0x0074
+
+; bottom bit counts every other T1OC
+TSCNT       .equ    0x00b0
+
+; NVRAM locations
+
+CPYRTCS     .equ    0x040B      ; 0x040B/0x040C - copyright message checksum
+ERASEFLG    .equ    0x040F      ; 0 = normal boot, 1 = erasing EEPROM
+NUMBOOT     .equ    0x0426      ; 0x0426/0x0427
+
         .area   region1 (ABS)
         .org    0x8000
 
@@ -21,21 +51,22 @@ CSGSIZ      .equ    0x105f
 
         jmp     L8050           ; jump past copyright message
 
+CPYRTMSG:
         .ascii  'Copyright (c) 1993 by David B. Philipsen Licensed by ShowBiz Pizza Time, Inc.'
 
 L8050:
         sei
 
-        ldd     (0x0426)        ; increment boot cycle counter?
+        ldd     NUMBOOT         ; increment boot cycle counter?
         addd    #0x0001
-        std     (0x0426)
+        std     NUMBOOT
 
-        ldx     #0xAD1D         ;
+        ldx     #TASK2          ;
         stx     (0x01CE)        ; store this vector here?
         clr     (0x01C7)
         ldd     #0x01C6         ;
         std     (0x013E)        ; store this vector here? Some sort of RTI setup
-        clr     (0x00B0)
+        clr     TSCNT
         clr     (0x004E)
         clr     (0x00B6)
         clr     (0x004D)
@@ -48,653 +79,719 @@ L807E:
         ldaa    #0x11
         staa    (0x10A8)        ; board 11??
 
-.if 0
+        ldab    #0x10
+        jsr     LF995           ; blank the diag display
 
-8087: c6 10        ldab 0x10
-8089: bd f9 95     jsr (0xF995)         ; blank the diag display
+        ldaa    (0x1804)        ; turn off reset button light
+        anda    #0xBF
+        staa    (0x1804)
+        ldaa    #0xFF
+        staa    (0x00AC)        ; ???
 
-808c: b6 18 04     ldaa (0x1804)        ; turn off reset button light
-808f: 84 bf        anda 0xBF
-8091: b7 18 04     staa (0x1804)
-8094: 86 ff        ldaa 0xFF
-8096: 97 ac        staa (0x00AC)        ; ???
-8098: bd 86 c4     jsr (0x86C4)         ; Init PIAs on cards?
-809b: bd 99 a6     jsr (0x99A6)         ; main2?
-809e: bd 8c 3c     jsr (0x8C3C)         ; reset LCD?
-80a1: bd 87 e8     jsr (0x87E8)         ; SCC something?
-80a4: bd 87 bc     jsr (0x87BC)         ; SCC something?
-80a7: bd 8c 7e     jsr (0x8C7E)         ; reset LCD buffer
-80aa: bd 8d 29     jsr (0x8D29)         ; some LCD command?
-80ad: bd 8b c0     jsr (0x8BC0)         ; setup IRQ handlers
-80b0: bd 8b ee     jsr (0x8BEE)
-80b3: 0e           cli
-80b4: bd a2 5e     jsr (0xA25E)         ; store copyright checksum
-80b7: b6 04 0f     ldaa (0x040F)
-80ba: 81 01        cmpa 0x01            ; 1 means erase EEPROM!
-80bc: 26 03        bne [0x80C1]
-80be: 7e a2 75     jmp (0xA275)         ; erase EEPROM: skipped if 0x40f !=1
-80c1: fc 04 0b     ldd (0x040B)         ; copyright checksum
-80c4: 1a 83 19 7b  cpd 0x197B           ; check copyright checksum
-80c8: 26 4f        bne [0x8119]         ; bye bye
-80ca: 5f           clrb
-80cb: d7 62        stab (0x0062)        ; button light buffer?
-80cd: bd f9 c5     jsr (0xF9C5)         ; turn off? button lights
-80d0: bd a3 41     jsr (0xA341)
-80d3: b6 04 00     ldaa (0x0400)
-80d6: 81 07        cmpa 0x07
-80d8: 27 42        beq [0x811C]
-80da: 25 29        bcs [0x8105]
-80dc: 81 06        cmpa 0x06
-80de: 27 25        beq [0x8105]
-80e0: cc 00 00     ldd 0x0000
-80e3: fd 04 0d     std (0x040D)
-80e6: cc 00 c8     ldd 0x00C8
-80e9: dd 1b        std (0x001B)
-80eb: dc 1b        ldd (0x001B)
-80ed: 27 0b        beq [0x80FA]
-80ef: bd f9 45     jsr (0xF945)
-80f2: 24 f7        bcc [0x80EB]
-80f4: 81 44        cmpa 0x44
-80f6: 26 f3        bne [0x80EB]
-80f8: 20 05        bra [0x80FF]
-80fa: bd 9f 1e     jsr (0x9F1E)
-80fd: 25 1a        bcs [0x8119]     ; bye bye
-80ff: bd 9e af     jsr (0x9EAF)     ; reset L counts
-8102: bd 9e 92     jsr (0x9E92)     ; reset R counts
-8105: 86 39        ldaa 0x39
-8107: b7 04 08     staa (0x0408)
-810a: bd a1 d5     jsr (0xA1D5)
-810d: bd ab 17     jsr (0xAB17)
-8110: b6 f7 c0     ldaa (0xF7C0)    ; a 00
-8113: b7 04 5c     staa (0x045C)    ; ??? NVRAM
-8116: 7e f8 00     jmp (RESET)     ; reset!
+        jsr     L86C4           ; Init PIAs on cards?
+        jsr     L99A6           ; main2?
+        jsr     L8C3C           ; reset LCD?
+        jsr     L87E8           ; SCC something?
+        jsr     L87BC           ; SCC something?
+        jsr     L8C7E           ; reset LCD buffer
+        jsr     L8D29           ; some LCD command?
+        jsr     L8BC0           ; setup IRQ handlers
+        jsr     L8BEE
+        cli
+        jsr     LA25E           ; compute and store copyright checksum
+        ldaa    ERASEFLG
+        cmpa    #0x01           ; 1 means erase EEPROM!
+        bne     L80C1
+        jmp     LA275           ; erase EEPROM: skipped if ERASEFLG !=1
+L80C1:
+        ldd     CPYRTCS         ; copyright checksum
+        cpd     #0x197B         ; check against copyright checksum value
+        bne     LOCKUP          ; bye bye
+        clrb
+        stab    (0x0062)        ; button light buffer?
+        jsr     (0xF9C5)        ; turn off? button lights
+        jsr     (0xA341)
+        ldaa    (0x0400)
+        cmpa    #0x07
+        beq     L811C
+        bcs     L8105
+        cmpa    #0x06
+        beq     L8105
+        ldd     #0x0000
+        std     (0x040D)
+        ldd     #0x00C8
+        std     CDTIMR1
+L80EB:
+        ldd     CDTIMR1
+        beq     L80FA
+        jsr     (0xF945)
+        bcc     L80EB
+        cmpa    #0x44
+        bne     L80EB
+        bra     L80FF
+L80FA:
+        jsr     (0x9F1E)
+        bcs     LOCKUP           ; bye bye
+L80FF:
+        jsr     (0x9EAF)        ; reset L counts
+        jsr     (0x9E92)        ; reset R counts
+L8105:
+        ldaa    #0x39
+        staa    (0x0408)
+        jsr     (0xA1D5)
+        jsr     (0xAB17)
+        ldaa    (0xF7C0)        ; a 00
+        staa    (0x045C)        ; ??? NVRAM
+        jmp     RESET           ; reset!
 
-8119: 7e 81 19     jmp (0x8119)     ; infinite loop - this can't be good
+LOCKUP: jmp     LOCKUP          ; infinite loop
 
-811c: 7f 00 79     clr (0x0079)
-811f: 7f 00 7c     clr (0x007C)
-8122: bd 04 08     jsr (0x0408)
-8125: bd 80 13     jsr (0x8013)
-8128: c6 fd        ldab 0xFD
-812a: bd 86 e7     jsr (0x86E7)
-812d: c6 df        ldab 0xDF
-812f: bd 87 48     jsr (0x8748)
-8132: bd 87 91     jsr (0x8791)
-8135: bd 9a f7     jsr (0x9AF7)
-8138: bd 9c 51     jsr (0x9C51)
-813b: 7f 00 62     clr (0x0062)
-813e: bd 99 d9     jsr (0x99D9)
-8141: 24 16        bcc [0x8159]
-8143: bd 8d e4     jsr (0x8DE4)
+L811C:
+        clr     (0x0079)
+        clr     (0x007C)
+        jsr     (0x0408)        ; ????
+        jsr     (0x8013)
+        ldab    #0xFD
+        jsr     (0x86E7)
+        ldab    #0xDF
+        jsr     (0x8748)
+        jsr     (0x8791)
+        jsr     (0x9AF7)
+        jsr     (0x9C51)
+        clr     (0x0062)
+        jsr     (0x99D9)
+        bcc     L8159
 
-; 'Invalid CPU!'
-8146: 49 6e 76 61 6c 69 64 20 43 50 55 a1
+        jsr     (0x8DE4)
+        .ascis  'Invalid CPU!'
 
-8152: 86 53        ldaa 0x53
-8154: 7e 82 a4     jmp (0x82A4)
-8157: 20 fe        bra [0x8157]
-8159: bd a3 54     jsr (0xA354)
-815c: 7f 00 aa     clr (0x00AA)
-815f: 7d 00 00     tst (0x0000)
-8162: 27 15        beq [0x8179]
-8164: bd 8d e4     jsr (0x8DE4)
+        ldaa    #0x53
+        jmp     (0x82A4)
+L8157:  bra     L8157           ; LOCKUP here
 
-; 'RAM test failed!'
-8167: 52 41 4d 20 74 65 73 74 20 66 61 69 6c 65 64 a1
+L8159:
+        jsr     (0xA354)
+        clr     (0x00AA)
+        tst     (0x0000)
+        beq     L8179
 
-8177: 20 44        bra [0x81BD]
-8179: bd 8d e4     jsr (0x8DE4)
+        jsr     (0x8DE4)
+        .ascis  'RAM test failed!'
 
-; '32K RAM OK'
-817c: 33 32 4b 20 52 41 4d 20 4f cb 
+        bra     L81BD
+
+L8179:
+        jsr     (0x8DE4)
+        .ascis  '32K RAM OK'
 
 ; R12 or CNR mode???
-8186: 7d 04 5c     tst (0x045C)         ; if this location is 0, good
-8189: 26 08        bne [0x8193]
-818b: cc 52 0f     ldd 0x520F           ; else print 'R' on the far left of the first line
-818e: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-8191: 20 06        bra [0x8199]
-8193: cc 43 0f     ldd 0x430F           ; print 'C' on the far left of the first line
-8196: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-8199: bd 8d dd     jsr (0x8DDD)
+        tst     (0x045C)        ; if this location is 0, good
+        bne     L8193
+        ldd     #0x520F         ; else print 'R' on the far left of the first line
+        jsr     (0x8DB5)        ; display char here on LCD display
+        bra     L8199
+L8193:
+        ldd     #0x430F         ; print 'C' on the far left of the first line
+        jsr     (0x8DB5)        ; display char here on LCD display
 
-; 'ROM Chksum='
-819c: 52 4f 4d 20 43 68 6b 73 75 6d bd 
+L8199:
+        jsr     (0x8DDD)
+        .ascis  'ROM Chksum='
 
-81a7: bd 97 5f     jsr (0x975F)     ; print the checksum on the LCD
+        jsr     (0x975F)        ; print the checksum on the LCD
 
-81aa: c6 02        ldab 0x02        ; delay 2 secs
-81ac: bd 8c 02     jsr (0x8C02)     ;
+        ldab    #0x02           ; delay 2 secs
+        jsr     (0x8C02)        ;
 
-81af: bd 9a 27     jsr (0x9A27)     ; display Serial #
-81b2: bd 9e cc     jsr (0x9ECC)     ; display R and L counts?
-81b5: bd 9b 19     jsr (0x9B19)     ; do the random tasks???
+        jsr     (0x9A27)        ; display Serial #
+        jsr     (0x9ECC)        ; display R and L counts?
+        jsr     (0x9B19)        ; do the random tasks???
 
-81b8: c6 02        ldab 0x02        ; delay 2 secs
-81ba: bd 8c 02     jsr (0x8C02)     ;
+        ldab    #0x02           ; delay 2 secs
+        jsr     (0x8C02)        ;
 
-81bd: f6 10 2d     ldab (SCCR2)     ; disable receive data interrupts
-81c0: c4 df        andb 0xDF
-81c2: f7 10 2d     stab (SCCR2)
+L81BD:
+        ldab    (SCCR2)         ; disable receive data interrupts
+        andb    #0xDF
+        stab    (SCCR2)
 
-81c5: bd 9a f7     jsr (0x9AF7)     ; clear a bunch of ram
-81c8: c6 fd        ldab 0xFD
-81ca: bd 86 e7     jsr (0x86E7)
-81cd: bd 87 91     jsr (0x8791)
+        jsr     (0x9AF7)     ; clear a bunch of ram
+        ldab    #0xFD
+        jsr     (0x86E7)
+        jsr     (0x8791)
 
-81d0: c6 00        ldab 0x00
-81d2: d7 62        stab (0x0062)
+        ldab    #0x00
+        stab    (0x0062)
 
-81d4: bd f9 c5     jsr (0xF9C5)
-81d7: bd 8d e4     jsr (0x8DE4)
+        jsr     (0xF9C5)
 
-; ' Cyberstar v1.6'
-81da: 20 43 79 62 65 72 73 74 61 72 20 76 31 2e b6
+        jsr     (0x8DE4)
+        .ascis  ' Cyberstar v1.6'
 
-81e9: bd a2 df     jsr (0xA2DF)
-81ec: 24 11        bcc [0x81FF]
-81ee: cc 52 0f     ldd 0x520F
-81f1: bd 8d b5     jsr (0x8DB5)         ; display 'R' at far right of 1st line
-81f4: 7d 04 2a     tst (0x042A)
-81f7: 27 06        beq [0x81FF]
-81f9: cc 4b 0f     ldd 0x4B0F
-81fc: bd 8d b5     jsr (0x8DB5)         ; display 'K' at far right of 1st line
-81ff: bd 8d 03     jsr (0x8D03)
-8202: fc 02 9c     ldd (0x029C)
-8205: 1a 83 00 01  cpd 0x0001
-8209: 26 15        bne [0x8220]
-820b: bd 8d dd     jsr (0x8DDD)
 
-' Dave's system  '
-820e: 20 44 61 76 65 27 73 20 73 79 73 74 65 6d 20 a0 
+        jsr     (0xA2DF)
+        bcc     L81FF
+        ldd     #0x520F
+        jsr     (0x8DB5)        ; display 'R' at far right of 1st line
+        tst     (0x042A)
+        beq     L81FF
+        ldd     #0x4B0F
+        jsr     (0x8DB5)        ; display 'K' at far right of 1st line
+L81FF:
+        jsr     (0x8D03)
+        ldd     (0x029C)
+        cpd     #0x0001
+        bne     L8220
 
-821e: 20 47        bra [0x8267]
-8220: 1a 83 03 e8  cpd 0x03E8
-8224: 2d 1b        blt [0x8241]
-8226: 1a 83 04 4b  cpd 0x044B
-822a: 22 15        bhi [0x8241]
-822c: bd 8d dd     jsr (0x8DDD)
+        jsr     (0x8DDD)
+        .ascis  " Dave's system  "
 
-'   SPT Studio   '
-822f: 20 20 20 53 50 54 20 53 74 75 64 69 6f 20 20 a0 
+        bra     L8267
+L8220:
+        cpd     #0x03E8
+        blt     L8241
+        cpd     #0x044B
+        bhi     L8241
 
-823f: 20 26        bra [0x8267]
-8241: cc 0e 0c     ldd 0x0E0C
-8244: dd ad        std (0x00AD)
-8246: fc 04 0d     ldd (0x040D)
-8249: 1a 83 02 58  cpd 0x0258
-824d: 22 05        bhi [0x8254]
-824f: cc 0e 09     ldd 0x0E09
-8252: dd ad        std (0x00AD)
-8254: c6 29        ldab 0x29
-8256: ce 0e 00     ldx 0x0E00
-8259: a6 00        ldaa (X+0x00)
-825b: 4a           deca
-825c: 08           inx
-825d: 5c           incb
-825e: 3c           pshx
-825f: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-8262: 38           pulx
-8263: 9c ad        cpx (0x00AD)
-8265: 26 f2        bne [0x8259]
-8267: bd 9c 51     jsr (0x9C51)
-826a: 7f 00 5b     clr (0x005B)
-826d: 7f 00 5a     clr (0x005A)
-8270: 7f 00 5e     clr (0x005E)
-8273: 7f 00 60     clr (0x0060)
-8276: bd 9b 19     jsr (0x9B19)
-8279: 96 60        ldaa (0x0060)
-827b: 27 06        beq [0x8283]
-827d: bd a9 7c     jsr (0xA97C)
-8280: 7e f8 00     jmp (RESET)     ; reset controller
-8283: b6 18 04     ldaa (0x1804)
-8286: 84 06        anda 0x06
-8288: 26 08        bne [0x8292]
-828a: bd 9c f1     jsr (0x9CF1)     ; print credits
-828d: c6 32        ldab 0x32
-828f: bd 8c 22     jsr (0x8C22)
-8292: bd 8e 95     jsr (0x8E95)
-8295: 81 0d        cmpa 0x0D
-8297: 26 03        bne [0x829C]
-8299: 7e 92 92     jmp (0x9292)
-829c: bd f9 45     jsr (0xF945)
-829f: 25 03        bcs [0x82A4]
-82a1: 7e 83 33     jmp (0x8333)
+        jsr     (0x8DDD)
+        .ascis  '   SPT Studio   '
 
-82a4: 81 44        cmpa 0x44        ;'$'
-82a6: 26 03        bne [0x82AB]
-82a8: 7e a3 66     jmp (0xA366)
-82ab: 81 53        cmpa 0x53        ;'S'
-82ad: 26 f2        bne [0x82A1]
+        bra L8267
 
-82af: bd f9 d8     jsr (0xF9D8)
+L8241:
+        ldd     #0x0E0C
+        std     (0x00AD)
+        ldd     (0x040D)
+        cpd     #0x0258
+        bhi     L8254
+        ldd     #0x0E09
+        std     (0x00AD)
+L8254:
+        ldab    #0x29
+        ldx     #0x0E00
+L8259:
+        ldaa    0,X
+        deca
+        inx
+        incb
+        pshx
+        jsr     (0x8DB5)        ; display char here on LCD display
+        pulx
+        cpx     (0x00AD)
+        bne     L8259
+L8267:
+        jsr     (0x9C51)
+        clr     (0x005B)
+        clr     (0x005A)
+        clr     (0x005E)
+        clr     (0x0060)
+        jsr     (0x9B19)
+        ldaa    (0x0060)
+        beq     L8283
+        jsr     (0xA97C)
+        jmp     RESET       ; reset controller
+L8283:
+        ldaa    (0x1804)
+        anda    #0x06
+        bne     L8292
+        jsr     (0x9CF1)    ; print credits
+        ldab    #0x32
+        jsr     (0x8C22)
+L8292:
+        jsr     (0x8E95)
+        cmpa    #0x0D
+        bne     L829C
+        jmp     (0x9292)
+L829C:
+        jsr     (0xF945)
+        bcs     L82A4
+L82A1:
+        jmp     L8333
+L82A4:
+        cmpa    #0x44       ;'$'
+        bne     L82AB
+        jmp     (0xA366)
+L82AB:
+        cmpa    #0x53       ;'S'
+        bne     L82A1
 
-; '\n\rEnter security code: '
-82b2: 0a 0d 45 6e 74 65 72 20 73 65 63 75 72 69 74 79 20 63 6f 64 65 3a a0 
+        jsr     (0xF9D8)
+        .ascis  '\n\rEnter security code: '
 
-82c9: 0f           sei
-82ca: bd a2 ea     jsr (0xA2EA)
-82cd: 0e           cli
-82ce: 25 61        bcs [0x8331]
+        sei
+        jsr     (0xA2EA)
+        cli
+        bcs     L8331
 
-82d0: bd f9 d8     jsr (0xF9D8)
+        jsr     (0xF9D8)
+        .ascii '\r\nEEPROM serial number programming enabled.'
+        .ascis '\r\nPlease RESET the processor to continue\r\n'
 
-; '\r\nEEPROM serial number programming enabled.'
-; '\r\nPlease RESET the processor to continue\r\n'
+        ldaa    #0x01       ; enable EEPROM erase
+        staa    ERASEFLG
+        ldaa    #0xDB
+        staa    (0x0007)
+; need to reset to get out of this 
+L8331:  bra     L8331       ; LOCKUP
 
-82d3: 0a 0d 45 45 50 52 4f 4d 20 73 65 72 69 61 6c 20 
-82e3: 6e 75 6d 62 65 72 20 70 72 6f 67 72 61 6d 6d 69 
-82f3: 6e 67 20 65 6e 61 62 6c 65 64 2e 0a 0d 50 6c 65
-8303: 61 73 65 20 52 45 53 45 54 20 74 68 65 20 70 72
-8313: 6f 63 65 73 73 6f 72 20 74 6f 20 63 6f 6e 74 69
-8323: 6e 75 65 0a 8d 
+L8333:
+        ldaa    (0x00AA)
+        beq     L8349
+        ldd     CDTIMR1
+        bne     L8349
+        ldab    (0x0062)
+        eorb    #0x20
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        ldd     #0x0032
+        std     CDTIMR1
+L8349:
+        jsr     (0x86A4)
+        bcc L8351
+        jmp     (0x8276)
+L8351:
+        ldab    (SCCR2)
+        orab    #0x20
+        stab    (SCCR2)
+        clr     (0x00AA)
+        ldab    (0x0062)
+        andb    #0xDF
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        ldab    #0x02           ; delay 2 secs
+        jsr     (0x8C02)        ;
+        ldaa    (0x007C)
+        beq     L839B
+        ldaa    (0x007F)
+        staa    (0x004E)
+        ldab    (0x0081)
+        jsr     (0x8748)
+        ldaa    (0x0082)
+        bita    #0x01
+        bne     L8383
+        ldaa    (0x00AC)
+        anda    #0xFD
+        bra     L8387
+L8383:
+        ldaa    (0x00AC)
+        oraa    #0x02
+L8387:
+        staa    (0x00AC)
+        staa    (0x1806)
+        ldaa    (0x1804)
+        oraa    #0x20
+        staa    (0x1804)
+        anda    #0xDF
+        staa    (0x1804)
+        bra     L83AF
+L839B:
+        ldd     (0x040D)
+        cpd     #0xFDE8
+        bhi     L83AA
+        addd    #0x0001
+        std     (0x040D)
+L83AA:
+        ldab    #0xF7
+        jsr     (0x86E7)
+L83AF:
+        clr     (0x0030)
+        clr     (0x0031)
+        clr     (0x0032)
+        jsr     (0x9B19)
+        jsr     (0x86A4)
+        bcs     L83AF
+        ldaa    (0x0079)
+        beq     L83DB
+        clr     (0x0079)
+        ldaa    (0x00B5)
+        cmpa    #0x01
+        bne     L83D4
+        clr     (0x00B5)
+        ldaa    #0x01
+        staa    (0x007C)
+L83D4:
+        ldaa    #0x01
+        staa    (0x00AA)
+        jmp     (0x9A7F)
+L83DB:
+        jsr (0x8DE4)
+        .ascis  '   Tape start   '
 
-8328: 86 01        ldaa 0x01
-832a: b7 04 0f     staa (0x040F)
-832d: 86 db        ldaa 0xDB
-832f: 97 07        staa (0x0007)
-8331: 20 fe        bra [0x8331]
-8333: 96 aa        ldaa (0x00AA)
-8335: 27 12        beq [0x8349]
-8337: dc 1b        ldd (0x001B)
-8339: 26 0e        bne [0x8349]
-833b: d6 62        ldab (0x0062)
-833d: c8 20        eorb 0x20
-833f: d7 62        stab (0x0062)
-8341: bd f9 c5     jsr (0xF9C5)
-8344: cc 00 32     ldd 0x0032
-8347: dd 1b        std (0x001B)
-8349: bd 86 a4     jsr (0x86A4)
-834c: 24 03        bcc [0x8351]
-834e: 7e 82 76     jmp (0x8276)
-8351: f6 10 2d     ldab (SCCR2)
-8354: ca 20        orab 0x20
-8356: f7 10 2d     stab (SCCR2)
-8359: 7f 00 aa     clr (0x00AA)
-835c: d6 62        ldab (0x0062)
-835e: c4 df        andb 0xDF
-8360: d7 62        stab (0x0062)
-8362: bd f9 c5     jsr (0xF9C5)
-8365: c6 02        ldab 0x02            ; delay 2 secs
-8367: bd 8c 02     jsr (0x8C02)         ;
-836a: 96 7c        ldaa (0x007C)
-836c: 27 2d        beq [0x839B]
-836e: 96 7f        ldaa (0x007F)
-8370: 97 4e        staa (0x004E)
-8372: d6 81        ldab (0x0081)
-8374: bd 87 48     jsr (0x8748)
-8377: 96 82        ldaa (0x0082)
-8379: 85 01        bita 0x01
-837b: 26 06        bne [0x8383]
-837d: 96 ac        ldaa (0x00AC)
-837f: 84 fd        anda 0xFD
-8381: 20 04        bra [0x8387]
-8383: 96 ac        ldaa (0x00AC)
-8385: 8a 02        oraa 0x02
-8387: 97 ac        staa (0x00AC)
-8389: b7 18 06     staa (0x1806)
-838c: b6 18 04     ldaa (0x1804)
-838f: 8a 20        oraa 0x20
-8391: b7 18 04     staa (0x1804)
-8394: 84 df        anda 0xDF
-8396: b7 18 04     staa (0x1804)
-8399: 20 14        bra [0x83AF]
-839b: fc 04 0d     ldd (0x040D)
-839e: 1a 83 fd e8  cpd 0xFDE8
-83a2: 22 06        bhi [0x83AA]
-83a4: c3 00 01     addd 0x0001
-83a7: fd 04 0d     std (0x040D)
-83aa: c6 f7        ldab 0xF7
-83ac: bd 86 e7     jsr (0x86E7)
-83af: 7f 00 30     clr (0x0030)
-83b2: 7f 00 31     clr (0x0031)
-83b5: 7f 00 32     clr (0x0032)
-83b8: bd 9b 19     jsr (0x9B19)
-83bb: bd 86 a4     jsr (0x86A4)
-83be: 25 ef        bcs [0x83AF]
-83c0: 96 79        ldaa (0x0079)
-83c2: 27 17        beq [0x83DB]
-83c4: 7f 00 79     clr (0x0079)
-83c7: 96 b5        ldaa (0x00B5)
-83c9: 81 01        cmpa 0x01
-83cb: 26 07        bne [0x83D4]
-83cd: 7f 00 b5     clr (0x00B5)
-83d0: 86 01        ldaa 0x01
-83d2: 97 7c        staa (0x007C)
-83d4: 86 01        ldaa 0x01
-83d6: 97 aa        staa (0x00AA)
-83d8: 7e 9a 7f     jmp (0x9A7F)
-83db: bd 8d e4     jsr (0x8DE4)
+        ldab    (0x0062)
+        orab    #0x80
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        ldab    #0xFB
+        jsr     (0x86E7)
 
-; '   Tape start   '
-83de: 20 20 20 54 61 70 65 20 73 74 61 72 74 20 20 a0
+        jsr     (0x8DCF)
+        .ascis  '68HC11 Proto'
 
-83ee: d6 62        ldab (0x0062)
-83f0: ca 80        orab 0x80
-83f2: d7 62        stab (0x0062)
-83f4: bd f9 c5     jsr (0xF9C5)
-83f7: c6 fb        ldab 0xFB
-83f9: bd 86 e7     jsr (0x86E7)
-83fc: bd 8d cf     jsr (0x8DCF)
+        jsr     (0x8DD6)
+        .ascis  'dbp'
 
-; '68HC11 Proto'
-83ff: 36 38 48 43 31 31 20 50 72 6f 74 ef 
+        ldab    #0x03           ; delay 3 secs
+        jsr     (0x8C02)        ;
+        tst     (0x007C)
+        beq     L8430
+        ldab    (0x0080)
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        ldab    (0x007D)
+        stab    (0x0078)
+        ldab    (0x007E)
+        stab    (0x108A)
+        clr     (0x007C)
+        bra     L844D
+L8430:
+        jsr     (0x8D03)
+        jsr     (0x9D18)
+        bcc     L8440
+        tst     (0x00B8)
+        beq     L8430
+        jmp     (0x9A60)
+L8440:
+        tst     (0x00B8)
+        beq     L8430
+        clr     (0x0030)
+        clr     (0x0031)
+        bra     L844D
+L844D:
+        ldaa    (0x0049)
+        bne     L8454
+        jmp     (0x85A4)
+L8454:
+        clr     (0x0049)
+        cmpa    #0x31
+        bne     L8463
+        jsr     (0xA326)
+        jsr     (0x8D42)
+        bra     L844D
+L8463:
+        cmpa    #0x32
+        bne     L846F
+        jsr     (0xA326)
+        jsr     (0x8D35)
+        bra     L844D
+L846F:
+        cmpa    #0x54
+        bne     L847B
+        jsr     (0xA326)
+        jsr     (0x8D42)
+        bra     L844D
+L847B:
+        cmpa    #0x5A
+        bne     L849B
+        jsr     (0xA31E)
+        jsr     (0x8E95)
+        clr     (0x0032)
+        clr     (0x0031)
+        clr     (0x0030)
+        jsr     L99A6
+        ldab    (0x007B)
+        orab    #0x0C
+        jsr     (0x8748)
+        jmp     L81BD
+L849B:
+        cmpa    #0x42
+        bne     L84A2
+        jmp     (0x983C)
+L84A2:
+        cmpa    #0x4D
+        bne     L84A9
+        jmp     (0x9824)
+L84A9:
+        cmpa    #0x45
+        bne     L84B0
+        jmp     (0x9802)
+L84B0:
+        cmpa    #0x58
+        bne     L84B9
+        jmp     (0x993F)
+        bra     L844D
+L84B9:
+        cmpa    #0x46
+        bne     L84C0
+        jmp     (0x9971)
+L84C0:
+        cmpa    #0x47
+        bne     L84C7
+        jmp     (0x997B)
+L84C7:
+        cmpa    #0x48
+        bne     L84CE
+        jmp     (0x9985)
+L84CE:
+        cmpa    #0x49
+        bne     L84D5
+        jmp     (0x998F)
+L84D5:
+        cmpa    #0x53
+        bne     L84DC
+        jmp     (0x97BA)
+L84DC:
+        cmpa    #0x59
+        bne     L84E3
+        jmp     (0x99D2)
+L84E3:
+        cmpa    #0x57
+        bne     L84EA
+        jmp     (0x9AA4)
+L84EA:
+        cmpa    #0x41
+        bne     L8505
+        jsr     (0x9D18)
+        bcs     L84FC
+        clr     (0x0030)
+        clr     (0x0031)
+        jmp     (0x85A4)
+L84FC:
+        clr     (0x0030)
+        clr     (0x0031)
+        jmp     (0x9A7F)
+L8505:
+        cmpa    #0x4B
+        bne     L8514
+        jsr     (0x9D18)
+        bcs     L8511
+        jmp     (0x85A4)
+L8511:
+        jmp     (0x9A7F)
+L8514:
+        cmpa    #0x4A
+        bne     L851F
+        ldaa    #0x01
+        staa    (0x00AF)
+        jmp     (0x983C)
+L851F:
+        cmpa    #0x4E
+        bne     L852E
+        ldaa    (0x108A)
+        oraa    #0x02
+        staa    (0x108A)
+        jmp     (0x844D)
+L852E:
+        cmpa    #0x4F
+        bne     L8538
+        jsr     (0x9D18)
+        jmp     (0x844D)
+L8538:
+        cmpa    #0x50
+        bne     L8542
+        jsr     (0x9D18)
+        jmp     (0x844D)
+L8542:
+        cmpa    #0x51
+        bne     L8551
+        ldaa    (0x108A)
+        oraa    #0x04
+        staa    (0x108A)
+        jmp     (0x844D)
+L8551:
+        cmpa    #0x55
+        bne     L855C
+        ldab    #0x01
+        stab    (0x00B6)
+        jmp     (0x844D)
+L855C:
+        cmpa    #0x4C
+        bne     L8579
+        clr     (0x0049)
+        jsr     (0x9D18)
+        bcs     L8576
+        jsr     (0xAAE8)
+        jsr     (0xAB56)
+        bcc     L8576
+        jsr     (0xAB25)
+        jsr     (0xAB46)
+L8576:
+        jmp     (0x844D)
+L8579:
+        cmpa    #0x52
+        bne     L8597
+        clr     (0x0049)
+        jsr     (0x9D18)
+        bcs     L8594
+        jsr     (0xAAE8)
+        jsr     (0xAB56)
+        bcs     L8594
+        ldaa    #0xFF
+        staa    0,X
+        jsr     (0xAAE8)
+L8594:
+        jmp     (0x844D)
+L8597:
+        cmpa    #0x44
+        bne     L85A4
+        clr     (0x0049)
+        jsr     (0xABAE)
+        jmp     L844D
+L85A4:
+        tst     (0x0075)
+        bne     L85FF
+        tst     (0x0079)
+        bne     L85FF
+        tst     (0x0030)
+        bne     L85BA
+        ldaa    (0x005B)
+        beq     L85FF
+        clr     (0x005B)
+L85BA:
+        ldd     #0x0064
+        std     CDTIMR5
+L85BF:
+        ldd     CDTIMR5
+        beq     L85D7
+        jsr     (0x9B19)
+        ldaa    (0x1804)
+        eora    #0xFF
+        anda    #0x06
+        cmpa    #0x06
+        bne     L85BF
+        clr     (0x0030)
+        jmp     (0x8680)
+L85D7:
+        clr     (0x0030)
+        ldab    (0x0062)
+        eorb    #0x02
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        andb    #0x02
+        beq     L85F4
+        jsr     (0xAA18)
+        ldab    #0x1E
+        jsr     (0x8C22)
+        clr     (0x0030)
+        bra     L85FF
+L85F4:
+        jsr     (0xAA1D)
+        ldab    #0x1E
+        jsr     (0x8C22)
+        clr     (0x0030)
+L85FF:
+        jsr     (0x9B19)
+        ldaa    (PORTE)
+        anda    #0x10
+        beq     L8614
+        ldaa    (0x1804)
+        eora    #0xFF
+        anda    #0x07
+        cmpa    #0x06
+        bne     L8630
+L8614:
+        tst     (0x0076)
+        bne     L8630
+        tst     (0x0075)
+        bne     L8630
+        ldab    (0x0062)
+        andb    #0xFC
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        jsr     (0xAA13)
+        jsr     (0xAA1D)
+        jmp     (0x9A60)
+L8630:
+        tst     (0x0031)
+        bne     L863C
+        ldaa    (0x005A)
+        beq     L8680
+        clr     (0x005A)
+L863C:
+        ldd     #0x0064
+        std     CDTIMR5
+L8641:
+        ldd     CDTIMR5
+        beq     L8658
+        jsr     (0x9B19)
+        ldaa    (0x1804)
+        eora    #0xFF
+        anda    #0x06
+        cmpa    #0x06
+        bne     L8641
+        clr     (0x0031)
+        bra     L8680
+L8658:
+        clr     (0x0031)
+        ldab    (0x0062)
+        eorb    #0x01
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        andb    #0x01
+        beq     L8675
+        jsr     (0xAA0C)
+        ldab    #0x1E
+        jsr     (0x8C22)
+        clr     (0x0031)
+        bra     L8680
+L8675:
+        jsr     (0xAA13)
+        ldab    #0x1E
+        jsr     (0x8C22)
+        clr     (0x0031)
+L8680:
+        jsr     (0x86A4)
+        bcs     L86A1
+        clr     (0x004E)
+        jsr     L99A6
+        jsr     L86C4
+        clrb
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        ldab    #0xFD
+        jsr     (0x86E7)
+        ldab    #0x04           ; delay 4 secs
+        jsr     (0x8C02)        ;
+        jmp     (0x847F)
+L86A1:
+        jmp     (0x844D)
+        jsr     (0x9B19)
+        clr     CDTIMR5
+        ldaa    #0x19
+        staa    CDTIMR5+1
+        ldaa    (PORTE)
+        anda    #0x80
+        beq     L86B7
+L86B5:
+        sec
+        rts
 
-840b: bd 8d d6     jsr (0x8DD6)
-
-; 'dbp'
-840e: 64 62 f0 
-
-8411: c6 03        ldab 0x03            ; delay 3 secs
-8413: bd 8c 02     jsr (0x8C02)         ;
-8416: 7d 00 7c     tst (0x007C)
-8419: 27 15        beq [0x8430]
-841b: d6 80        ldab (0x0080)
-841d: d7 62        stab (0x0062)
-841f: bd f9 c5     jsr (0xF9C5)
-8422: d6 7d        ldab (0x007D)
-8424: d7 78        stab (0x0078)
-8426: d6 7e        ldab (0x007E)
-8428: f7 10 8a     stab (0x108A)
-842b: 7f 00 7c     clr (0x007C)
-842e: 20 1d        bra [0x844D]
-8430: bd 8d 03     jsr (0x8D03)
-8433: bd 9d 18     jsr (0x9D18)
-8436: 24 08        bcc [0x8440]
-8438: 7d 00 b8     tst (0x00B8)
-843b: 27 f3        beq [0x8430]
-843d: 7e 9a 60     jmp (0x9A60)
-8440: 7d 00 b8     tst (0x00B8)
-8443: 27 eb        beq [0x8430]
-8445: 7f 00 30     clr (0x0030)
-8448: 7f 00 31     clr (0x0031)
-844b: 20 00        bra [0x844D]
-844d: 96 49        ldaa (0x0049)
-844f: 26 03        bne [0x8454]
-8451: 7e 85 a4     jmp (0x85A4)
-8454: 7f 00 49     clr (0x0049)
-8457: 81 31        cmpa 0x31
-8459: 26 08        bne [0x8463]
-845b: bd a3 26     jsr (0xA326)
-845e: bd 8d 42     jsr (0x8D42)
-8461: 20 ea        bra [0x844D]
-8463: 81 32        cmpa 0x32
-8465: 26 08        bne [0x846F]
-8467: bd a3 26     jsr (0xA326)
-846a: bd 8d 35     jsr (0x8D35)
-846d: 20 de        bra [0x844D]
-846f: 81 54        cmpa 0x54
-8471: 26 08        bne [0x847B]
-8473: bd a3 26     jsr (0xA326)
-8476: bd 8d 42     jsr (0x8D42)
-8479: 20 d2        bra [0x844D]
-847b: 81 5a        cmpa 0x5A
-847d: 26 1c        bne [0x849B]
-847f: bd a3 1e     jsr (0xA31E)
-8482: bd 8e 95     jsr (0x8E95)
-8485: 7f 00 32     clr (0x0032)
-8488: 7f 00 31     clr (0x0031)
-848b: 7f 00 30     clr (0x0030)
-848e: bd 99 a6     jsr (0x99A6)
-8491: d6 7b        ldab (0x007B)
-8493: ca 0c        orab 0x0C
-8495: bd 87 48     jsr (0x8748)
-8498: 7e 81 bd     jmp (0x81BD)
-849b: 81 42        cmpa 0x42
-849d: 26 03        bne [0x84A2]
-849f: 7e 98 3c     jmp (0x983C)
-84a2: 81 4d        cmpa 0x4D
-84a4: 26 03        bne [0x84A9]
-84a6: 7e 98 24     jmp (0x9824)
-84a9: 81 45        cmpa 0x45
-84ab: 26 03        bne [0x84B0]
-84ad: 7e 98 02     jmp (0x9802)
-84b0: 81 58        cmpa 0x58
-84b2: 26 05        bne [0x84B9]
-84b4: 7e 99 3f     jmp (0x993F)
-84b7: 20 94        bra [0x844D]
-84b9: 81 46        cmpa 0x46
-84bb: 26 03        bne [0x84C0]
-84bd: 7e 99 71     jmp (0x9971)
-84c0: 81 47        cmpa 0x47
-84c2: 26 03        bne [0x84C7]
-84c4: 7e 99 7b     jmp (0x997B)
-84c7: 81 48        cmpa 0x48
-84c9: 26 03        bne [0x84CE]
-84cb: 7e 99 85     jmp (0x9985)
-84ce: 81 49        cmpa 0x49
-84d0: 26 03        bne [0x84D5]
-84d2: 7e 99 8f     jmp (0x998F)
-84d5: 81 53        cmpa 0x53
-84d7: 26 03        bne [0x84DC]
-84d9: 7e 97 ba     jmp (0x97BA)
-84dc: 81 59        cmpa 0x59
-84de: 26 03        bne [0x84E3]
-84e0: 7e 99 d2     jmp (0x99D2)
-84e3: 81 57        cmpa 0x57
-84e5: 26 03        bne [0x84EA]
-84e7: 7e 9a a4     jmp (0x9AA4)
-84ea: 81 41        cmpa 0x41
-84ec: 26 17        bne [0x8505]
-84ee: bd 9d 18     jsr (0x9D18)
-84f1: 25 09        bcs [0x84FC]
-84f3: 7f 00 30     clr (0x0030)
-84f6: 7f 00 31     clr (0x0031)
-84f9: 7e 85 a4     jmp (0x85A4)
-84fc: 7f 00 30     clr (0x0030)
-84ff: 7f 00 31     clr (0x0031)
-8502: 7e 9a 7f     jmp (0x9A7F)
-8505: 81 4b        cmpa 0x4B
-8507: 26 0b        bne [0x8514]
-8509: bd 9d 18     jsr (0x9D18)
-850c: 25 03        bcs [0x8511]
-850e: 7e 85 a4     jmp (0x85A4)
-8511: 7e 9a 7f     jmp (0x9A7F)
-8514: 81 4a        cmpa 0x4A
-8516: 26 07        bne [0x851F]
-8518: 86 01        ldaa 0x01
-851a: 97 af        staa (0x00AF)
-851c: 7e 98 3c     jmp (0x983C)
-851f: 81 4e        cmpa 0x4E
-8521: 26 0b        bne [0x852E]
-8523: b6 10 8a     ldaa (0x108A)
-8526: 8a 02        oraa 0x02
-8528: b7 10 8a     staa (0x108A)
-852b: 7e 84 4d     jmp (0x844D)
-852e: 81 4f        cmpa 0x4F
-8530: 26 06        bne [0x8538]
-8532: bd 9d 18     jsr (0x9D18)
-8535: 7e 84 4d     jmp (0x844D)
-8538: 81 50        cmpa 0x50
-853a: 26 06        bne [0x8542]
-853c: bd 9d 18     jsr (0x9D18)
-853f: 7e 84 4d     jmp (0x844D)
-8542: 81 51        cmpa 0x51
-8544: 26 0b        bne [0x8551]
-8546: b6 10 8a     ldaa (0x108A)
-8549: 8a 04        oraa 0x04
-854b: b7 10 8a     staa (0x108A)
-854e: 7e 84 4d     jmp (0x844D)
-8551: 81 55        cmpa 0x55
-8553: 26 07        bne [0x855C]
-8555: c6 01        ldab 0x01
-8557: d7 b6        stab (0x00B6)
-8559: 7e 84 4d     jmp (0x844D)
-855c: 81 4c        cmpa 0x4C
-855e: 26 19        bne [0x8579]
-8560: 7f 00 49     clr (0x0049)
-8563: bd 9d 18     jsr (0x9D18)
-8566: 25 0e        bcs [0x8576]
-8568: bd aa e8     jsr (0xAAE8)
-856b: bd ab 56     jsr (0xAB56)
-856e: 24 06        bcc [0x8576]
-8570: bd ab 25     jsr (0xAB25)
-8573: bd ab 46     jsr (0xAB46)
-8576: 7e 84 4d     jmp (0x844D)
-8579: 81 52        cmpa 0x52
-857b: 26 1a        bne [0x8597]
-857d: 7f 00 49     clr (0x0049)
-8580: bd 9d 18     jsr (0x9D18)
-8583: 25 0f        bcs [0x8594]
-8585: bd aa e8     jsr (0xAAE8)
-8588: bd ab 56     jsr (0xAB56)
-858b: 25 07        bcs [0x8594]
-858d: 86 ff        ldaa 0xFF
-858f: a7 00        staa (X+0x00)
-8591: bd aa e8     jsr (0xAAE8)
-8594: 7e 84 4d     jmp (0x844D)
-8597: 81 44        cmpa 0x44
-8599: 26 09        bne [0x85A4]
-859b: 7f 00 49     clr (0x0049)
-859e: bd ab ae     jsr (0xABAE)
-85a1: 7e 84 4d     jmp (0x844D)
-85a4: 7d 00 75     tst (0x0075)
-85a7: 26 56        bne [0x85FF]
-85a9: 7d 00 79     tst (0x0079)
-85ac: 26 51        bne [0x85FF]
-85ae: 7d 00 30     tst (0x0030)
-85b1: 26 07        bne [0x85BA]
-85b3: 96 5b        ldaa (0x005B)
-85b5: 27 48        beq [0x85FF]
-85b7: 7f 00 5b     clr (0x005B)
-85ba: cc 00 64     ldd 0x0064
-85bd: dd 23        std (0x0023)
-85bf: dc 23        ldd (0x0023)
-85c1: 27 14        beq [0x85D7]
-85c3: bd 9b 19     jsr (0x9B19)
-85c6: b6 18 04     ldaa (0x1804)
-85c9: 88 ff        eora 0xFF
-85cb: 84 06        anda 0x06
-85cd: 81 06        cmpa 0x06
-85cf: 26 ee        bne [0x85BF]
-85d1: 7f 00 30     clr (0x0030)
-85d4: 7e 86 80     jmp (0x8680)
-85d7: 7f 00 30     clr (0x0030)
-85da: d6 62        ldab (0x0062)
-85dc: c8 02        eorb 0x02
-85de: d7 62        stab (0x0062)
-85e0: bd f9 c5     jsr (0xF9C5)
-85e3: c4 02        andb 0x02
-85e5: 27 0d        beq [0x85F4]
-85e7: bd aa 18     jsr (0xAA18)
-85ea: c6 1e        ldab 0x1E
-85ec: bd 8c 22     jsr (0x8C22)
-85ef: 7f 00 30     clr (0x0030)
-85f2: 20 0b        bra [0x85FF]
-85f4: bd aa 1d     jsr (0xAA1D)
-85f7: c6 1e        ldab 0x1E
-85f9: bd 8c 22     jsr (0x8C22)
-85fc: 7f 00 30     clr (0x0030)
-85ff: bd 9b 19     jsr (0x9B19)
-8602: b6 10 0a     ldaa (PORTE)
-8605: 84 10        anda 0x10
-8607: 27 0b        beq [0x8614]
-8609: b6 18 04     ldaa (0x1804)
-860c: 88 ff        eora 0xFF
-860e: 84 07        anda 0x07
-8610: 81 06        cmpa 0x06
-8612: 26 1c        bne [0x8630]
-8614: 7d 00 76     tst (0x0076)
-8617: 26 17        bne [0x8630]
-8619: 7d 00 75     tst (0x0075)
-861c: 26 12        bne [0x8630]
-861e: d6 62        ldab (0x0062)
-8620: c4 fc        andb 0xFC
-8622: d7 62        stab (0x0062)
-8624: bd f9 c5     jsr (0xF9C5)
-8627: bd aa 13     jsr (0xAA13)
-862a: bd aa 1d     jsr (0xAA1D)
-862d: 7e 9a 60     jmp (0x9A60)
-8630: 7d 00 31     tst (0x0031)
-8633: 26 07        bne [0x863C]
-8635: 96 5a        ldaa (0x005A)
-8637: 27 47        beq [0x8680]
-8639: 7f 00 5a     clr (0x005A)
-863c: cc 00 64     ldd 0x0064
-863f: dd 23        std (0x0023)
-8641: dc 23        ldd (0x0023)
-8643: 27 13        beq [0x8658]
-8645: bd 9b 19     jsr (0x9B19)
-8648: b6 18 04     ldaa (0x1804)
-864b: 88 ff        eora 0xFF
-864d: 84 06        anda 0x06
-864f: 81 06        cmpa 0x06
-8651: 26 ee        bne [0x8641]
-8653: 7f 00 31     clr (0x0031)
-8656: 20 28        bra [0x8680]
-8658: 7f 00 31     clr (0x0031)
-865b: d6 62        ldab (0x0062)
-865d: c8 01        eorb 0x01
-865f: d7 62        stab (0x0062)
-8661: bd f9 c5     jsr (0xF9C5)
-8664: c4 01        andb 0x01
-8666: 27 0d        beq [0x8675]
-8668: bd aa 0c     jsr (0xAA0C)
-866b: c6 1e        ldab 0x1E
-866d: bd 8c 22     jsr (0x8C22)
-8670: 7f 00 31     clr (0x0031)
-8673: 20 0b        bra [0x8680]
-8675: bd aa 13     jsr (0xAA13)
-8678: c6 1e        ldab 0x1E
-867a: bd 8c 22     jsr (0x8C22)
-867d: 7f 00 31     clr (0x0031)
-8680: bd 86 a4     jsr (0x86A4)
-8683: 25 1c        bcs [0x86A1]
-8685: 7f 00 4e     clr (0x004E)
-8688: bd 99 a6     jsr (0x99A6)
-868b: bd 86 c4     jsr (0x86C4)
-868e: 5f           clrb
-868f: d7 62        stab (0x0062)
-8691: bd f9 c5     jsr (0xF9C5)
-8694: c6 fd        ldab 0xFD
-8696: bd 86 e7     jsr (0x86E7)
-8699: c6 04        ldab 0x04            ; delay 4 secs
-869b: bd 8c 02     jsr (0x8C02)         ;
-869e: 7e 84 7f     jmp (0x847F)
-86a1: 7e 84 4d     jmp (0x844D)
-86a4: bd 9b 19     jsr (0x9B19)
-86a7: 7f 00 23     clr (0x0023)
-86aa: 86 19        ldaa 0x19
-86ac: 97 24        staa (0x0024)
-86ae: b6 10 0a     ldaa (PORTE)
-86b1: 84 80        anda 0x80
-86b3: 27 02        beq [0x86B7]
-86b5: 0d           sec
-86b6: 39           rts
-
-86b7: b6 10 0a     ldaa (PORTE)
-86ba: 84 80        anda 0x80
-86bc: 26 f7        bne [0x86B5]
-86be: 96 24        ldaa (0x0024)
-86c0: 26 f5        bne [0x86B7]
-86c2: 0c           clc
-86c3: 39           rts
+L86B7:
+        ldaa    (PORTE)
+        anda    #0x80
+        bne     L86B5
+        ldaa    CDTIMR5+1
+        bne     L86B7
+        clc
+        rts
 
 ; main1 - init boards 1-9 at:
 ;         0x1080, 0x1084, 0x1088, 0x108c
 ;         0x1090, 0x1094, 0x1098, 0x109c
 ;         0x10a0
 
-86c4: ce 10 80     ldx 0x1080
-86c7: 86 30        ldaa 0x30
-86c9: a7 01        staa (X+0x01)
-86cb: a7 03        staa (X+0x03)
-86cd: 86 ff        ldaa 0xFF
-86cf: a7 00        staa (X+0x00)
-86d1: a7 02        staa (X+0x02)
-86d3: 86 34        ldaa 0x34
-86d5: a7 01        staa (X+0x01)
-86d7: a7 03        staa (X+0x03)
-86d9: 6f 00        clr (X+0x00)
-86db: 6f 02        clr (X+0x02)
-86dd: 08           inx
-86de: 08           inx
-86df: 08           inx
-86e0: 08           inx
-86e1: 8c 10 a4     cpx 0x10A4
-86e4: 2f e1        ble [0x86C7]
-86e6: 39           rts
+L86C4:
+        ldx     #0x1080
+L86C7:
+        ldaa    #0x30
+        staa    1,X
+        staa    3,X
+        ldaa    #0xFF
+        staa    0,X
+        staa    2,X
+        ldaa    #0x34
+        staa    1,X
+        staa    3,X
+        clr     0,X
+        clr     2,X
+        inx
+        inx
+        inx
+        inx
+        cpx     #0x10A4
+        ble     L86C7
+        rts
 
+.if 0
 ; ***
 86e7: 36           psha
 86e8: bd 9b 19     jsr (0x9B19)
@@ -805,6 +902,9 @@ L807E:
 87b9: 32           pula
 87ba: 20 e1        bra [0x879D]
 
+.endif
+L87BC:
+.if 0
 87bc: ce 87 d2     ldx 0x87D2
 87bf: a6 00        ldaa (X+0x00)
 87c1: 81 ff        cmpa 0xFF
@@ -831,6 +931,9 @@ L807E:
 87e6: ff ff
 
 ; SCC init?
+.endif
+L87E8:
+.if 0
 87e8: ce f8 57     ldx 0xF857
 87e9: a6 00        ldaa (X+0x00)
 87ed: 81 ff        cmpa 0xFF
@@ -1298,6 +1401,9 @@ L807E:
 8bbf: 39           rts
 
 ; setup IRQ handlers!
+.endif
+L8BC0:
+.if 0
 8bc0: 86 80        ldaa 0x80
 8bc2: b7 10 22     staa (TMSK1)
 8bc5: ce ab cc     ldx 0xABCC
@@ -1312,12 +1418,15 @@ L807E:
 8bdf: b7 01 2d     staa (0x012D)
 8be2: 4f           clra
 8be3: 5f           clrb
-8be4: dd 1b        std (0x001B)     ; Reset the countdown timers
-8be6: dd 1d        std (0x001D)
-8be8: dd 1f        std (0x001F)
-8bea: dd 21        std (0x0021)
-8bec: dd 23        std (0x0023)
+8be4: dd 1b        std CDTIMR1     ; Reset all the countdown timers
+8be6: dd 1d        std CDTIMR2
+8be8: dd 1f        std CDTIMR3
+8bea: dd 21        std CDTIMR4
+8bec: dd 23        std CDTIMR5
 
+.endif
+L8BEE:
+.if 0
 8bee: 86 c0        ldaa 0xC0
 8bf0: b7 10 23     staa (TFLG1)
 8bf3: 39           rts
@@ -1335,9 +1444,9 @@ L807E:
 8c02: 36           psha
 8c03: 86 64        ldaa 0x64
 8c05: 3d           mul
-8c06: dd 23        std (0x0023)     ; store B*100 here
+8c06: dd 23        std CDTIMR5     ; store B*100 here
 8c08: bd 9b 19     jsr (0x9B19)     ; update 0x0023/0x0024 from RTC???
-8c0b: dc 23        ldd (0x0023)
+8c0b: dc 23        ldd CDTIMR5
 8c0d: 26 f9        bne [0x8C08]
 8c0f: 32           pula
 8c10: 39           rts
@@ -1355,9 +1464,9 @@ L807E:
 
 8c22: 36           psha
 8c23: 4f           clra
-8c24: dd 23        std (0x0023)
+8c24: dd 23        std CDTIMR5
 8c26: bd 9b 19     jsr (0x9B19)
-8c29: 7d 00 24     tst (0x0024)
+8c29: 7d 00 24     tst CDTIMR5+1
 8c2c: 26 f8        bne [0x8C26]
 8c2e: 32           pula
 8c2f: 39           rts
@@ -1365,8 +1474,8 @@ L807E:
 8c30: 36           psha
 8c31: 86 32        ldaa 0x32
 8c33: 3d           mul
-8c34: dd 23        std (0x0023)
-8c36: dc 23        ldd (0x0023)
+8c34: dd 23        std CDTIMR5
+8c36: dc 23        ldd CDTIMR5
 8c38: 26 fc        bne [0x8C36]
 8c3a: 32           pula
 8c3b: 39           rts
@@ -1375,6 +1484,9 @@ L807E:
 ; LCD routines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+.endif
+L8C3C:
+.if 0
 8c3c: 86 ff        ldaa 0xFF
 8c3e: b7 10 01     staa (DDRA)
 8c41: 86 ff        ldaa 0xFF
@@ -1408,6 +1520,9 @@ L807E:
 8c7d: 39           rts
 
 ; Reset LCD buffer?
+.endif
+L8C7E:
+.if 0
 8c7e: cc 05 00     ldd 0x0500       ; Reset LCD queue?
 8c81: dd 46        std (0x0046)     ; write pointer
 8c83: dd 44        std (0x0044)     ; read pointer?
@@ -1493,6 +1608,9 @@ L807E:
 8d26: 26 f3        bne [0x8D1B]
 8d28: 39           rts
 
+.endif
+L8D29:
+.if 0
 8d29: 86 0c        ldaa 0x0C
 8d2b: bd 8e 4b     jsr (0x8E4B)
 8d2e: 39           rts
@@ -2251,7 +2369,7 @@ L807E:
 928c: 34           des
 928d: 2c 45        bge [0x92D4]
 928f: 78 69 f4     asl (0x69F4)
-9292: bd 86 c4     jsr (0x86C4)
+9292: bd 86 c4     jsr L86C4
 9295: c6 01        ldab 0x01
 9297: bd 8c 30     jsr (0x8C30)
 929a: bd 8d e4     jsr (0x8DE4)
@@ -2271,7 +2389,7 @@ L807E:
 92cb: bd 95 04     jsr (0x9504)
 92ce: 81 11        cmpa 0x11
 92d0: 26 14        bne [0x92E6]
-92d2: bd 86 c4     jsr (0x86C4)
+92d2: bd 86 c4     jsr L86C4
 92d5: 5f           clrb
 92d6: d7 62        stab (0x0062)
 92d8: bd f9 c5     jsr (0xF9C5)
@@ -2870,7 +2988,7 @@ L807E:
 9810: ca 0c        orab 0x0C
 9812: bd 87 48     jsr (0x8748)
 9815: bd a3 1e     jsr (0xA31E)
-9818: bd 86 c4     jsr (0x86C4)
+9818: bd 86 c4     jsr L86C4
 981b: bd 9c 51     jsr (0x9C51)
 981e: bd 8e 95     jsr (0x8E95)
 9821: 7e 84 4d     jmp (0x844D)
@@ -2895,9 +3013,9 @@ L807E:
 9852: c6 fd        ldab 0xFD
 9854: bd 86 e7     jsr (0x86E7)
 9857: cc 00 32     ldd 0x0032
-985a: dd 1b        std (0x001B)
+985a: dd 1b        std CDTIMR1
 985c: cc 75 30     ldd 0x7530
-985f: dd 1d        std (0x001D)
+985f: dd 1d        std CDTIMR2
 9861: 7f 00 5a     clr (0x005A)
 9864: bd 9b 19     jsr (0x9B19)
 9867: 7d 00 31     tst (0x0031)
@@ -2914,7 +3032,7 @@ L807E:
 9881: bd 86 e7     jsr (0x86E7)
 9884: 7f 00 5a     clr (0x005A)
 9887: 20 4b        bra [0x98D4]
-9889: dc 1b        ldd (0x001B)
+9889: dc 1b        ldd CDTIMR1
 988b: 26 d7        bne [0x9864]
 988d: d6 62        ldab (0x0062)
 988f: c8 01        eorb 0x01
@@ -2926,8 +3044,8 @@ L807E:
 989d: 20 03        bra [0x98A2]
 989f: bd aa 13     jsr (0xAA13)
 98a2: cc 00 32     ldd 0x0032
-98a5: dd 1b        std (0x001B)
-98a7: dc 1d        ldd (0x001D)
+98a5: dd 1b        std CDTIMR1
+98a7: dc 1d        ldd CDTIMR2
 98a9: 27 c5        beq [0x9870]
 98ab: 20 b7        bra [0x9864]
 98ad: 7d 00 75     tst (0x0075)
@@ -3032,6 +3150,9 @@ L807E:
 99a5: 39           rts
 
 ; main2
+.endif
+L99A6:
+.if 0
 99a6: d6 7b        ldab (0x007B)
 99a8: c4 df        andb 0xDF        ; clear bit 5
 99aa: bd 87 48     jsr (0x8748)
@@ -3150,12 +3271,12 @@ L807E:
 9a88: c4 df        andb 0xDF
 9a8a: bd 87 48     jsr (0x8748)
 9a8d: bd 87 91     jsr (0x8791)
-9a90: bd 86 c4     jsr (0x86C4)
+9a90: bd 86 c4     jsr L86C4
 9a93: bd 9c 51     jsr (0x9C51)
 9a96: c6 06        ldab 0x06            ; delay 6 secs
 9a98: bd 8c 02     jsr (0x8C02)         ;
 9a9b: bd 8e 95     jsr (0x8E95)
-9a9e: bd 99 a6     jsr (0x99A6)
+9a9e: bd 99 a6     jsr L99A6
 9aa1: 7e 81 bd     jmp (0x81BD)
 9aa4: 7f 00 5c     clr (0x005C)
 9aa7: 86 01        ldaa 0x01
@@ -3164,7 +3285,7 @@ L807E:
 9aad: bd 86 e7     jsr (0x86E7)
 9ab0: bd 8e 95     jsr (0x8E95)
 9ab3: cc 75 30     ldd 0x7530
-9ab6: dd 1d        std (0x001D)
+9ab6: dd 1d        std CDTIMR2
 9ab8: bd 9b 19     jsr (0x9B19)
 9abb: d6 62        ldab (0x0062)
 9abd: c8 04        eorb 0x04
@@ -3180,7 +3301,7 @@ L807E:
 9ad6: 27 0b        beq [0x9AE3]
 9ad8: c6 32        ldab 0x32
 9ada: bd 8c 22     jsr (0x8C22)
-9add: dc 1d        ldd (0x001D)
+9add: dc 1d        ldd CDTIMR2
 9adf: 27 02        beq [0x9AE3]
 9ae1: 20 d5        bra [0x9AB8]
 9ae3: d6 62        ldab (0x0062)
@@ -3213,7 +3334,7 @@ L807E:
 9b21: 26 10        bne [0x9B33]     ; exit
 9b23: 7d 00 64     tst (0x0064)
 9b26: 27 09        beq [0x9B31]     ; go to 0401 logic
-9b28: bd 86 c4     jsr (0x86C4)     ; do something with boards???
+9b28: bd 86 c4     jsr L86C4     ; do something with boards???
 9b2b: bd 9c 51     jsr (0x9C51)     ; RTC stuff???
 9b2e: 7f 00 64     clr (0x0064)
 9b31: 20 03        bra [0x9B36]     ; go to 0401 logic
@@ -3256,7 +3377,7 @@ L807E:
 9b70: 18 a6 00     ldaa (Y+0x00)
 9b73: 81 ff        cmpa 0xFF
 9b75: 27 14        beq [0x9B8B]
-9b77: 91 70        cmpa (0x0070)
+9b77: 91 70        cmpa OFFCNT1
 9b79: 25 0d        bcs [0x9B88]
 9b7b: 18 08        iny
 9b7d: 18 a6 00     ldaa (Y+0x00)
@@ -3268,14 +3389,14 @@ L807E:
 9b8b: 18 ce b2 eb  ldy 0xB2EB
 9b8f: 18 df 65     sty (0x0065)
 9b92: 86 fa        ldaa 0xFA
-9b94: 97 70        staa (0x0070)
+9b94: 97 70        staa OFFCNT1
 9b96: 7e 9b 88     jmp (0x9B88)
 9b99: 18 3c        pshy
 9b9b: 18 de 67     ldy (0x0067)
 9b9e: 18 a6 00     ldaa (Y+0x00)
 9ba1: 81 ff        cmpa 0xFF
 9ba3: 27 14        beq [0x9BB9]
-9ba5: 91 71        cmpa (0x0071)
+9ba5: 91 71        cmpa OFFCNT2
 9ba7: 25 0d        bcs [0x9BB6]
 9ba9: 18 08        iny
 9bab: 18 a6 00     ldaa (Y+0x00)
@@ -3289,7 +3410,7 @@ L807E:
 9bb9: 18 ce b3 bd  ldy 0xB3BD
 9bbd: 18 df 67     sty (0x0067)
 9bc0: 86 e6        ldaa 0xE6
-9bc2: 97 71        staa (0x0071)
+9bc2: 97 71        staa OFFCNT2
 9bc4: 7e 9b b6     jmp (0x9BB6)
 
 ; bit 2 routine
@@ -3298,7 +3419,7 @@ L807E:
 9bcc: 18 a6 00     ldaa (Y+0x00)
 9bcf: 81 ff        cmpa 0xFF
 9bd1: 27 14        beq [0x9BE7]
-9bd3: 91 72        cmpa (0x0072)
+9bd3: 91 72        cmpa OFFCNT3
 9bd5: 25 0d        bcs [0x9BE4]
 9bd7: 18 08        iny
 9bd9: 18 a6 00     ldaa (Y+0x00)
@@ -3310,7 +3431,7 @@ L807E:
 9be7: 18 ce b5 31  ldy 0xB531
 9beb: 18 df 69     sty (0x0069)
 9bee: 86 d2        ldaa 0xD2
-9bf0: 97 72        staa (0x0072)
+9bf0: 97 72        staa OFFCNT3
 9bf2: 7e 9b e4     jmp (0x9BE4)
 
 ; bit 3 routine
@@ -3319,7 +3440,7 @@ L807E:
 9bfa: 18 a6 00     ldaa (Y+0x00)
 9bfd: 81 ff        cmpa 0xFF
 9bff: 27 14        beq [0x9C15]
-9c01: 91 73        cmpa (0x0073)
+9c01: 91 73        cmpa OFFCNT4
 9c03: 25 0d        bcs [0x9C12]
 9c05: 18 08        iny
 9c07: 18 a6 00     ldaa (Y+0x00)
@@ -3331,7 +3452,7 @@ L807E:
 9c15: 18 ce b4 75  ldy 0xB475
 9c19: 18 df 6b     sty (0x006B)
 9c1c: 86 be        ldaa 0xBE
-9c1e: 97 73        staa (0x0073)
+9c1e: 97 73        staa OFFCNT4
 9c20: 7e 9c 12     jmp (0x9C12)
 
 ; bit 4 routine
@@ -3340,7 +3461,7 @@ L807E:
 9c28: 18 a6 00     ldaa (Y+0x00)
 9c2b: 81 ff        cmpa 0xFF
 9c2d: 27 14        beq [0x9C43]
-9c2f: 91 74        cmpa (0x0074)
+9c2f: 91 74        cmpa OFFCNT5
 9c31: 25 0d        bcs [0x9C40]
 9c33: 18 08        iny
 9c35: 18 a6 00     ldaa (Y+0x00)
@@ -3352,20 +3473,20 @@ L807E:
 9c43: 18 ce b5 c3  ldy 0xB5C3
 9c47: 18 df 6d     sty (0x006D)
 9c4a: 86 aa        ldaa 0xAA
-9c4c: 97 74        staa (0x0074)
+9c4c: 97 74        staa OFFCNT5
 9c4e: 7e 9c 40     jmp (0x9C40)
 
-; ?????
+; Reset offset counters to initial values
 9c51: 86 fa        ldaa 0xFA
-9c53: 97 70        staa (0x0070)
+9c53: 97 70        staa OFFCNT1
 9c55: 86 e6        ldaa 0xE6
-9c57: 97 71        staa (0x0071)
+9c57: 97 71        staa OFFCNT2
 9c59: 86 d2        ldaa 0xD2
-9c5b: 97 72        staa (0x0072)
+9c5b: 97 72        staa OFFCNT3
 9c5d: 86 be        ldaa 0xBE
-9c5f: 97 73        staa (0x0073)
+9c5f: 97 73        staa OFFCNT4
 9c61: 86 aa        ldaa 0xAA
-9c63: 97 74        staa (0x0074)
+9c63: 97 74        staa OFFCNT5
 
 9c65: 18 ce b2 eb  ldy 0xB2EB
 9c69: 18 df 65     sty (0x0065)
@@ -3441,7 +3562,7 @@ L807E:
 9d22: c6 28        ldab 0x28
 9d24: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 9d27: cc 0b b8     ldd 0x0BB8
-9d2a: dd 1b        std (0x001B)
+9d2a: dd 1b        std CDTIMR1
 9d2c: bd 9b 19     jsr (0x9B19)
 9d2f: 96 49        ldaa (0x0049)
 9d31: 81 41        cmpa 0x41
@@ -3474,7 +3595,7 @@ L807E:
 9d6a: 86 04        ldaa 0x04
 9d6c: b7 02 98     staa (0x0298)
 9d6f: 20 0d        bra [0x9D7E]
-9d71: dc 1b        ldd (0x001B)
+9d71: dc 1b        ldd CDTIMR1
 9d73: 26 b7        bne [0x9D2C]
 9d75: 86 23        ldaa 0x23            ;'#'
 9d77: c6 29        ldab 0x29
@@ -3920,7 +4041,7 @@ a12a: b7 18 04     staa (0x1804)
 a12d: bd 8e 95     jsr (0x8E95)
 a130: 7f 00 48     clr (0x0048)
 a133: 7f 00 49     clr (0x0049)
-a136: bd 86 c4     jsr (0x86C4)
+a136: bd 86 c4     jsr L86C4
 a139: 86 28        ldaa 0x28
 a13b: 97 63        staa (0x0063)
 a13d: c6 fd        ldab 0xFD
@@ -3939,7 +4060,7 @@ a15c: 25 ed        bcs [0xA14B]
 a15e: fc 04 1a     ldd (0x041A)
 a161: c3 00 01     addd 0x0001
 a164: fd 04 1a     std (0x041A)
-a167: bd 86 c4     jsr (0x86C4)
+a167: bd 86 c4     jsr L86C4
 a16a: 7c 00 4e     inc (0x004E)
 a16d: c6 d3        ldab 0xD3
 a16f: bd 87 48     jsr (0x8748)
@@ -3957,7 +4078,7 @@ a18a: 1a 83 00 01  cpd 0x0001
 a18e: 27 16        beq [0xA1A6]
 a190: c6 ef        ldab 0xEF
 a192: bd 86 e7     jsr (0x86E7)
-a195: bd 86 c4     jsr (0x86C4)
+a195: bd 86 c4     jsr L86C4
 a198: 7f 00 4e     clr (0x004E)
 a19b: 7f 00 76     clr (0x0076)
 a19e: c6 0a        ldab 0x0A
@@ -4048,21 +4169,28 @@ a250: 8c 0e 00     cpx 0x0E00
 a253: 26 f8        bne [0xA24D]
 a255: bd 9e af     jsr (0x9EAF)     ; reset L counts
 a258: bd 9e 92     jsr (0x9E92)     ; reset R counts
-a25b: 7e f8 00     jmp (RESET)     ; reset controller
+a25b: 7e f8 00     jmp RESET     ; reset controller
 
-a25e: 18 ce 80 03  ldy 0x8003       ; copyright message
-a262: ce 00 00     ldx 0x0000
+; Compute and store copyright checksum
+.endif
+LA25E:
+.if 0
+a25e: 18 ce 80 03  ldy #CPYRTMSG       ; copyright message
+a262: ce 00 00     ldx #0x0000
 a265: 18 e6 00     ldab (Y+0x00)
 a268: 3a           abx
 a269: 18 08        iny
 a26b: 18 8c 80 50  cpy 0x8050
 a26f: 26 f4        bne [0xA265]
-a271: ff 04 0b     stx (0x040B)     ; store checksum here?
+a271: ff 04 0b     stx CPYRTCS     ; store checksum here
 a274: 39           rts
 
 ; Erase EEPROM routine
+.endif
+LA275:
+.if 0
 a275: 0f           sei
-a276: 7f 04 0f     clr (0x040F)     ; NVRAM init?
+a276: 7f 04 0f     clr ERASEFLG     ; Reset EEPROM Erase flag
 a279: 86 0e        ldaa 0x0E
 a27b: b7 10 3b     staa (PPROG)     ; ERASE mode!
 a27e: 86 ff        ldaa 0xFF
@@ -4102,7 +4230,7 @@ a2d1: bd a2 32     jsr (0xA232)     ; program byte
 a2d4: 7f 10 3b     clr (PPROG)
 a2d7: 86 1e        ldaa 0x1E
 a2d9: b7 10 35     staa (BPROT)     ; protect all but 0x0e00-0x0e1f
-a2dc: 7e f8 00     jmp (RESET)     ; reset controller
+a2dc: 7e f8 00     jmp RESET     ; reset controller
 
 a2df: 38           pulx
 a2e0: 3c           pshx
@@ -4186,7 +4314,7 @@ a365: 39           rts
 
 ;'$' command goes here?
 a366: 7f 00 4e     clr (0x004E)
-a369: bd 86 c4     jsr (0x86C4)
+a369: bd 86 c4     jsr L86C4
 a36c: 7f 04 2a     clr (0x042A)
 
 a36f: bd f9 d8     jsr (0xF9D8)
@@ -4272,7 +4400,7 @@ a4f0: bd 86 e7     jsr (0x86E7)     ;5% adjustment
 a4f3: 7e a5 14     jmp (0xA514)
 a4f6: 81 4a        cmpa 0x4A        ;'J'
 a4f8: 26 03        bne [0xA4FD]
-a4fa: 7e f8 00     jmp (RESET)     ;jump to system (reset)
+a4fa: 7e f8 00     jmp RESET     ;jump to system (reset)
 a4fd: 81 4b        cmpa 0x4B        ;'K'
 a4ff: 26 06        bne [0xA507]
 a501: 7c 04 2a     inc (0x042A)     ;King enable
@@ -4326,11 +4454,11 @@ a565: bd f9 45     jsr (0xF945)
 a568: 24 08        bcc [0xA572]
 a56a: 81 1b        cmpa 0x1B
 a56c: 26 04        bne [0xA572]
-a56e: bd 86 c4     jsr (0x86C4)
+a56e: bd 86 c4     jsr L86C4
 a571: 39           rts
 a572: 86 08        ldaa 0x08
 a574: 97 15        staa (0x0015)
-a576: bd 86 c4     jsr (0x86C4)
+a576: bd 86 c4     jsr L86C4
 a579: 86 01        ldaa 0x01
 a57b: 36           psha
 a57c: 16           tab
@@ -4367,7 +4495,7 @@ a5bd: 5d           tstb
 a5be: 26 bb        bne [0xA57B]
 a5c0: 86 08        ldaa 0x08
 a5c2: 97 15        staa (0x0015)
-a5c4: bd 86 c4     jsr (0x86C4)
+a5c4: bd 86 c4     jsr L86C4
 a5c7: 86 01        ldaa 0x01
 a5c9: b7 10 82     staa (0x1082)
 a5cc: b7 10 86     staa (0x1086)
@@ -4395,7 +4523,7 @@ a5fb: 33           pulb
 a5fc: 32           pula
 a5fd: 7d 00 15     tst (0x0015)
 a600: 26 c7        bne [0xA5C9]
-a602: bd 86 c4     jsr (0x86C4)
+a602: bd 86 c4     jsr L86C4
 a605: ce 10 80     ldx 0x1080
 a608: c6 00        ldab 0x00
 a60a: 86 ff        ldaa 0xFF
@@ -4441,8 +4569,8 @@ a64c: bd 8c 30     jsr (0x8C30)
 a64f: 7e a5 65     jmp (0xA565)
 a652: 36           psha
 a653: 4f           clra
-a654: dd 23        std (0x0023)
-a656: 7d 00 24     tst (0x0024)
+a654: dd 23        std CDTIMR5
+a656: 7d 00 24     tst CDTIMR5+1
 a659: 26 fb        bne [0xA656]
 a65b: 32           pula
 a65c: 39           rts
@@ -4718,7 +4846,7 @@ a84f: 65           ?
 a850: 66 74        ror (X+0x74)
 a852: 2c 31        bge [0xA885]
 a854: 2c 3c        bge [0xA892]
-a856: bd 86 c4     jsr (0x86C4)
+a856: bd 86 c4     jsr L86C4
 a859: ce 10 80     ldx 0x1080
 a85c: 86 20        ldaa 0x20
 a85e: a7 00        staa (X+0x00)
@@ -4777,8 +4905,8 @@ a8dc: 32           pula
 a8dd: 36           psha
 a8de: c6 64        ldab 0x64
 a8e0: 3d           mul
-a8e1: dd 23        std (0x0023)
-a8e3: dc 23        ldd (0x0023)
+a8e1: dd 23        std CDTIMR5
+a8e3: dc 23        ldd CDTIMR5
 a8e5: 26 fc        bne [0xA8E3]
 a8e7: bd 8e 95     jsr (0x8E95)
 a8ea: 81 0d        cmpa 0x0D
@@ -4805,8 +4933,8 @@ a913: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
 a916: 32           pula
 a917: c6 64        ldab 0x64
 a919: 3d           mul
-a91a: dd 23        std (0x0023)
-a91c: dc 23        ldd (0x0023)
+a91a: dd 23        std CDTIMR5
+a91c: dc 23        ldd CDTIMR5
 a91e: 26 fc        bne [0xA91C]
 a920: bd a8 55     jsr (0xA855)
 a923: 7c 00 4b     inc (0x004B)
@@ -4819,7 +4947,7 @@ a930: 27 03        beq [0xA935]
 a932: 7e a8 a4     jmp (0xA8A4)
 a935: c6 02        ldab 0x02
 a937: bd 8c 30     jsr (0x8C30)
-a93a: bd 86 c4     jsr (0x86C4)
+a93a: bd 86 c4     jsr L86C4
 a93d: bd a3 41     jsr (0xA341)
 a940: 39           rts
 
@@ -4873,7 +5001,7 @@ a996: d7 62        stab (0x0062)
 a998: bd f9 c5     jsr (0xF9C5)
 a99b: c6 64        ldab 0x64
 a99d: bd 8c 22     jsr (0x8C22)
-a9a0: bd 86 c4     jsr (0x86C4)
+a9a0: bd 86 c4     jsr L86C4
 a9a3: bd 8c e9     jsr (0x8CE9)
 a9a6: bd 8d e4     jsr (0x8DE4)
 
@@ -4925,12 +5053,12 @@ aa1d: cc 20 0f     ldd 0x200F           ;' '
 aa20: 20 ed        bra [0xAA0F]
 aa22: 7f 00 4f     clr (0x004F)
 aa25: cc 00 01     ldd 0x0001
-aa28: dd 1b        std (0x001B)
+aa28: dd 1b        std CDTIMR1
 aa2a: ce 20 00     ldx 0x2000
 aa2d: b6 10 a8     ldaa (0x10A8)
 aa30: 84 01        anda 0x01
 aa32: 27 f9        beq [0xAA2D]
-aa34: dc 1b        ldd (0x001B)
+aa34: dc 1b        ldd CDTIMR1
 aa36: 0f           sei
 aa37: 26 03        bne [0xAA3C]
 aa39: ce 20 00     ldx 0x2000
@@ -4941,7 +5069,7 @@ aa42: bd f9 6f     jsr (0xF96F)
 aa45: 08           inx
 aa46: 7f 00 4f     clr (0x004F)
 aa49: cc 00 01     ldd 0x0001
-aa4c: dd 1b        std (0x001B)
+aa4c: dd 1b        std CDTIMR1
 aa4e: 8c 20 23     cpx 0x2023
 aa51: 26 da        bne [0xAA2D]
 aa53: ce 20 00     ldx 0x2000
@@ -5124,11 +5252,11 @@ abad: 39           rts
 
 abae: 7f 00 4a     clr (0x004A)
 abb1: cc 00 64     ldd 0x0064
-abb4: dd 23        std (0x0023)
+abb4: dd 23        std CDTIMR5
 abb6: 96 4a        ldaa (0x004A)
 abb8: 26 08        bne [0xABC2]
 abba: bd 9b 19     jsr (0x9B19)
-abbd: dc 23        ldd (0x0023)
+abbd: dc 23        ldd CDTIMR5
 abbf: 26 f5        bne [0xABB6]
 abc1: 39           rts
 
@@ -5149,10 +5277,10 @@ abca: 20 f5        bra [0xABC1]
 ; T1OC is set to previous value +625
 ; So, this routine is called every 2.5ms
 ;
-abcc: dc 10        ldd (0x0010)     ; get ready for next time
+abcc: dc 10        ldd T1NXT        ; get ready for next time
 abce: c3 02 71     addd 0x0271      ; add 625
 abd1: fd 10 16     std (TOC1)
-abd4: dd 10        std (0x0010)
+abd4: dd 10        std T1NXT
 
 abd6: 86 80        ldaa 0x80
 abd8: b7 10 23     staa (TFLG1)     ; clear timer flag
@@ -5187,53 +5315,53 @@ ac0d: 7a 00 63     dec (0x0063)
 ; staggered counters - here every 100ms
 
 ; 0x0070 counts from 250 to 1, period is 25 secs
-ac10: 96 70        ldaa (0x0070)    ; decrement 0.1s counter here
+ac10: 96 70        ldaa OFFCNT1    ; decrement 0.1s counter here
 ac12: 4a           deca
-ac13: 97 70        staa (0x0070)
+ac13: 97 70        staa OFFCNT1
 ac15: 26 04        bne [0xAC1B]     
 ac17: 86 fa        ldaa 0xFA        ; 250
-ac19: 97 70        staa (0x0070)
+ac19: 97 70        staa OFFCNT1
 
 ; 0x0071 counts from 230 to 1, period is 23 secs
-ac1b: 96 71        ldaa (0x0071)
+ac1b: 96 71        ldaa OFFCNT2
 ac1d: 4a           deca
-ac1e: 97 71        staa (0x0071)
+ac1e: 97 71        staa OFFCNT2
 ac20: 26 04        bne [0xAC26]
 ac22: 86 e6        ldaa 0xE6        ; 230
-ac24: 97 71        staa (0x0071)
+ac24: 97 71        staa OFFCNT2
 
 ; 0x0072 counts from 210 to 1, period is 21 secs
-ac26: 96 72        ldaa (0x0072)
+ac26: 96 72        ldaa OFFCNT3
 ac28: 4a           deca
-ac29: 97 72        staa (0x0072)
+ac29: 97 72        staa OFFCNT3
 ac2b: 26 04        bne [0xAC31]
 ac2d: 86 d2        ldaa 0xD2        ; 210
-ac2f: 97 72        staa (0x0072)
+ac2f: 97 72        staa OFFCNT3
 
 ; 0x0073 counts from 190 to 1, period is 19 secs
-ac31: 96 73        ldaa (0x0073)
+ac31: 96 73        ldaa OFFCNT4
 ac33: 4a           deca
-ac34: 97 73        staa (0x0073)
+ac34: 97 73        staa OFFCNT4
 ac36: 26 04        bne [0xAC3C]
 ac38: 86 be        ldaa 0xBE        ; 190
-ac3a: 97 73        staa (0x0073)
+ac3a: 97 73        staa OFFCNT4
 
 ; 0x0074 counts from 170 to 1, period is 17 secs
-ac3c: 96 74        ldaa (0x0074)
+ac3c: 96 74        ldaa OFFCNT5
 ac3e: 4a           deca
-ac3f: 97 74        staa (0x0074)
+ac3f: 97 74        staa OFFCNT5
 ac41: 26 04        bne [0xAC47]
 ac43: 86 aa        ldaa 0xAA        ; 170
-ac45: 97 74        staa (0x0074)
+ac45: 97 74        staa OFFCNT5
 
 ; back to 2.5ms period here
 
-ac47: 96 27        ldaa (0x0027)
+ac47: 96 27        ldaa T30MS
 ac49: 4c           inca
-ac4a: 97 27        staa (0x0027)
+ac4a: 97 27        staa T30MS
 ac4c: 81 0c        cmpa 0x0C        ; 12 = 30ms?
 ac4e: 23 09        bls [0xAC59]
-ac50: 7f 00 27     clr (0x0027)
+ac50: 7f 00 27     clr T30MS
 
 ; do these tasks every 30ms
 ac53: bd 8e c6     jsr (0x8EC6)     ; ???
@@ -5294,35 +5422,35 @@ acbb: 7f 00 4f     clr (0x004F)
 ; Five big countdown timers available here
 ; up to 655.35 seconds each
 
-acbe: dc 1b        ldd (0x001B)     ; countdown 0x001B/1C every 10ms
+acbe: dc 1b        ldd CDTIMR1     ; countdown 0x001B/1C every 10ms
 acc0: 27 05        beq [0xACC7]     ; if not already 0
 acc2: 83 00 01     subd 0x0001
-acc5: dd 1b        std (0x001B)
+acc5: dd 1b        std CDTIMR1
 
-acc7: dc 1d        ldd (0x001D)     ; same with 0x001D/1E
+acc7: dc 1d        ldd CDTIMR2     ; same with 0x001D/1E
 acc9: 27 05        beq [0xACD0]
 accb: 83 00 01     subd 0x0001
-acce: dd 1d        std (0x001D)
+acce: dd 1d        std CDTIMR2
 
-acd0: dc 1f        ldd (0x001F)     ; same with 0x001F/20
+acd0: dc 1f        ldd CDTIMR3     ; same with 0x001F/20
 acd2: 27 05        beq [0xACD9]
 acd4: 83 00 01     subd 0x0001
-acd7: dd 1f        std (0x001F)
+acd7: dd 1f        std CDTIMR3
 
-acd9: dc 21        ldd (0x0021)     ; same with 0x0021/22
+acd9: dc 21        ldd CDTIMR4     ; same with 0x0021/22
 acdb: 27 05        beq [0xACE2]
 acdd: 83 00 01     subd 0x0001
-ace0: dd 21        std (0x0021)
+ace0: dd 21        std CDTIMR4
 
-ace2: dc 23        ldd (0x0023)     ; same with 0x0023/24
+ace2: dc 23        ldd CDTIMR5     ; same with 0x0023/24
 ace4: 27 05        beq [0xACEB]
 ace6: 83 00 01     subd 0x0001
-ace9: dd 23        std (0x0023)
+ace9: dd 23        std CDTIMR5
 
 ; every other time through this, setup a task switch?
-aceb: 96 b0        ldaa (0x00B0)
+aceb: 96 b0        ldaa (TSCNT)
 aced: 88 01        eora 0x01
-acef: 97 b0        staa (0x00B0)
+acef: 97 b0        staa (TSCNT)
 acf1: 27 18        beq [0xAD0B]
 
 acf3: bf 01 3c     sts (0x013C)     ; switch stacks???
@@ -5346,14 +5474,17 @@ ad17: 86 80        ldaa 0x80
 ad19: b7 10 22     staa (TMSK1)
 ad1c: 3b           rti
 
-; Routine
+; Secondary task??
 
+.endif
+TASK2:
+.if 0
 ad1d: 7d 04 2a     tst (0x042A)
 ad20: 27 35        beq [0xAD57]
 ad22: 96 b6        ldaa (0x00B6)
 ad24: 26 03        bne [0xAD29]
 ad26: 3f           swi
-ad27: 20 f4        bra [0xAD1D]
+ad27: 20 f4        bra TASK2
 ad29: 7f 00 b6     clr (0x00B6)
 ad2c: c6 04        ldab 0x04
 ad2e: 37           pshb
@@ -5363,7 +5494,7 @@ ad35: 3f           swi
 ad36: 33           pulb
 ad37: 5a           decb
 ad38: 26 f4        bne [0xAD2E]
-ad3a: 20 e1        bra [0xAD1D]
+ad3a: 20 e1        bra TASK2
 ad3c: 53           comb
 ad3d: 31           ins
 ad3e: 00           test
@@ -5375,22 +5506,22 @@ ad4c: 2d 09        blt [0xAD57]
 ad4e: 1a 83 04 4b  cpd 0x044B
 ad52: 22 03        bhi [0xAD57]
 ad54: 3f           swi
-ad55: 20 c6        bra [0xAD1D]
+ad55: 20 c6        bra TASK2
 ad57: 7f 00 b3     clr (0x00B3)
 ad5a: bd ad 7e     jsr (0xAD7E)
 ad5d: bd ad a0     jsr (0xADA0)
-ad60: 25 bb        bcs [0xAD1D]
+ad60: 25 bb        bcs TASK2
 ad62: c6 0a        ldab 0x0A
 ad64: bd ae 13     jsr (0xAE13)
 ad67: bd ad ae     jsr (0xADAE)
-ad6a: 25 b1        bcs [0xAD1D]
+ad6a: 25 b1        bcs TASK2
 ad6c: c6 14        ldab 0x14
 ad6e: bd ae 13     jsr (0xAE13)
 ad71: bd ad b6     jsr (0xADB6)
-ad74: 25 a7        bcs [0xAD1D]
+ad74: 25 a7        bcs TASK2
 ad76: bd ad b8     jsr (0xADB8)
 ad79: 0d           sec
-ad7a: 25 a1        bcs [0xAD1D]
+ad7a: 25 a1        bcs TASK2
 ad7c: 20 f8        bra [0xAD76]
 ad7e: ce ae 1e     ldx 0xAE1E
 ad81: bd 8a 1a     jsr (0x8A1A)
@@ -6773,180 +6904,176 @@ b64e: a0 ff        suba (X+0xFF)
 
 ; All empty (0xFFs) in this gap
 
-                    .org    0xf780
+        .org    0xf780
 
 ; Table???
-                    .byte   0x57
-                    .byte   0x0b
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x08
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x20
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x80
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x04
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x10
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x40
-                    .byte   0x12
-                    .byte   0x20
-                    .byte   0x09
-                    .byte   0x80
-                    .byte   0x24
-                    .byte   0x02
-                    .byte   0x00
-                    .byte   0x40
-                    .byte   0x12
-                    .byte   0x20
-                    .byte   0x09
-                    .byte   0x80
-                    .byte   0x24
-                    .byte   0x04
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x08
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
-                    .byte   0x00
+        .byte   0x57
+        .byte   0x0b
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x08
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x20
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x80
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x04
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x10
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x40
+        .byte   0x12
+        .byte   0x20
+        .byte   0x09
+        .byte   0x80
+        .byte   0x24
+        .byte   0x02
+        .byte   0x00
+        .byte   0x40
+        .byte   0x12
+        .byte   0x20
+        .byte   0x09
+        .byte   0x80
+        .byte   0x24
+        .byte   0x04
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x08
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
+        .byte   0x00
 ;
 ; is the rest of this table 0xff, or is this margin??
 ;
-                    .org    0xf800
+        .org    0xf800
 ; Reset
 RESET:
-                    sei                 ; disable interrupts
-                    ldaa    #0x03
-                    staa    (TMSK2)     ; disable irqs, set prescaler to 16
-                    ldaa    #0x80
-                    staa    (TMSK1)     ; enable OC1 (LCD?) irq
-                    ldaa    #0xFE
-                    staa    (BPROT)     ; protect everything except $xE00-$xE1F
-                    ldaa    (0x0007)    ;
-                    cmpa    #0xDB       ; special unprotect mode???
-                    bne     LF81C       ; if not, jump ahead
-                    clr     (BPROT)     ; else unprotect everything
-                    clr     (0x0007)    ; reset special unprotect mode???
+        sei                 ; disable interrupts
+        ldaa    #0x03
+        staa    (TMSK2)     ; disable irqs, set prescaler to 16
+        ldaa    #0x80
+        staa    (TMSK1)     ; enable OC1 (LCD?) irq
+        ldaa    #0xFE
+        staa    (BPROT)     ; protect everything except $xE00-$xE1F
+        ldaa    (0x0007)    ;
+        cmpa    #0xDB       ; special unprotect mode???
+        bne     LF81C       ; if not, jump ahead
+        clr     (BPROT)     ; else unprotect everything
+        clr     (0x0007)    ; reset special unprotect mode???
 LF81C:
-                    lds     #0x01FF     ; init SP
-                    ldaa    #0xA5
-                    staa    (CSCTL)     ; enable external IO:
-                                        ; IO1EN,  BUSSEL, active LOW
-                                        ; IO2EN,  PIA/SCCSEL, active LOW
-                                        ; CSPROG, ROMSEL priority over RAMSEL 
-                                        ; CSPROG, ROMSEL enabled, 32K, $8000-$FFFF
-                    ldaa    #0x01
-                    staa    (CSGSIZ)    ; CSGEN,  RAMSEL active low
-                                        ; CSGEN,  RAMSEL 32K
-                    ldaa    #0x00
-                    staa    (CSGADR)    ; CSGEN,  RAMSEL = $0000-$7FFF (except internal regs)
-                    ldaa    #0xF0
-                    staa    (CSSTRH)    ; 3 cycle clock stretching on BUSSEL and LCRS
-                    clr     (0x0000)    ; ????? Done with basic init?
+        lds     #0x01FF     ; init SP
+        ldaa    #0xA5
+        staa    (CSCTL)     ; enable external IO:
+                            ; IO1EN,  BUSSEL, active LOW
+                            ; IO2EN,  PIA/SCCSEL, active LOW
+                            ; CSPROG, ROMSEL priority over RAMSEL 
+                            ; CSPROG, ROMSEL enabled, 32K, $8000-$FFFF
+        ldaa    #0x01
+        staa    (CSGSIZ)    ; CSGEN,  RAMSEL active low
+                            ; CSGEN,  RAMSEL 32K
+        ldaa    #0x00
+        staa    (CSGADR)    ; CSGEN,  RAMSEL = $0000-$7FFF (except internal regs)
+        ldaa    #0xF0
+        staa    (CSSTRH)    ; 3 cycle clock stretching on BUSSEL and LCRS
+        clr     (0x0000)    ; ????? Done with basic init?
 
 ; Initialize Main PIA
-                    ldaa    #0x30       ;
-                    staa    (0x1805)    ; control register A, CA2=0, sel DDRA
-                    staa    (0x1807)    ; control register B, CB2=0, sel DDRB
-                    ldaa    #0xFF
-                    staa    (0x1806)    ; select B0-B7 to be outputs
-                    ldaa    #0x78       ;
-                    staa    (0x1804)    ; select A3-A6 to be outputs
-                    ldaa    #0x34       ;
-                    staa    (0x1805)    ; select output register A
-                    staa    (0x1807)    ; select output register B
-
-                    ldab    #0xFF
-                    jsr     (0xF9C5)    ; clear dignostic digit display
-                    bra     LF86A       ; jump past data table
+        ldaa    #0x30       ;
+        staa    (0x1805)    ; control register A, CA2=0, sel DDRA
+        staa    (0x1807)    ; control register B, CB2=0, sel DDRB
+        ldaa    #0xFF
+        staa    (0x1806)    ; select B0-B7 to be outputs
+        ldaa    #0x78       ;
+        staa    (0x1804)    ; select A3-A6 to be outputs
+        ldaa    #0x34       ;
+        staa    (0x1805)    ; select output register A
+        staa    (0x1807)    ; select output register B
+        ldab    #0xFF
+        jsr     (0xF9C5)    ; clear dignostic digit display
+        bra     LF86A       ; jump past data table
 
 ; Data loaded into (0x180D) SCC
-                    .byte   0x09,0x4a   ; channel reset B, master irq enable, no vector
-                    .byte   0x01,0x10   ; irq on all character received
-                    .byte   0x0c,0x18   ; Lower byte of time constant
-                    .byte   0x0d,0x00   ; Upper byte of time constant
-                    .byte   0x04,0x44   ; X16 clock mode, 8-bit sync char, 1 stop bit, no parity
-                    .byte   0x0e,0x63   ; Disable DPLL, BR enable & source
-                    .byte   0x05,0x68   ; No DTR/RTS, Tx 8 bits/char, Tx enable
-                    .byte   0x0b,0x56   ; Rx & Tx & TRxC clk from BR gen
-                    .byte   0x03,0xc1   ; Rx 8 bits/char, Rx Enable
-                    ;   tc = 4Mhz / (2 * DesiredRate * BRClockPeriod) - 2
-                    .byte   0xff        ; end of table marker
-
-LF86A:
+        .byte   0x09,0x4a   ; channel reset B, master irq enable, no vector
+        .byte   0x01,0x10   ; irq on all character received
+        .byte   0x0c,0x18   ; Lower byte of time constant
+        .byte   0x0d,0x00   ; Upper byte of time constant
+        .byte   0x04,0x44   ; X16 clock mode, 8-bit sync char, 1 stop bit, no parity
+        .byte   0x0e,0x63   ; Disable DPLL, BR enable & source
+        .byte   0x05,0x68   ; No DTR/RTS, Tx 8 bits/char, Tx enable
+        .byte   0x0b,0x56   ; Rx & Tx & TRxC clk from BR gen
+        .byte   0x03,0xc1   ; Rx 8 bits/char, Rx Enable
+        ;   tc = 4Mhz / (2 * DesiredRate * BRClockPeriod) - 2
+        .byte   0xff        ; end of table marker
 
 ; init SCC (8530)
-                    ldx     #0xF857
+LF86A:
+        ldx     #0xF857
 LF86D:
-                    ldaa    0,X
-                    cmpa    #0xFF
-                    beq     LF879
-                    staa    (0x180D)
-                    inx
-                    bra     LF86D
+        ldaa    0,X
+        cmpa    #0xFF
+        beq     LF879
+        staa    (0x180D)
+        inx
+        bra     LF86D
 
 ; Setup normal SCI, 8 data bits, 1 stop bit
 ; Interrupts disabled, Transmitter and Receiver enabled
 ; prescaler = /13, SCR=/2, rate = 9600 baud at 16Mhz clock
 
 LF879:
-                    ldaa    #0x00
-                    staa    (SCCR1)
-                    ldaa    #0x0C
-                    staa    (SCCR2)
-                    ldaa    #0x31
-                    staa    (BAUD)
+        ldaa    #0x00
+        staa    (SCCR1)
+        ldaa    #0x0C
+        staa    (SCCR2)
+        ldaa    #0x31
+        staa    (BAUD)
 
 ; Initialize all RAM vectors to RTI: 
 ; Opcode 0x3b into vectors at 0x0100 through 0x0139
 
-                    ldx     #0x0100
-                    ldaa    #0x3B       ; RTI opcode
+        ldx     #0x0100
+        ldaa    #0x3B       ; RTI opcode
 LF88D:
-                    staa    0,X
-                    inx
-                    inx
-                    inx
-                    cpx     #0x013C
-                    bcs     LF88D
-
-                    ldab    #0xF0
-                    stab    (0x1804)    ; enable LCD backlight, disable RESET button light
-
-                    ldaa    #0x7E
-                    staa    (0x0003)    ; Put a jump instruction here???
+        staa    0,X
+        inx
+        inx
+        inx
+        cpx     #0x013C
+        bcs     LF88D
+        ldab    #0xF0
+        stab    (0x1804)    ; enable LCD backlight, disable RESET button light
+        ldaa    #0x7E
+        staa    (0x0003)    ; Put a jump instruction here???
 
 ; Non-destructive ram test:
 ;
@@ -6956,300 +7083,296 @@ LF88D:
 ; Note:
 ; External NVRAM:    0x0400-0xfff is also available, but not tested
 
-                    ldx     #0x0000
+        ldx     #0x0000
 LF8A3:
-                    ldab    0,X         ; save value
-                    ldaa    #0x55
-                    staa    0,X
-                    cmpa    0,X
-                    bne     LF8C6
-                    rola
-                    staa    0,X
-                    cmpa    0,X
-                    bne     LF8C6
-                    stab    0,X         ; restore value
-                    inx
-                    cpx     #0x0400
-                    bne     LF8BF
-                    ldx     #0x2000
-LF8BF:              cpx     #0x8000
-                    bne     LF8A3
-                    bra     LF8CA
+        ldab    0,X         ; save value
+        ldaa    #0x55
+        staa    0,X
+        cmpa    0,X
+        bne     LF8C6
+        rola
+        staa    0,X
+        cmpa    0,X
+        bne     LF8C6
+        stab    0,X         ; restore value
+        inx
+        cpx     #0x0400
+        bne     LF8BF
+        ldx     #0x2000
+LF8BF:  
+        cpx     #0x8000
+        bne     LF8A3
+        bra     LF8CA
 
 LF8C6:
-                    ldaa    #0x01       ; Mark Failed RAM test?
-                    staa    (0x0000)
-
+        ldaa    #0x01       ; Mark Failed RAM test?
+        staa    (0x0000)
 ; 
-
 LF8CA:
-                    ldab    #0x01
-                    jsr     (0xF995)    ; write digit 1 to diag display
-
-                    ldaa    (BPROT)
-                    bne     LF8E3       ; if something is protected, jump ahead
-                    ldaa    (0x3000)    ; NVRAM
-                    cmpa    #0x7E
-                    bne     LF8E3       ; if RAM(0x3000) == 0x7E, jump ahead anyway (special unlock?)
+        ldab    #0x01
+        jsr     (0xF995)    ; write digit 1 to diag display
+        ldaa    (BPROT)
+        bne     LF8E3       ; if something is protected, jump ahead
+        ldaa    (0x3000)    ; NVRAM
+        cmpa    #0x7E
+        bne     LF8E3       ; if RAM(0x3000) == 0x7E, jump ahead anyway (special unlock?)
 
 ; error?
-                    ldab    #0x0E
-                    jsr     (0xF995)     ; write digit E to diag display
-                    jmp     (0x3000)     ; jump to routine in NVRAM?
+        ldab    #0x0E
+        jsr     (0xF995)     ; write digit E to diag display
+        jmp     (0x3000)     ; jump to routine in NVRAM?
 
 ; checking for serial connection
 
 LF8E3:
-                    ldx     #0xF000     ; timeout counter
+        ldx     #0xF000     ; timeout counter
 LF8E6:
-                    nop
-                    nop
-                    dex
-                    beq     LF8F6       ; if time is up, jump ahead
-                    jsr     (0xF945)    ; else read serial data if available
-                    bcc     LF8E6       ; if no data available, loop
-                    cmpa    #0x1B       ; if serial data was read, is it an ESC?
-                    beq     LF91D       ; if so, jump to echo hex char routine?
-                    bra     LF8E6       ; else loop
+        nop
+        nop
+        dex
+        beq     LF8F6       ; if time is up, jump ahead
+        jsr     (0xF945)    ; else read serial data if available
+        bcc     LF8E6       ; if no data available, loop
+        cmpa    #0x1B       ; if serial data was read, is it an ESC?
+        beq     LF91D       ; if so, jump to echo hex char routine?
+        bra     LF8E6       ; else loop
 LF8F6:
-                    ldaa    (0x8000)    ; check if this is a regular rom?
-                    cmpa    #0x7E        
-                    bne     LF908       ; if not, jump ahead
+        ldaa    (0x8000)    ; check if this is a regular rom?
+        cmpa    #0x7E        
+        bne     LF908       ; if not, jump ahead
 
-                    ldab    #0x0A
-                    jsr     (0xF995)    ; else write digit A to diag display
+        ldab    #0x0A
+        jsr     (0xF995)    ; else write digit A to diag display
 
-                    jsr     (0x8000)    ; jump to start of rom routine
-                    sei                 ; if we ever come return, just loop and do it all again
-                    bra     LF8F6
+        jsr     (0x8000)    ; jump to start of rom routine
+        sei                 ; if we ever come return, just loop and do it all again
+        bra     LF8F6
 
 LF908:
-                    ldab    #0x10       ; not a regular rom
-                    jsr     LF995       ; blank the diag display
+        ldab    #0x10       ; not a regular rom
+        jsr     LF995       ; blank the diag display
 
-                    jsr     LF9D8       ; enter the mini-monitor???
-                    .ascis  'MINI-MON'
+        jsr     LF9D8       ; enter the mini-monitor???
+        .ascis  'MINI-MON'
 
-                    ldab    #0x10
-                    jsr     LF995       ; blank the diag display
+        ldab    #0x10
+        jsr     LF995       ; blank the diag display
 
 LF91D:
-                    clr     (0x0005)
-                    clr     (0x0004)
-                    clr     (0x0002)
-                    clr     (0x0006)
+        clr     (0x0005)
+        clr     (0x0004)
+        clr     (0x0002)
+        clr     (0x0006)
 
-                    jsr     LF9D8
-                    .ascis  '\r\n>'
+        jsr     LF9D8
+        .ascis  '\r\n>'
 
 ; convert A to 2 hex digits and transmit??
-                    psha
-                    lsra
-                    lsra
-                    lsra
-                    lsra
-                    jsr     LF938
-                    pula
+        psha
+        lsra
+        lsra
+        lsra
+        lsra
+        jsr     LF938
+        pula
 LF938:
-                    anda    #0x0F
-                    oraa    #0x30
-                    cmpa    #0x3A
-                    bcs     LF942
-                    adda    #0x07
+        anda    #0x0F
+        oraa    #0x30
+        cmpa    #0x3A
+        bcs     LF942
+        adda    #0x07
 LF942:
-                    jmp     LF96F
+        jmp     LF96F
 
 ; get serial char if available
-                    ldaa    (SCSR)
-                    bita    #0x20
-                    bne     LF955
-                    clc
-                    rts
+        ldaa    (SCSR)
+        bita    #0x20
+        bne     LF955
+        clc
+        rts
 
 ; wait for a serial character
 LF94E:
-                    ldaa    (SCSR)      ; read serial status
-                    bita    #0x20
-                    beq     LF94E       ; if RDRF=0, loop
+        ldaa    (SCSR)      ; read serial status
+        bita    #0x20
+        beq     LF94E       ; if RDRF=0, loop
 
 ; read serial data, (assumes it's ready)
 LF955:
-                    ldaa    (SCSR)      ; read serial status
-                    bita    #0x02
-                    bne     LF965       ; if FE=1, clear it
-                    bita    #0x08
-                    bne     LF965       ; if OR=1, clear it
-                    ldaa    (SCDR)      ; otherwise, good data
-                    sec
-                    rts
+        ldaa    (SCSR)      ; read serial status
+        bita    #0x02
+        bne     LF965       ; if FE=1, clear it
+        bita    #0x08
+        bne     LF965       ; if OR=1, clear it
+        ldaa    (SCDR)      ; otherwise, good data
+        sec
+        rts
 
 LF965:
-                    ldaa    (SCDR)      ; clear any error
-                    ldaa    #0x2F       ; '/'   
-                    jsr     LF96F
-                    bra     LF94E       ; go to wait for a character
+        ldaa    (SCDR)      ; clear any error
+        ldaa    #0x2F       ; '/'   
+        jsr     LF96F
+        bra     LF94E       ; go to wait for a character
 
 ; Send to SCI with CR turned to CRLF
 LF96F:
-                    cmpa    #0x0D       ; CR?
-                    beq     LF975       ; if so echo CR+LF
-                    bra     LF97C       ; else just echo it
+        cmpa    #0x0D       ; CR?
+        beq     LF975       ; if so echo CR+LF
+        bra     LF97C       ; else just echo it
 LF975:
-                    ldaa    #0x0D
-                    jsr     LF97C
-                    ldaa    #0x0A
+        ldaa    #0x0D
+        jsr     LF97C
+        ldaa    #0x0A
 
 ; send a char to SCI
 LF97C:
-                    ldab    (SCSR)      ; wait for ready to send
-                    bitb    #0x40
-                    beq     LF97C
-                    staa    (SCDR)      ; send it
-                    rts
+        ldab    (SCSR)      ; wait for ready to send
+        bitb    #0x40
+        beq     LF97C
+        staa    (SCDR)      ; send it
+        rts
 
-                    jsr     LF94E       ; get a serial char
-                    cmpa    #0x7A       ;'z'
-                    bhi     LF994
-                    cmpa    #0x61       ;'a'
-                    bcs     LF994
-                    sbca    #0x20       ;convert to pper case?
+        jsr     LF94E       ; get a serial char
+        cmpa    #0x7A       ;'z'
+        bhi     LF994
+        cmpa    #0x61       ;'a'
+        bcs     LF994
+        sbca    #0x20       ;convert to pper case?
 LF994:
-                    rts
+        rts
 
 ; Write hex digit arg in B to diagnostic lights
 ; or B=0x10 or higher for blank
 
 LF995:
-                    psha
-                    cmpb    #0x11
-                    bcs     LF99C
-                    ldab    #0x10
+        psha
+        cmpb    #0x11
+        bcs     LF99C
+        ldab    #0x10
 LF99C:
-                    ldx     #LF9B4
-                    abx
-                    ldaa    0,X
-                    staa    (0x1806)    ; write arg to local data bus
-                    ldaa    (0x1804)    ; read from Port A
-                    oraa    #0x20       ; bit 5 high
-                    staa    (0x1804)    ; write back to Port A
-                    anda    #0xDF       ; bit 5 low
-                    staa    (0x1804)    ; write back to Port A
-                    pula
-                     rts
+        ldx     #LF9B4
+        abx
+        ldaa    0,X
+        staa    (0x1806)    ; write arg to local data bus
+        ldaa    (0x1804)    ; read from Port A
+        oraa    #0x20       ; bit 5 high
+        staa    (0x1804)    ; write back to Port A
+        anda    #0xDF       ; bit 5 low
+        staa    (0x1804)    ; write back to Port A
+        pula
+        rts
 
 ; 7 segment patterns - XGFEDCBA
 LF9B4:
-                    .byte   0xc0    ; 0
-                    .byte   0xf9    ; 1
-                    .byte   0xa4    ; 2
-                    .byte   0xb0    ; 3
-                    .byte   0x99    ; 4
-                    .byte   0x92    ; 5
-                    .byte   0x82    ; 6
-                    .byte   0xf8    ; 7
-                    .byte   0x80    ; 8
-                    .byte   0x90    ; 9
-                    .byte   0x88    ; A 
-                    .byte   0x83    ; b
-                    .byte   0xc6    ; C
-                    .byte   0xa1    ; d
-                    .byte   0x86    ; E
-                    .byte   0x8e    ; F
-                    .byte   0xff    ; blank
+        .byte   0xc0    ; 0
+        .byte   0xf9    ; 1
+        .byte   0xa4    ; 2
+        .byte   0xb0    ; 3
+        .byte   0x99    ; 4
+        .byte   0x92    ; 5
+        .byte   0x82    ; 6
+        .byte   0xf8    ; 7
+        .byte   0x80    ; 8
+        .byte   0x90    ; 9
+        .byte   0x88    ; A 
+        .byte   0x83    ; b
+        .byte   0xc6    ; C
+        .byte   0xa1    ; d
+        .byte   0x86    ; E
+        .byte   0x8e    ; F
+        .byte   0xff    ; blank
 
 ; Write arg in B to Button Lights
 
-                    psha
-                    stab    (0x1806)    ; write arg to local data bus
-                    ldaa    (0x1804)    ; read from Port A
-                    anda    #0xEF       ; bit 4 low
-                    staa    (0x1804)    ; write back to Port A
-                    oraa    #0x10       ; bit 4 high
-                    staa    (0x1804)    ; write this to Port A
-                    pula
-                    rts
+        psha
+        stab    (0x1806)    ; write arg to local data bus
+        ldaa    (0x1804)    ; read from Port A
+        anda    #0xEF       ; bit 4 low
+        staa    (0x1804)    ; write back to Port A
+        oraa    #0x10       ; bit 4 high
+        staa    (0x1804)    ; write this to Port A
+        pula
+        rts
 
 ; Send rom message via SCI
 
 LF9D8:
-                    puly
+        puly
 LF9DA:
-                    ldaa    0,Y
-                    beq     LF9E8       ; if zero terminated, return
-                    bmi     LF9ED       ; if high bit set..do last char and return
-                    jsr     LF97C       ; else send char
-                    iny
-                    bra     LF9DA       ; and loop for next one
+        ldaa    0,Y
+        beq     LF9E8       ; if zero terminated, return
+        bmi     LF9ED       ; if high bit set..do last char and return
+        jsr     LF97C       ; else send char
+        iny
+        bra     LF9DA       ; and loop for next one
 
 LF9E8:
-                    iny                 ; setup return address and return
-                    pshy
-                    rts
+        iny                 ; setup return address and return
+        pshy
+        rts
 
 LF9ED:
-                    anda    #0x7F       ; remove top bit
-                    jsr     LF97C       ; send char
-                    bra     LF9E8       ; and we're done
-
-                    rts
-                    rts
-
-                    rti
+        anda    #0x7F       ; remove top bit
+        jsr     LF97C       ; send char
+        bra     LF9E8       ; and we're done
+        rts
+        rts
+        rti
 
 ; all 0xffs in this gap
 
-                    .org    0xffa0
+        .org    0xffa0
 
-                   jmp (0xF9F5)
-                   jmp (0xF9F5)
-                   jmp (0xF9F5)
-                   jmp (0xF92F)
-                   jmp (0xF9D8)
-                   jmp (0xF945)
-                   jmp (0xF96F)
-                   jmp (0xF908)
-                   jmp (0xF995)
-                   jmp (0xF9C5)
+       jmp (0xF9F5)
+       jmp (0xF9F5)
+       jmp (0xF9F5)
+       jmp (0xF92F)
+       jmp (0xF9D8)
+       jmp (0xF945)
+       jmp (0xF96F)
+       jmp (0xF908)
+       jmp (0xF995)
+       jmp (0xF9C5)
 
-                   .byte    0xff
-                   .byte    0xff
+       .byte    0xff
+       .byte    0xff
 
 ; Vectors
 
-                   .word   0xf9f6       ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
-                   .word   0xf9f6      ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
+       .word   0xf9f6       ; Stub RTI
 
-                    .word  0x0100       ; SCI
-                    .word  0x0103       ; SPI
-                    .word  0x0106     ; PA accum. input edge
-                    .word  0x0109     ; PA Overflow
+        .word  0x0100       ; SCI
+        .word  0x0103       ; SPI
+        .word  0x0106       ; PA accum. input edge
+        .word  0x0109       ; PA Overflow
 
-                    .word  0xf9f6     ; Stub RTI
+        .word  0xf9f6       ; Stub RTI
 
-                    .word  0x010c     ; TI4O5
-                    .word  0x010f     ; TOC4
-                    .word  0x0112     ; TOC3
-                    .word  0x0115     ; TOC2
-                    .word  0x0118     ; TOC1
-                    .word  0x011b     ; TIC3
-                    .word  0x011e     ; TIC2
-                    .word  0x0121     ; TIC1
-                    .word  0x0124     ; RTI
-                    .word  0x0127     ; ~IRQ
-                    .word  0x012a     ; XIRQ
-                    .word  0x012d     ; SWI
-                    .word  0x0130     ; ILLEGAL OPCODE
-                    .word  0x0133     ; COP Failure
-                    .word  0x0136     ; COP Clock Monitor Fail
+        .word  0x010c       ; TI4O5
+        .word  0x010f       ; TOC4
+        .word  0x0112       ; TOC3
+        .word  0x0115       ; TOC2
+        .word  0x0118       ; TOC1
+        .word  0x011b       ; TIC3
+        .word  0x011e       ; TIC2
+        .word  0x0121       ; TIC1
+        .word  0x0124       ; RTI
+        .word  0x0127       ; ~IRQ
+        .word  0x012a       ; XIRQ
+        .word  0x012d       ; SWI
+        .word  0x0130       ; ILLEGAL OPCODE
+        .word  0x0133       ; COP Failure
+        .word  0x0136       ; COP Clock Monitor Fail
 
-                    .word  RESET     ; Reset
+        .word  RESET        ; Reset
 
