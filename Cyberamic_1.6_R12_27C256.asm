@@ -1,31 +1,54 @@
 
-; Disassembly from unidasm
+; 68HC11 Registers
 
-8000: 7e 80 50     jmp (0x8050)         ; jump past copyright message
+TMSK1       .equ    0x1022
+TMSK2       .equ    0x1024
+BAUD        .equ    0x102b
+SCCR1       .equ    0x102c
+SCCR2       .equ    0x102d
+SCSR        .equ    0x102e
+SCDR        .equ    0x102f
+BPROT       .equ    0x1035
+CSSTRH      .equ    0x105c
+CSCTL       .equ    0x105d
+CSGADR      .equ    0x105e
+CSGSIZ      .equ    0x105f
 
-8003-804f: 'Copyright (c) 1993 by David B. Philipsen Licensed by ShowBiz Pizza Time, Inc.'
+        .area   region1 (ABS)
+        .org    0x8000
 
-8050: 0f           sei
-8051: fc 04 26     ldd (0x0426)         ; increment boot cycle counter?
-8054: c3 00 01     addd 0x0001
-8057: fd 04 26     std (0x0426)
+; Disassembly originally from unidasm
 
-805a: ce ad 1d     ldx 0xAD1D           ;
-805d: ff 01 ce     stx (0x01CE)         ; store this vector here?
-8060: 7f 01 c7     clr (0x01C7)
-8063: cc 01 c6     ldd 0x01C6           ;
-8066: fd 01 3e     std (0x013E)         ; store this vector here? Some sort of RTI setup
-8069: 7f 00 b0     clr (0x00B0)
-806c: 7f 00 4e     clr (0x004E)
-806f: 7f 00 b6     clr (0x00B6)
-8072: 7f 00 4d     clr (0x004D)
-8075: 86 03        ldaa 0x03
-8077: b7 10 a8     staa (0x10A8)        ; board 11??
-807a: 18 ce 00 80  ldy 0x0080           ; delay loop
-807e: 18 09        dey
-8080: 26 fc        bne [0x807E]
-8082: 86 11        ldaa 0x11
-8084: b7 10 a8     staa (0x10A8)        ; board 11??
+        jmp     L8050           ; jump past copyright message
+
+        .ascii  'Copyright (c) 1993 by David B. Philipsen Licensed by ShowBiz Pizza Time, Inc.'
+
+L8050:
+        sei
+
+        ldd     (0x0426)        ; increment boot cycle counter?
+        addd    #0x0001
+        std     (0x0426)
+
+        ldx     #0xAD1D         ;
+        stx     (0x01CE)        ; store this vector here?
+        clr     (0x01C7)
+        ldd     #0x01C6         ;
+        std     (0x013E)        ; store this vector here? Some sort of RTI setup
+        clr     (0x00B0)
+        clr     (0x004E)
+        clr     (0x00B6)
+        clr     (0x004D)
+        ldaa    #0x03
+        staa    (0x10A8)        ; board 11??
+        ldy     #0x0080         ; delay loop
+L807E:
+        dey
+        bne     L807E
+        ldaa    #0x11
+        staa    (0x10A8)        ; board 11??
+
+.if 0
 
 8087: c6 10        ldab 0x10
 8089: bd f9 95     jsr (0xF995)         ; blank the diag display
@@ -84,7 +107,7 @@
 810d: bd ab 17     jsr (0xAB17)
 8110: b6 f7 c0     ldaa (0xF7C0)    ; a 00
 8113: b7 04 5c     staa (0x045C)    ; ??? NVRAM
-8116: 7e f8 00     jmp (0xF800)     ; reset!
+8116: 7e f8 00     jmp (RESET)     ; reset!
 
 8119: 7e 81 19     jmp (0x8119)     ; infinite loop - this can't be good
 
@@ -223,7 +246,7 @@
 8279: 96 60        ldaa (0x0060)
 827b: 27 06        beq [0x8283]
 827d: bd a9 7c     jsr (0xA97C)
-8280: 7e f8 00     jmp (0xF800)     ; reset controller
+8280: 7e f8 00     jmp (RESET)     ; reset controller
 8283: b6 18 04     ldaa (0x1804)
 8286: 84 06        anda 0x06
 8288: 26 08        bne [0x8292]
@@ -4025,7 +4048,7 @@ a250: 8c 0e 00     cpx 0x0E00
 a253: 26 f8        bne [0xA24D]
 a255: bd 9e af     jsr (0x9EAF)     ; reset L counts
 a258: bd 9e 92     jsr (0x9E92)     ; reset R counts
-a25b: 7e f8 00     jmp (0xF800)     ; reset controller
+a25b: 7e f8 00     jmp (RESET)     ; reset controller
 
 a25e: 18 ce 80 03  ldy 0x8003       ; copyright message
 a262: ce 00 00     ldx 0x0000
@@ -4079,7 +4102,7 @@ a2d1: bd a2 32     jsr (0xA232)     ; program byte
 a2d4: 7f 10 3b     clr (PPROG)
 a2d7: 86 1e        ldaa 0x1E
 a2d9: b7 10 35     staa (BPROT)     ; protect all but 0x0e00-0x0e1f
-a2dc: 7e f8 00     jmp (0xF800)     ; reset controller
+a2dc: 7e f8 00     jmp (RESET)     ; reset controller
 
 a2df: 38           pulx
 a2e0: 3c           pshx
@@ -4249,7 +4272,7 @@ a4f0: bd 86 e7     jsr (0x86E7)     ;5% adjustment
 a4f3: 7e a5 14     jmp (0xA514)
 a4f6: 81 4a        cmpa 0x4A        ;'J'
 a4f8: 26 03        bne [0xA4FD]
-a4fa: 7e f8 00     jmp (0xF800)     ;jump to system (reset)
+a4fa: 7e f8 00     jmp (RESET)     ;jump to system (reset)
 a4fd: 81 4b        cmpa 0x4B        ;'K'
 a4ff: 26 06        bne [0xA507]
 a501: 7c 04 2a     inc (0x042A)     ;King enable
@@ -6746,186 +6769,184 @@ b64a: a0 13        suba (X+0x13)
 b64c: a2 11        sbca (X+0x11)
 b64e: a0 ff        suba (X+0xFF)
 
+.endif
+
 ; All empty (0xFFs) in this gap
 
-f780: 57
-f781: 0b           sev
-f782: 00           test
-f783: 00           test
-f784: 00           test
-f785: 00           test
-f786: 08           inx
-f787: 00           test
-f788: 00           test
-f789: 00           test
-f78a: 20 00        bra [0xF78C]
-f78c: 00           test
-f78d: 00           test
-f78e: 80 00        suba 0x00
-f790: 00           test
-f791: 00           test
-f792: 00           test
-f793: 00           test
-f794: 00           test
-f795: 04           lsrd
-f796: 00           test
-f797: 00           test
-f798: 00           test
-f799: 10           sba
-f79a: 00           test
-f79b: 00           test
-f79c: 00           test
-f79d: 00           test
-f79e: 00           test
-f79f: 00           test
-f7a0: 40           nega
-f7a1: 12 20 09 80  brset (0x0020), 0x09, [0xF725]
-f7a5: 24 02        bcc [0xF7A9]
-f7a7: 00           test
-f7a8: 40           nega
-f7a9: 12 20 09 80  brset (0x0020), 0x09, [0xF72D]
-f7ad: 24 04        bcc [0xF7B3]
-f7af: 00           test
-f7b0: 00           test
-f7b1: 00           test
-f7b2: 00           test
-f7b3: 00           test
-f7b4: 00           test
-f7b5: 00           test
-f7b6: 00           test
-f7b7: 00           test
-f7b8: 00           test
-f7b9: 00           test
-f7ba: 00           test
-f7bb: 00           test
-f7bc: 08           inx
-f7bd: 00           test
-f7be: 00           test
-f7bf: 00           test
-f7c0: 00           test
-f7c1: ff ff ff     stx (0xFFFF)
-f7c4: ff ff ff     stx (0xFFFF)
-f7c7: ff ff ff     stx (0xFFFF)
-f7ca: ff ff ff     stx (0xFFFF)
-f7cd: ff ff ff     stx (0xFFFF)
-f7d0: ff ff ff     stx (0xFFFF)
-f7d3: ff ff ff     stx (0xFFFF)
-f7d6: ff ff ff     stx (0xFFFF)
-f7d9: ff ff ff     stx (0xFFFF)
-f7dc: ff ff ff     stx (0xFFFF)
-f7df: ff ff ff     stx (0xFFFF)
-f7e2: ff ff ff     stx (0xFFFF)
-f7e5: ff ff ff     stx (0xFFFF)
-f7e8: ff ff ff     stx (0xFFFF)
-f7eb: ff ff ff     stx (0xFFFF)
-f7ee: ff ff ff     stx (0xFFFF)
-f7f1: ff ff ff     stx (0xFFFF)
-f7f4: ff ff ff     stx (0xFFFF)
-f7f7: ff ff ff     stx (0xFFFF)
-f7fa: ff ff ff     stx (0xFFFF)
-f7fd: ff ff ff     stx (0xFFFF)
+                    .org    0xf780
 
+; Table???
+                    .byte   0x57
+                    .byte   0x0b
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x08
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x20
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x80
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x04
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x10
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x40
+                    .byte   0x12
+                    .byte   0x20
+                    .byte   0x09
+                    .byte   0x80
+                    .byte   0x24
+                    .byte   0x02
+                    .byte   0x00
+                    .byte   0x40
+                    .byte   0x12
+                    .byte   0x20
+                    .byte   0x09
+                    .byte   0x80
+                    .byte   0x24
+                    .byte   0x04
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x08
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+                    .byte   0x00
+;
+; is the rest of this table 0xff, or is this margin??
+;
+                    .org    0xf800
 ; Reset
-
-f800: 0f           sei              ; disable interrupts
-f801: 86 03        ldaa 0x03
-f803: b7 10 24     staa (TMSK2)     ; disable irqs, set prescaler to 16
-f806: 86 80        ldaa 0x80
-f808: b7 10 22     staa (TMSK1)     ; enable OC1 (LCD?) irq
-f80b: 86 fe        ldaa 0xFE
-f80d: b7 10 35     staa (BPROT)     ; protect everything except $xE00-$xE1F
-f810: 96 07        ldaa (0x0007)    ;
-f812: 81 db        cmpa 0xDB        ; special unprotect mode???
-f814: 26 06        bne $1           ; if not, jump ahead
-f816: 7f 10 35     clr (BPROT)      ; else unprotect everything
-f819: 7f 00 07     clr (0x0007)     ; reset special unprotect mode???
-$1:
-f81c: 8e 01 ff     lds 0x01FF       ; init SP
-f81f: 86 a5        ldaa 0xA5
-f821: b7 10 5d     staa (CSCTL)     ; enable external IO:
-                                    ; IO1EN,  BUSSEL, active LOW
-                                    ; IO2EN,  PIA/SCCSEL, active LOW
-                                    ; CSPROG, ROMSEL priority over RAMSEL 
-                                    ; CSPROG, ROMSEL enabled, 32K, $8000-$FFFF
-f824: 86 01        ldaa 0x01
-f826: b7 10 5f     staa (CSGSIZ)    ; CSGEN,  RAMSEL active low
-                                    ; CSGEN,  RAMSEL 32K
-f829: 86 00        ldaa 0x00
-f82b: b7 10 5e     staa (CSGADR)    ; CSGEN,  RAMSEL = $0000-$7FFF (except internal regs)
-f82e: 86 f0        ldaa 0xF0
-f830: b7 10 5c     staa (CSSTRH)    ; 3 cycle clock stretching on BUSSEL and LCRS
-f833: 7f 00 00     clr (0x0000)     ; ????? Done with basic init?
+RESET:
+                    sei                 ; disable interrupts
+                    ldaa    #0x03
+                    staa    (TMSK2)     ; disable irqs, set prescaler to 16
+                    ldaa    #0x80
+                    staa    (TMSK1)     ; enable OC1 (LCD?) irq
+                    ldaa    #0xFE
+                    staa    (BPROT)     ; protect everything except $xE00-$xE1F
+                    ldaa    (0x0007)    ;
+                    cmpa    #0xDB       ; special unprotect mode???
+                    bne     LF81C       ; if not, jump ahead
+                    clr     (BPROT)     ; else unprotect everything
+                    clr     (0x0007)    ; reset special unprotect mode???
+LF81C:
+                    lds     #0x01FF     ; init SP
+                    ldaa    #0xA5
+                    staa    (CSCTL)     ; enable external IO:
+                                        ; IO1EN,  BUSSEL, active LOW
+                                        ; IO2EN,  PIA/SCCSEL, active LOW
+                                        ; CSPROG, ROMSEL priority over RAMSEL 
+                                        ; CSPROG, ROMSEL enabled, 32K, $8000-$FFFF
+                    ldaa    #0x01
+                    staa    (CSGSIZ)    ; CSGEN,  RAMSEL active low
+                                        ; CSGEN,  RAMSEL 32K
+                    ldaa    #0x00
+                    staa    (CSGADR)    ; CSGEN,  RAMSEL = $0000-$7FFF (except internal regs)
+                    ldaa    #0xF0
+                    staa    (CSSTRH)    ; 3 cycle clock stretching on BUSSEL and LCRS
+                    clr     (0x0000)    ; ????? Done with basic init?
 
 ; Initialize Main PIA
-f836: 86 30        ldaa 0x30        ;
-f838: b7 18 05     staa (0x1805)    ; control register A, CA2=0, sel DDRA
-f83b: b7 18 07     staa (0x1807)    ; control register B, CB2=0, sel DDRB
-f83e: 86 ff        ldaa 0xFF
-f840: b7 18 06     staa (0x1806)    ; select B0-B7 to be outputs
-f843: 86 78        ldaa 0x78        ;
-f845: b7 18 04     staa (0x1804)    ; select A3-A6 to be outputs
-f848: 86 34        ldaa 0x34        ;
-f84a: b7 18 05     staa (0x1805)    ; select output register A
-f84d: b7 18 07     staa (0x1807)    ; select output register B
+                    ldaa    #0x30       ;
+                    staa    (0x1805)    ; control register A, CA2=0, sel DDRA
+                    staa    (0x1807)    ; control register B, CB2=0, sel DDRB
+                    ldaa    #0xFF
+                    staa    (0x1806)    ; select B0-B7 to be outputs
+                    ldaa    #0x78       ;
+                    staa    (0x1804)    ; select A3-A6 to be outputs
+                    ldaa    #0x34       ;
+                    staa    (0x1805)    ; select output register A
+                    staa    (0x1807)    ; select output register B
 
-f850: c6 ff        ldab 0xFF
-f852: bd f9 c5     jsr (0xF9C5)     ; clear dignostic digit display
-f855: 20 13        bra $1           ; jump past data table
+                    ldab    #0xFF
+                    jsr     (0xF9C5)    ; clear dignostic digit display
+                    bra     LF86A       ; jump past data table
 
-; Data loaded into (0x180D)        ; SCC
-f857: 09 4a 01 10 0c 18 0d 00 04 44 0e 63 05 68 0b 56 03 c1 
-f869: ff                            ; end of table marker
+; Data loaded into (0x180D) SCC
+                    .byte   0x09,0x4a   ; channel reset B, master irq enable, no vector
+                    .byte   0x01,0x10   ; irq on all character received
+                    .byte   0x0c,0x18   ; Lower byte of time constant
+                    .byte   0x0d,0x00   ; Upper byte of time constant
+                    .byte   0x04,0x44   ; X16 clock mode, 8-bit sync char, 1 stop bit, no parity
+                    .byte   0x0e,0x63   ; Disable DPLL, BR enable & source
+                    .byte   0x05,0x68   ; No DTR/RTS, Tx 8 bits/char, Tx enable
+                    .byte   0x0b,0x56   ; Rx & Tx & TRxC clk from BR gen
+                    .byte   0x03,0xc1   ; Rx 8 bits/char, Rx Enable
+                    ;   tc = 4Mhz / (2 * DesiredRate * BRClockPeriod) - 2
+                    .byte   0xff        ; end of table marker
 
-; 09 4a - channel reset B, master irq enable, no vector
-; 01 10 - irq on all character received
-; 0c 18 - Lower byte of time constant
-; 0d 00 - Upper byte of time constant
-; 04 44 - X16 clock mode, 8-bit sync char, 1 stop bit, no parity
-; 0e 63 - Disable DPLL, BR enable & source
-; 05 68 - No DTR/RTS, Tx 8 bits/char, Tx enable
-; 0b 56 - Rx & Tx & TRxC clk from BR gen
-; 03 c1 - Rx 8 bits/char, Rx Enable
-;
-;   tc = 4Mhz / (2 * DesiredRate * BRClockPeriod) - 2
+LF86A:
 
-$1:
 ; init SCC (8530)
-f86a: ce f8 57     ldx 0xF857
-f86d: a6 00        ldaa (X+0x00)
-f86f: 81 ff        cmpa 0xFF
-f871: 27 06        beq [0xF879]
-f873: b7 18 0d     staa (0x180D)
-f876: 08           inx
-f877: 20 f4        bra [0xF86D]
+                    ldx     #0xF857
+LF86D:
+                    ldaa    0,X
+                    cmpa    #0xFF
+                    beq     LF879
+                    staa    (0x180D)
+                    inx
+                    bra     LF86D
 
 ; Setup normal SCI, 8 data bits, 1 stop bit
 ; Interrupts disabled, Transmitter and Receiver enabled
 ; prescaler = /13, SCR=/2, rate = 9600 baud at 16Mhz clock
 
-f879: 86 00        ldaa 0x00
-f87b: b7 10 2c     staa (SCCR1)
-f87e: 86 0c        ldaa 0x0C
-f880: b7 10 2d     staa (SCCR2)
-f883: 86 31        ldaa 0x31
-f885: b7 10 2b     staa (BAUD)
+LF879:
+                    ldaa    #0x00
+                    staa    (SCCR1)
+                    ldaa    #0x0C
+                    staa    (SCCR2)
+                    ldaa    #0x31
+                    staa    (BAUD)
 
 ; Initialize all RAM vectors to RTI: 
 ; Opcode 0x3b into vectors at 0x0100 through 0x0139
 
-f888: ce 01 00     ldx 0x0100
-f88b: 86 3b        ldaa 0x3B        ; RTI opcode
-f88d: a7 00        staa (X+0x00)
-f88f: 08           inx
-f890: 08           inx
-f891: 08           inx
-f892: 8c 01 3c     cpx 0x013C
-f895: 25 f6        bcs [0xF88D]
+                    ldx     #0x0100
+                    ldaa    #0x3B       ; RTI opcode
+LF88D:
+                    staa    0,X
+                    inx
+                    inx
+                    inx
+                    cpx     #0x013C
+                    bcs     LF88D
 
-f897: c6 f0        ldab 0xF0
-f899: f7 18 04     stab (0x1804)    ; enable LCD backlight, disable RESET button light
+                    ldab    #0xF0
+                    stab    (0x1804)    ; enable LCD backlight, disable RESET button light
 
-f89c: 86 7e        ldaa 0x7E
-f89e: 97 03        staa (0x0003)    ; Put a jump instruction here???
+                    ldaa    #0x7E
+                    staa    (0x0003)    ; Put a jump instruction here???
 
 ; Non-destructive ram test:
 ;
@@ -6935,277 +6956,300 @@ f89e: 97 03        staa (0x0003)    ; Put a jump instruction here???
 ; Note:
 ; External NVRAM:    0x0400-0xfff is also available, but not tested
 
-f8a0: ce 00 00     ldx 0x0000
-f8a3: e6 00        ldab (X+0x00)    ; save value
-f8a5: 86 55        ldaa 0x55
-f8a7: a7 00        staa (X+0x00)
-f8a9: a1 00        cmpa (X+0x00)
-f8ab: 26 19        bne [0xF8C6]
-f8ad: 49           rola
-f8ae: a7 00        staa (X+0x00)
-f8b0: a1 00        cmpa (X+0x00)
-f8b2: 26 12        bne [0xF8C6]
-f8b4: e7 00        stab (X+0x00)    ; restore value
-f8b6: 08           inx
-f8b7: 8c 04 00     cpx 0x0400
-f8ba: 26 03        bne [0xF8BF]
+                    ldx     #0x0000
+LF8A3:
+                    ldab    0,X         ; save value
+                    ldaa    #0x55
+                    staa    0,X
+                    cmpa    0,X
+                    bne     LF8C6
+                    rola
+                    staa    0,X
+                    cmpa    0,X
+                    bne     LF8C6
+                    stab    0,X         ; restore value
+                    inx
+                    cpx     #0x0400
+                    bne     LF8BF
+                    ldx     #0x2000
+LF8BF:              cpx     #0x8000
+                    bne     LF8A3
+                    bra     LF8CA
 
-f8bc: ce 20 00     ldx 0x2000
-f8bf: 8c 80 00     cpx 0x8000
-f8c2: 26 df        bne [0xF8A3]
-f8c4: 20 04        bra [0xF8CA]
-
-f8c6: 86 01        ldaa 0x01        ; Mark Failed RAM test?
-f8c8: 97 00        staa (0x0000)
+LF8C6:
+                    ldaa    #0x01       ; Mark Failed RAM test?
+                    staa    (0x0000)
 
 ; 
 
-f8ca: c6 01        ldab 0x01
-f8cc: bd f9 95     jsr (0xF995)     ; write digit 1 to diag display
+LF8CA:
+                    ldab    #0x01
+                    jsr     (0xF995)    ; write digit 1 to diag display
 
-f8cf: b6 10 35     ldaa (BPROT)
-f8d2: 26 0f        bne [0xF8E3]     ; if something is protected, jump ahead
-f8d4: b6 30 00     ldaa (0x3000)    ; NVRAM
-f8d7: 81 7e        cmpa 0x7E
-f8d9: 26 08        bne [0xF8E3]     ; if RAM(0x3000) == 0x7E, jump ahead anyway (special unlock?)
+                    ldaa    (BPROT)
+                    bne     LF8E3       ; if something is protected, jump ahead
+                    ldaa    (0x3000)    ; NVRAM
+                    cmpa    #0x7E
+                    bne     LF8E3       ; if RAM(0x3000) == 0x7E, jump ahead anyway (special unlock?)
 
 ; error?
-f8db: c6 0e        ldab 0x0E
-f8dd: bd f9 95     jsr (0xF995)     ; write digit E to diag display
-f8e0: 7e 30 00     jmp (0x3000)     ; jump to routine in NVRAM?
+                    ldab    #0x0E
+                    jsr     (0xF995)     ; write digit E to diag display
+                    jmp     (0x3000)     ; jump to routine in NVRAM?
 
 ; checking for serial connection
 
-f8e3: ce f0 00     ldx 0xF000       ; timeout counter
-f8e6: 01           nop
-f8e7: 01           nop
-f8e8: 09           dex
-f8e9: 27 0b        beq [0xF8F6]     ; if time is up, jump ahead
-f8eb: bd f9 45     jsr (0xF945)     ; else read serial data if available
-f8ee: 24 f6        bcc [0xF8E6]     ; if no data available, loop
-f8f0: 81 1b        cmpa 0x1B        ; if serial data was read, is it an ESC?
-f8f2: 27 29        beq [0xF91D]     ; if so, jump to echo hex char routine?
-f8f4: 20 f0        bra [0xF8E6]     ; else loop
-f8f6: b6 80 00     ldaa (0x8000)    ; check if this is a regular rom?
-f8f9: 81 7e        cmpa 0x7E        
-f8fb: 26 0b        bne [0xF908]     ; if not, jump ahead
+LF8E3:
+                    ldx     #0xF000     ; timeout counter
+LF8E6:
+                    nop
+                    nop
+                    dex
+                    beq     LF8F6       ; if time is up, jump ahead
+                    jsr     (0xF945)    ; else read serial data if available
+                    bcc     LF8E6       ; if no data available, loop
+                    cmpa    #0x1B       ; if serial data was read, is it an ESC?
+                    beq     LF91D       ; if so, jump to echo hex char routine?
+                    bra     LF8E6       ; else loop
+LF8F6:
+                    ldaa    (0x8000)    ; check if this is a regular rom?
+                    cmpa    #0x7E        
+                    bne     LF908       ; if not, jump ahead
 
-f8fd: c6 0a        ldab 0x0A
-f8ff: bd f9 95     jsr (0xF995)     ; else write digit A to diag display
+                    ldab    #0x0A
+                    jsr     (0xF995)    ; else write digit A to diag display
 
-f902: bd 80 00     jsr (0x8000)     ; jump to start of rom routine
-f905: 0f           sei              ; if we ever come return, just loop and do it all again
-f906: 20 ee        bra [0xF8F6]
+                    jsr     (0x8000)    ; jump to start of rom routine
+                    sei                 ; if we ever come return, just loop and do it all again
+                    bra     LF8F6
 
-f908: c6 10        ldab 0x10        ; not a regular rom
-f90a: bd f9 95     jsr (0xF995)     ; blank the diag display
+LF908:
+                    ldab    #0x10       ; not a regular rom
+                    jsr     LF995       ; blank the diag display
 
-f90d: bd f9 d8     jsr (0xF9D8)     ; enter the mini-monitor???
+                    jsr     LF9D8       ; enter the mini-monitor???
+                    .ascis  'MINI-MON'
 
-'MINI-MON'
-f910: 4d 49 4e 49 2d 4d 4f ce
+                    ldab    #0x10
+                    jsr     LF995       ; blank the diag display
 
-f918: c6 10        ldab 0x10
-f91a: bd f9 95     jsr (0xF995)     ; blank the diag display
+LF91D:
+                    clr     (0x0005)
+                    clr     (0x0004)
+                    clr     (0x0002)
+                    clr     (0x0006)
 
-f91d: 7f 00 05     clr (0x0005)
-f920: 7f 00 04     clr (0x0004)
-f923: 7f 00 02     clr (0x0002)
-f926: 7f 00 06     clr (0x0006)
-
-f929: bd f9 d8     jsr (0xF9D8)
-
-'\r\n:'
-f92c: 0d 0a be 
+                    jsr     LF9D8
+                    .ascis  '\r\n>'
 
 ; convert A to 2 hex digits and transmit??
-f92f: 36           psha
-f930: 44           lsra
-f931: 44           lsra
-f932: 44           lsra
-f933: 44           lsra
-f934: bd f9 38     jsr (0xF938)
-f937: 32           pula
-f938: 84 0f        anda 0x0F
-f93a: 8a 30        oraa 0x30
-f93c: 81 3a        cmpa 0x3A
-f93e: 25 02        bcs [0xF942]
-f940: 8b 07        adda 0x07
-f942: 7e f9 6f     jmp (0xF96F)
+                    psha
+                    lsra
+                    lsra
+                    lsra
+                    lsra
+                    jsr     LF938
+                    pula
+LF938:
+                    anda    #0x0F
+                    oraa    #0x30
+                    cmpa    #0x3A
+                    bcs     LF942
+                    adda    #0x07
+LF942:
+                    jmp     LF96F
 
 ; get serial char if available
-f945: b6 10 2e     ldaa (SCSR)
-f948: 85 20        bita 0x20
-f94a: 26 09        bne [0xF955]
-f94c: 0c           clc
-f94d: 39           rts
+                    ldaa    (SCSR)
+                    bita    #0x20
+                    bne     LF955
+                    clc
+                    rts
 
 ; wait for a serial character
-f94e: b6 10 2e     ldaa (SCSR)      ; read serial status
-f951: 85 20        bita 0x20
-f953: 27 f9        beq [0xF94E]     ; if RDRF=0, loop
+LF94E:
+                    ldaa    (SCSR)      ; read serial status
+                    bita    #0x20
+                    beq     LF94E       ; if RDRF=0, loop
 
 ; read serial data, (assumes it's ready)
-f955: b6 10 2e     ldaa (SCSR)      ; read serial status
-f958: 85 02        bita 0x02
-f95a: 26 09        bne [0xF965]     ; if FE=1, clear it
-f95c: 85 08        bita 0x08
-f95e: 26 05        bne [0xF965]     ; if OR=1, clear it
-f960: b6 10 2f     ldaa (SCDR)      ; otherwise, good data
-f963: 0d           sec
-f964: 39           rts
+LF955:
+                    ldaa    (SCSR)      ; read serial status
+                    bita    #0x02
+                    bne     LF965       ; if FE=1, clear it
+                    bita    #0x08
+                    bne     LF965       ; if OR=1, clear it
+                    ldaa    (SCDR)      ; otherwise, good data
+                    sec
+                    rts
 
-f965: b6 10 2f     ldaa (SCDR)      ; clear any error
-f968: 86 2f        ldaa 0x2F        ; '/'   
-f96a: bd f9 6f     jsr (0xF96F)
-f96d: 20 df        bra [0xF94E]     ; go to wait for a character
+LF965:
+                    ldaa    (SCDR)      ; clear any error
+                    ldaa    #0x2F       ; '/'   
+                    jsr     LF96F
+                    bra     LF94E       ; go to wait for a character
 
 ; Send to SCI with CR turned to CRLF
-f96f: 81 0d        cmpa 0x0D        ; CR?
-f971: 27 02        beq [0xF975]     ; if so echo CR+LF
-f973: 20 07        bra [0xF97C]     ; else just echo it
-f975: 86 0d        ldaa 0x0D
-f977: bd f9 7c     jsr (0xF97C)
-f97a: 86 0a        ldaa 0x0A
+LF96F:
+                    cmpa    #0x0D       ; CR?
+                    beq     LF975       ; if so echo CR+LF
+                    bra     LF97C       ; else just echo it
+LF975:
+                    ldaa    #0x0D
+                    jsr     LF97C
+                    ldaa    #0x0A
 
 ; send a char to SCI
-f97c: f6 10 2e     ldab (SCSR)      ; wait for ready to send
-f97f: c5 40        bitb 0x40
-f981: 27 f9        beq [0xF97C]
-f983: b7 10 2f     staa (SCDR)      ; send it
-f986: 39           rts
+LF97C:
+                    ldab    (SCSR)      ; wait for ready to send
+                    bitb    #0x40
+                    beq     LF97C
+                    staa    (SCDR)      ; send it
+                    rts
 
-f987: bd f9 4e     jsr (0xF94E)     ; get a serial char
-f98a: 81 7a        cmpa 0x7A        ;'z'
-f98c: 22 06        bhi [0xF994]
-f98e: 81 61        cmpa 0x61        ;'a'
-f990: 25 02        bcs [0xF994]
-f992: 82 20        sbca 0x20        ;convert to lower case?
-f994: 39           rts
+                    jsr     LF94E       ; get a serial char
+                    cmpa    #0x7A       ;'z'
+                    bhi     LF994
+                    cmpa    #0x61       ;'a'
+                    bcs     LF994
+                    sbca    #0x20       ;convert to pper case?
+LF994:
+                    rts
 
 ; Write hex digit arg in B to diagnostic lights
 ; or B=0x10 or higher for blank
 
-f995: 36           psha
-f996: c1 11        cmpb 0x11
-f998: 25 02        bcs [0xF99C]
-f99a: c6 10        ldab 0x10
-f99c: ce f9 b4     ldx 0xF9B4
-f99f: 3a           abx
-f9a0: a6 00        ldaa (X+0x00)
-f9a2: b7 18 06     staa (0x1806)    ; write arg to local data bus
-f9a5: b6 18 04     ldaa (0x1804)    ; read from Port A
-f9a8: 8a 20        oraa 0x20        ; bit 5 high
-f9aa: b7 18 04     staa (0x1804)    ; write back to Port A
-f9ad: 84 df        anda 0xDF        ; bit 5 low
-f9af: b7 18 04     staa (0x1804)    ; write back to Port A
-f9b2: 32           pula
-f9b3: 39           rts
+LF995:
+                    psha
+                    cmpb    #0x11
+                    bcs     LF99C
+                    ldab    #0x10
+LF99C:
+                    ldx     #LF9B4
+                    abx
+                    ldaa    0,X
+                    staa    (0x1806)    ; write arg to local data bus
+                    ldaa    (0x1804)    ; read from Port A
+                    oraa    #0x20       ; bit 5 high
+                    staa    (0x1804)    ; write back to Port A
+                    anda    #0xDF       ; bit 5 low
+                    staa    (0x1804)    ; write back to Port A
+                    pula
+                     rts
 
 ; 7 segment patterns - XGFEDCBA
-f9b4: c0    ; 0
-f9b5: f9    ; 1
-f9b6: a4    ; 2
-f9b7: b0    ; 3
-f9b8: 99    ; 4
-f9b9: 92    ; 5
-f9ba: 82    ; 6
-f9bb: f8    ; 7
-f9bc: 80    ; 8
-f9bd: 90    ; 9
-f9be: 88    ; A 
-f9bf: 83    ; b
-f9c0: c6    ; C
-f9c1: a1    ; d
-f9c2: 86    ; E
-f9c3: 8e    ; F
-f9c4: ff    ; blank
+LF9B4:
+                    .byte   0xc0    ; 0
+                    .byte   0xf9    ; 1
+                    .byte   0xa4    ; 2
+                    .byte   0xb0    ; 3
+                    .byte   0x99    ; 4
+                    .byte   0x92    ; 5
+                    .byte   0x82    ; 6
+                    .byte   0xf8    ; 7
+                    .byte   0x80    ; 8
+                    .byte   0x90    ; 9
+                    .byte   0x88    ; A 
+                    .byte   0x83    ; b
+                    .byte   0xc6    ; C
+                    .byte   0xa1    ; d
+                    .byte   0x86    ; E
+                    .byte   0x8e    ; F
+                    .byte   0xff    ; blank
 
 ; Write arg in B to Button Lights
 
-f9c5: 36           psha
-f9c6: f7 18 06     stab (0x1806)    ; write arg to local data bus
-f9c9: b6 18 04     ldaa (0x1804)    ; read from Port A
-f9cc: 84 ef        anda 0xEF        ; bit 4 low
-f9ce: b7 18 04     staa (0x1804)    ; write back to Port A
-f9d1: 8a 10        oraa 0x10        ; bit 4 high
-f9d3: b7 18 04     staa (0x1804)    ; write this to Port A
-f9d6: 32           pula
-f9d7: 39           rts
+                    psha
+                    stab    (0x1806)    ; write arg to local data bus
+                    ldaa    (0x1804)    ; read from Port A
+                    anda    #0xEF       ; bit 4 low
+                    staa    (0x1804)    ; write back to Port A
+                    oraa    #0x10       ; bit 4 high
+                    staa    (0x1804)    ; write this to Port A
+                    pula
+                    rts
 
 ; Send rom message via SCI
 
-f9d8: 18 38        puly
-f9da: 18 a6 00     ldaa (Y+0x00)
-f9dd: 27 09        beq [0xF9E8]     ; if zero terminated, return
-f9df: 2b 0c        bmi [0xF9ED]     ; if high bit set..do last char and return
-f9e1: bd f9 7c     jsr (0xF97C)     ; else send char
-f9e4: 18 08        iny
-f9e6: 20 f2        bra [0xF9DA]     ; and loop for next one
+LF9D8:
+                    puly
+LF9DA:
+                    ldaa    0,Y
+                    beq     LF9E8       ; if zero terminated, return
+                    bmi     LF9ED       ; if high bit set..do last char and return
+                    jsr     LF97C       ; else send char
+                    iny
+                    bra     LF9DA       ; and loop for next one
 
-f9e8: 18 08        iny              ; setup return address and return
-f9ea: 18 3c        pshy
-f9ec: 39           rts
+LF9E8:
+                    iny                 ; setup return address and return
+                    pshy
+                    rts
 
-f9ed: 84 7f        anda 0x7F        ; remove top bit
-f9ef: bd f9 7c     jsr (0xF97C)     ; send char
-f9f2: 20 f4        bra [0xF9E8]     ; and we're done
+LF9ED:
+                    anda    #0x7F       ; remove top bit
+                    jsr     LF97C       ; send char
+                    bra     LF9E8       ; and we're done
 
-f9f4: 39           rts
-f9f5: 39           rts
+                    rts
+                    rts
 
-f9f6: 3b           rti
+                    rti
 
 ; all 0xffs in this gap
 
-ffa0: 7e f9 f5     jmp (0xF9F5)
-ffa3: 7e f9 f5     jmp (0xF9F5)
-ffa6: 7e f9 f5     jmp (0xF9F5)
-ffa9: 7e f9 2f     jmp (0xF92F)
-ffac: 7e f9 d8     jmp (0xF9D8)
-ffaf: 7e f9 45     jmp (0xF945)
-ffb2: 7e f9 6f     jmp (0xF96F)
-ffb5: 7e f9 08     jmp (0xF908)
-ffb8: 7e f9 95     jmp (0xF995)
-ffbb: 7e f9 c5     jmp (0xF9C5)
+                    .org    0xffa0
 
-ffbe: ff ff
+                   jmp (0xF9F5)
+                   jmp (0xF9F5)
+                   jmp (0xF9F5)
+                   jmp (0xF92F)
+                   jmp (0xF9D8)
+                   jmp (0xF945)
+                   jmp (0xF96F)
+                   jmp (0xF908)
+                   jmp (0xF995)
+                   jmp (0xF9C5)
+
+                   .byte    0xff
+                   .byte    0xff
 
 ; Vectors
 
-ffc0 :f9 f6     ; Stub RTI
-ffc2: f9 f6     ; Stub RTI
-ffc4: f9 f6     ; Stub RTI
-ffc6: f9 f6     ; Stub RTI
-ffc8: f9 f6     ; Stub RTI
-ffca: f9 f6     ; Stub RTI
-ffcc: f9 f6     ; Stub RTI
-ffce: f9 f6     ; Stub RTI
-ffd0: f9 f6     ; Stub RTI
-ffd2: f9 f6     ; Stub RTI
-ffd4: f9 f6     ; Stub RTI
+                   .word   0xf9f6       ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
+                   .word   0xf9f6      ; Stub RTI
 
-ffd6: 01 00     ; SCI
-ffd8: 01 00     ; SPI
-ffda: 01 06     ; PA accum. input edge
-ffdc: 01 09     ; PA Overflow
+                    .word  0x0100       ; SCI
+                    .word  0x0103       ; SPI
+                    .word  0x0106     ; PA accum. input edge
+                    .word  0x0109     ; PA Overflow
 
-ffde: f9 f6     ; Stub RTI
+                    .word  0xf9f6     ; Stub RTI
 
-ffe0: 01 0c     ; TI4O5
-ffe2: 01 0f     ; TOC4
-ffe4: 01 12     ; TOC3
-ffe6: 01 15     ; TOC2
-ffe8: 01 18     ; TOC1
-ffea: 01 1b     ; TIC3
-ffec: 01 1e     ; TIC2
-ffee: 01 21     ; TIC1
-fff0: 01 24     ; RTI
-fff2: 01 27     ; ~IRQ
-fff4: 01 2a     ; XIRQ
-fff6: 01 2d     ; SWI
-fff8: 01 30     ; ILLEGAL OPCODE
-fffa: 01 33     ; COP Failure
-fffc: 01 36     ; COP Clock Monitor Fail
+                    .word  0x010c     ; TI4O5
+                    .word  0x010f     ; TOC4
+                    .word  0x0112     ; TOC3
+                    .word  0x0115     ; TOC2
+                    .word  0x0118     ; TOC1
+                    .word  0x011b     ; TIC3
+                    .word  0x011e     ; TIC2
+                    .word  0x0121     ; TIC1
+                    .word  0x0124     ; RTI
+                    .word  0x0127     ; ~IRQ
+                    .word  0x012a     ; XIRQ
+                    .word  0x012d     ; SWI
+                    .word  0x0130     ; ILLEGAL OPCODE
+                    .word  0x0133     ; COP Failure
+                    .word  0x0136     ; COP Clock Monitor Fail
 
-fffe: f8 00     ; Reset
+                    .word  RESET     ; Reset
+
