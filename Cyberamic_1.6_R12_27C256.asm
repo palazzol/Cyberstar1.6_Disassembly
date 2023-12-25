@@ -10,10 +10,10 @@
 8054: c3 00 01     addd 0x0001
 8057: fd 04 26     std (0x0426)
 
-805a: ce ad 1d     ldx 0xAD1D
+805a: ce ad 1d     ldx 0xAD1D           ;
 805d: ff 01 ce     stx (0x01CE)         ; store this vector here?
 8060: 7f 01 c7     clr (0x01C7)
-8063: cc 01 c6     ldd 0x01C6
+8063: cc 01 c6     ldd 0x01C6           ;
 8066: fd 01 3e     std (0x013E)         ; store this vector here? Some sort of RTI setup
 8069: 7f 00 b0     clr (0x00B0)
 806c: 7f 00 4e     clr (0x004E)
@@ -125,6 +125,7 @@
 ; '32K RAM OK'
 817c: 33 32 4b 20 52 41 4d 20 4f cb 
 
+; R12 or CNR mode???
 8186: 7d 04 5c     tst (0x045C)         ; if this location is 0, good
 8189: 26 08        bne [0x8193]
 818b: cc 52 0f     ldd 0x520F           ; else print 'R' on the far left of the first line
@@ -139,21 +140,21 @@
 
 81a7: bd 97 5f     jsr (0x975F)     ; print the checksum on the LCD
 
-81aa: c6 02        ldab 0x02
-81ac: bd 8c 02     jsr (0x8C02)
+81aa: c6 02        ldab 0x02        ; delay 2 secs
+81ac: bd 8c 02     jsr (0x8C02)     ;
 
-81af: bd 9a 27     jsr (0x9A27)
+81af: bd 9a 27     jsr (0x9A27)     ; display Serial #
 81b2: bd 9e cc     jsr (0x9ECC)     ; display R and L counts?
-81b5: bd 9b 19     jsr (0x9B19)
+81b5: bd 9b 19     jsr (0x9B19)     ; do the random tasks???
 
-81b8: c6 02        ldab 0x02
-81ba: bd 8c 02     jsr (0x8C02)
+81b8: c6 02        ldab 0x02        ; delay 2 secs
+81ba: bd 8c 02     jsr (0x8C02)     ;
 
-81bd: f6 10 2d     ldab (SCCR2)
+81bd: f6 10 2d     ldab (SCCR2)     ; disable receive data interrupts
 81c0: c4 df        andb 0xDF
 81c2: f7 10 2d     stab (SCCR2)
 
-81c5: bd 9a f7     jsr (0x9AF7)
+81c5: bd 9a f7     jsr (0x9AF7)     ; clear a bunch of ram
 81c8: c6 fd        ldab 0xFD
 81ca: bd 86 e7     jsr (0x86E7)
 81cd: bd 87 91     jsr (0x8791)
@@ -222,11 +223,11 @@
 8279: 96 60        ldaa (0x0060)
 827b: 27 06        beq [0x8283]
 827d: bd a9 7c     jsr (0xA97C)
-8280: 7e f8 00     jmp (0xF800)
+8280: 7e f8 00     jmp (0xF800)     ; reset controller
 8283: b6 18 04     ldaa (0x1804)
 8286: 84 06        anda 0x06
 8288: 26 08        bne [0x8292]
-828a: bd 9c f1     jsr (0x9CF1)
+828a: bd 9c f1     jsr (0x9CF1)     ; print credits
 828d: c6 32        ldab 0x32
 828f: bd 8c 22     jsr (0x8C22)
 8292: bd 8e 95     jsr (0x8E95)
@@ -291,8 +292,8 @@
 835e: c4 df        andb 0xDF
 8360: d7 62        stab (0x0062)
 8362: bd f9 c5     jsr (0xF9C5)
-8365: c6 02        ldab 0x02
-8367: bd 8c 02     jsr (0x8C02)
+8365: c6 02        ldab 0x02            ; delay 2 secs
+8367: bd 8c 02     jsr (0x8C02)         ;
 836a: 96 7c        ldaa (0x007C)
 836c: 27 2d        beq [0x839B]
 836e: 96 7f        ldaa (0x007F)
@@ -361,8 +362,8 @@
 ; 'dbp'
 840e: 64 62 f0 
 
-8411: c6 03        ldab 0x03
-8413: bd 8c 02     jsr (0x8C02)
+8411: c6 03        ldab 0x03            ; delay 3 secs
+8413: bd 8c 02     jsr (0x8C02)         ;
 8416: 7d 00 7c     tst (0x007C)
 8419: 27 15        beq [0x8430]
 841b: d6 80        ldab (0x0080)
@@ -624,8 +625,8 @@
 8691: bd f9 c5     jsr (0xF9C5)
 8694: c6 fd        ldab 0xFD
 8696: bd 86 e7     jsr (0x86E7)
-8699: c6 04        ldab 0x04
-869b: bd 8c 02     jsr (0x8C02)
+8699: c6 04        ldab 0x04            ; delay 4 secs
+869b: bd 8c 02     jsr (0x8C02)         ;
 869e: 7e 84 7f     jmp (0x847F)
 86a1: 7e 84 4d     jmp (0x844D)
 86a4: bd 9b 19     jsr (0x9B19)
@@ -671,6 +672,7 @@
 86e4: 2f e1        ble [0x86C7]
 86e6: 39           rts
 
+; ***
 86e7: 36           psha
 86e8: bd 9b 19     jsr (0x9B19)
 86eb: 96 ac        ldaa (0x00AC)
@@ -1287,7 +1289,7 @@
 8bdf: b7 01 2d     staa (0x012D)
 8be2: 4f           clra
 8be3: 5f           clrb
-8be4: dd 1b        std (0x001B)
+8be4: dd 1b        std (0x001B)     ; Reset the countdown timers
 8be6: dd 1d        std (0x001D)
 8be8: dd 1f        std (0x001F)
 8bea: dd 21        std (0x0021)
@@ -1305,11 +1307,13 @@
 8bff: 20 f3        bra [0x8BF4]
 8c01: 39           rts
 
+; Delay B seconds??
+
 8c02: 36           psha
 8c03: 86 64        ldaa 0x64
 8c05: 3d           mul
 8c06: dd 23        std (0x0023)     ; store B*100 here
-8c08: bd 9b 19     jsr (0x9B19)
+8c08: bd 9b 19     jsr (0x9B19)     ; update 0x0023/0x0024 from RTC???
 8c0b: dc 23        ldd (0x0023)
 8c0d: 26 f9        bne [0x8C08]
 8c0f: 32           pula
@@ -1318,8 +1322,8 @@
 8c11: 36           psha
 8c12: 86 3c        ldaa 0x3C
 8c14: 97 28        staa (0x0028)
-8c16: c6 01        ldab 0x01
-8c18: bd 8c 02     jsr (0x8C02)
+8c16: c6 01        ldab 0x01        ; delay 1 sec
+8c18: bd 8c 02     jsr (0x8C02)     ;
 8c1b: 96 28        ldaa (0x0028)
 8c1d: 4a           deca
 8c1e: 26 f4        bne [0x8C14]
@@ -3125,8 +3129,8 @@
 9a8d: bd 87 91     jsr (0x8791)
 9a90: bd 86 c4     jsr (0x86C4)
 9a93: bd 9c 51     jsr (0x9C51)
-9a96: c6 06        ldab 0x06
-9a98: bd 8c 02     jsr (0x8C02)
+9a96: c6 06        ldab 0x06            ; delay 6 secs
+9a98: bd 8c 02     jsr (0x8C02)         ;
 9a9b: bd 8e 95     jsr (0x8E95)
 9a9e: bd 99 a6     jsr (0x99A6)
 9aa1: 7e 81 bd     jmp (0x81BD)
@@ -3186,14 +3190,18 @@
 9b21: 26 10        bne [0x9B33]     ; exit
 9b23: 7d 00 64     tst (0x0064)
 9b26: 27 09        beq [0x9B31]     ; go to 0401 logic
-9b28: bd 86 c4     jsr (0x86C4)
-9b2b: bd 9c 51     jsr (0x9C51)
+9b28: bd 86 c4     jsr (0x86C4)     ; do something with boards???
+9b2b: bd 9c 51     jsr (0x9C51)     ; RTC stuff???
 9b2e: 7f 00 64     clr (0x0064)
 9b31: 20 03        bra [0x9B36]     ; go to 0401 logic
 9b33: 33           pulb
 9b34: 32           pula
 9b35: 39           rts
 
+; end up here immediately if:
+; 0x004E == 00 or
+; 0x0063, 0x0064 == 0 or
+; 
 ; do subroutines based on bits 0-4 of 0x0401?
 9b36: b6 04 01     ldaa (0x0401)
 9b39: 84 01        anda 0x01
@@ -3323,6 +3331,8 @@
 9c4a: 86 aa        ldaa 0xAA
 9c4c: 97 74        staa (0x0074)
 9c4e: 7e 9c 40     jmp (0x9C40)
+
+; ?????
 9c51: 86 fa        ldaa 0xFA
 9c53: 97 70        staa (0x0070)
 9c55: 86 e6        ldaa 0xE6
@@ -3333,6 +3343,7 @@
 9c5f: 97 73        staa (0x0073)
 9c61: 86 aa        ldaa 0xAA
 9c63: 97 74        staa (0x0074)
+
 9c65: 18 ce b2 eb  ldy 0xB2EB
 9c69: 18 df 65     sty (0x0065)
 9c6c: 18 ce b3 bd  ldy 0xB3BD
@@ -3343,8 +3354,10 @@
 9c7e: 18 df 6b     sty (0x006B)
 9c81: 18 ce b5 c3  ldy 0xB5C3
 9c85: 18 df 6d     sty (0x006D)
+
 9c88: 7f 10 9c     clr (0x109C)
 9c8b: 7f 10 9e     clr (0x109E)
+
 9c8e: b6 04 01     ldaa (0x0401)
 9c91: 84 20        anda 0x20
 9c93: 27 08        beq [0x9C9D]
@@ -4012,7 +4025,7 @@ a250: 8c 0e 00     cpx 0x0E00
 a253: 26 f8        bne [0xA24D]
 a255: bd 9e af     jsr (0x9EAF)     ; reset L counts
 a258: bd 9e 92     jsr (0x9E92)     ; reset R counts
-a25b: 7e f8 00     jmp (0xF800)
+a25b: 7e f8 00     jmp (0xF800)     ; reset controller
 
 a25e: 18 ce 80 03  ldy 0x8003       ; copyright message
 a262: ce 00 00     ldx 0x0000
@@ -5103,72 +5116,109 @@ abc9: 39           rts
 
 abca: 20 f5        bra [0xABC1]
 
-; timer handler?
-abcc: dc 10        ldd (0x0010)
-abce: c3 02 71     addd 0x0271
+; TOC1 timer handler
+;
+; Timer is running at:
+; EXTAL = 16Mhz
+; E Clk = 4Mhz
+; Timer Prescaler = /16 = 250Khz
+; Timer Period = 4us
+; T1OC is set to previous value +625
+; So, this routine is called every 2.5ms
+;
+abcc: dc 10        ldd (0x0010)     ; get ready for next time
+abce: c3 02 71     addd 0x0271      ; add 625
 abd1: fd 10 16     std (TOC1)
 abd4: dd 10        std (0x0010)
+
 abd6: 86 80        ldaa 0x80
-abd8: b7 10 23     staa (TFLG1)
-abdb: 7d 00 78     tst (0x0078)
-abde: 27 1c        beq [0xABFC]
-abe0: dc 25        ldd (0x0025)
+abd8: b7 10 23     staa (TFLG1)     ; clear timer flag
+
+; Some blinking SPECIAL button every half second,
+; if 0x0078 is non zero
+
+abdb: 7d 00 78     tst (0x0078)     ; if 78 is zero, skip ahead
+abde: 27 1c        beq [0xABFC]     ; else do some blinking button lights
+abe0: dc 25        ldd (0x0025)     ; else inc 25/26
 abe2: c3 00 01     addd 0x0001
 abe5: dd 25        std (0x0025)
-abe7: 1a 83 00 c8  cpd 0x00C8
-abeb: 26 0f        bne [0xABFC]
-abed: 7f 00 25     clr (0x0025)
+abe7: 1a 83 00 c8  cpd 0x00C8       ; is it 200?
+abeb: 26 0f        bne [0xABFC]     ; no, keep going
+abed: 7f 00 25     clr (0x0025)     ; reset 25/26
 abf0: 7f 00 26     clr (0x0026)
-abf3: d6 62        ldab (0x0062)
+abf3: d6 62        ldab (0x0062)    ; and toggle bit 3 of 62
 abf5: c8 08        eorb 0x08
 abf7: d7 62        stab (0x0062)
-abf9: bd f9 c5     jsr (0xF9C5)
-abfc: 7c 00 6f     inc (0x006F)
+abf9: bd f9 c5     jsr (0xF9C5)     ; and toggle the "special" button light
+
+; 
+abfc: 7c 00 6f     inc (0x006F)     ; count every 2.5ms
 abff: 96 6f        ldaa (0x006F)
-ac01: 81 28        cmpa 0x28
-ac03: 25 42        bcs [0xAC47]
-ac05: 7f 00 6f     clr (0x006F)
-ac08: 7d 00 63     tst (0x0063)
-ac0b: 27 03        beq [0xAC10]
+ac01: 81 28        cmpa 0x28        ; is it 40 intervals? (0.1 sec?)
+ac03: 25 42        bcs [0xAC47]     ; if not yet, jump ahead
+ac05: 7f 00 6f     clr (0x006F)     ; clear it 2.5ms counter
+ac08: 7d 00 63     tst (0x0063)     ; decrement 0.1s counter here
+ac0b: 27 03        beq [0xAC10]     ; if it's not already zero
 ac0d: 7a 00 63     dec (0x0063)
-ac10: 96 70        ldaa (0x0070)
+
+; staggered counters - here every 100ms
+
+; 0x0070 counts from 250 to 1, period is 25 secs
+ac10: 96 70        ldaa (0x0070)    ; decrement 0.1s counter here
 ac12: 4a           deca
 ac13: 97 70        staa (0x0070)
-ac15: 26 04        bne [0xAC1B]
-ac17: 86 fa        ldaa 0xFA
+ac15: 26 04        bne [0xAC1B]     
+ac17: 86 fa        ldaa 0xFA        ; 250
 ac19: 97 70        staa (0x0070)
+
+; 0x0071 counts from 230 to 1, period is 23 secs
 ac1b: 96 71        ldaa (0x0071)
 ac1d: 4a           deca
 ac1e: 97 71        staa (0x0071)
 ac20: 26 04        bne [0xAC26]
-ac22: 86 e6        ldaa 0xE6
+ac22: 86 e6        ldaa 0xE6        ; 230
 ac24: 97 71        staa (0x0071)
+
+; 0x0072 counts from 210 to 1, period is 21 secs
 ac26: 96 72        ldaa (0x0072)
 ac28: 4a           deca
 ac29: 97 72        staa (0x0072)
 ac2b: 26 04        bne [0xAC31]
-ac2d: 86 d2        ldaa 0xD2
+ac2d: 86 d2        ldaa 0xD2        ; 210
 ac2f: 97 72        staa (0x0072)
+
+; 0x0073 counts from 190 to 1, period is 19 secs
 ac31: 96 73        ldaa (0x0073)
 ac33: 4a           deca
 ac34: 97 73        staa (0x0073)
 ac36: 26 04        bne [0xAC3C]
-ac38: 86 be        ldaa 0xBE
+ac38: 86 be        ldaa 0xBE        ; 190
 ac3a: 97 73        staa (0x0073)
+
+; 0x0074 counts from 170 to 1, period is 17 secs
 ac3c: 96 74        ldaa (0x0074)
 ac3e: 4a           deca
 ac3f: 97 74        staa (0x0074)
 ac41: 26 04        bne [0xAC47]
-ac43: 86 aa        ldaa 0xAA
+ac43: 86 aa        ldaa 0xAA        ; 170
 ac45: 97 74        staa (0x0074)
+
+; back to 2.5ms period here
+
 ac47: 96 27        ldaa (0x0027)
 ac49: 4c           inca
 ac4a: 97 27        staa (0x0027)
-ac4c: 81 0c        cmpa 0x0C
+ac4c: 81 0c        cmpa 0x0C        ; 12 = 30ms?
 ac4e: 23 09        bls [0xAC59]
 ac50: 7f 00 27     clr (0x0027)
-ac53: bd 8e c6     jsr (0x8EC6)
-ac56: bd 8f 12     jsr (0x8F12)
+
+; do these tasks every 30ms
+ac53: bd 8e c6     jsr (0x8EC6)     ; ???
+ac56: bd 8f 12     jsr (0x8F12)     ; ???
+
+; back to every 2.5ms here
+; LCD update???
+
 ac59: 96 43        ldaa (0x0043)
 ac5b: 27 55        beq [0xACB2]
 ac5d: de 44        ldx (0x0044)
@@ -5208,51 +5258,66 @@ aca8: ce 05 00     ldx 0x0500
 acab: df 44        stx (0x0044)
 acad: 20 03        bra [0xACB2]
 acaf: 7f 00 43     clr (0x0043)
+
+; divide by 4
 acb2: 96 4f        ldaa (0x004F)
 acb4: 4c           inca
 acb5: 97 4f        staa (0x004F)
 acb7: 81 04        cmpa 0x04
 acb9: 26 30        bne [0xACEB]
 acbb: 7f 00 4f     clr (0x004F)
-acbe: dc 1b        ldd (0x001B)
-acc0: 27 05        beq [0xACC7]
+
+; here every 10ms
+; Five big countdown timers available here
+; up to 655.35 seconds each
+
+acbe: dc 1b        ldd (0x001B)     ; countdown 0x001B/1C every 10ms
+acc0: 27 05        beq [0xACC7]     ; if not already 0
 acc2: 83 00 01     subd 0x0001
 acc5: dd 1b        std (0x001B)
-acc7: dc 1d        ldd (0x001D)
+
+acc7: dc 1d        ldd (0x001D)     ; same with 0x001D/1E
 acc9: 27 05        beq [0xACD0]
 accb: 83 00 01     subd 0x0001
 acce: dd 1d        std (0x001D)
-acd0: dc 1f        ldd (0x001F)
+
+acd0: dc 1f        ldd (0x001F)     ; same with 0x001F/20
 acd2: 27 05        beq [0xACD9]
 acd4: 83 00 01     subd 0x0001
 acd7: dd 1f        std (0x001F)
-acd9: dc 21        ldd (0x0021)
+
+acd9: dc 21        ldd (0x0021)     ; same with 0x0021/22
 acdb: 27 05        beq [0xACE2]
 acdd: 83 00 01     subd 0x0001
 ace0: dd 21        std (0x0021)
-ace2: dc 23        ldd (0x0023)
+
+ace2: dc 23        ldd (0x0023)     ; same with 0x0023/24
 ace4: 27 05        beq [0xACEB]
 ace6: 83 00 01     subd 0x0001
 ace9: dd 23        std (0x0023)
+
+; every other time through this, setup a task switch?
 aceb: 96 b0        ldaa (0x00B0)
 aced: 88 01        eora 0x01
 acef: 97 b0        staa (0x00B0)
 acf1: 27 18        beq [0xAD0B]
-acf3: bf 01 3c     sts (0x013C)
+
+acf3: bf 01 3c     sts (0x013C)     ; switch stacks???
 acf6: be 01 3e     lds (0x013E)
 acf9: dc 10        ldd (0x0010)
-acfb: 83 01 f4     subd 0x01F4
-acfe: fd 10 18     std (TOC2)
-ad01: 86 40        ldaa 0x40
-ad03: b7 10 23     staa (TFLG1)
+acfb: 83 01 f4     subd 0x01F4      ; 625-500 = 125?
+acfe: fd 10 18     std (TOC2)       ; set this TOC2 to happen 0.5ms
+ad01: 86 40        ldaa 0x40        ; after the current TOC1
+ad03: b7 10 23     staa (TFLG1)     ; but before the next TOC1
 ad06: 86 c0        ldaa 0xC0
 ad08: b7 10 22     staa (TMSK1)
 ad0b: 3b           rti
 
-; timer handler?
+; TOC2 Timer handler
+
 ad0c: 86 40        ldaa 0x40
 ad0e: b7 10 23     staa (TFLG1)
-ad11: bf 01 3e     sts (0x013E)
+ad11: bf 01 3e     sts (0x013E)     ; switch stacks back???
 ad14: be 01 3c     lds (0x013C)
 ad17: 86 80        ldaa 0x80
 ad19: b7 10 22     staa (TMSK1)
@@ -6762,7 +6827,7 @@ f7fd: ff ff ff     stx (0xFFFF)
 
 ; Reset
 
-f800: 0f           sei
+f800: 0f           sei              ; disable interrupts
 f801: 86 03        ldaa 0x03
 f803: b7 10 24     staa (TMSK2)     ; disable irqs, set prescaler to 16
 f806: 86 80        ldaa 0x80
