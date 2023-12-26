@@ -46,7 +46,7 @@ OFFCNT1     .equ    0x0070
 OFFCNT2     .equ    0x0071
 OFFCNT3     .equ    0x0072
 OFFCNT4     .equ    0x0073
-OFFCNT5     .equ    0x007
+OFFCNT5     .equ    0x0074
 
 ; bottom bit counts every other T1OC
 TSCNT       .equ    0x00b0
