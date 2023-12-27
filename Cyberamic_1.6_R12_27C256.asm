@@ -1672,432 +1672,459 @@ L8D1B:
         rts
 
 L8D29:
-.if 0
-8d29: 86 0c        ldaa 0x0C
-8d2b: bd 8e 4b     jsr (0x8E4B)
-8d2e: 39           rts
+        ldaa    #0x0C
+        jsr     (0x8E4B)
+        rts
 
-8d2f: 86 0e        ldaa 0x0E
-8d31: bd 8e 4b     jsr (0x8E4B)
-8d34: 39           rts
+        ldaa    #0x0E
+        jsr     (0x8E4B)
+        rts
 
-8d35: 7f 00 4a     clr (0x004A)
-8d38: 7f 00 43     clr (0x0043)
-8d3b: 18 de 46     ldy (0x0046)
-8d3e: 86 c0        ldaa 0xC0
-8d40: 20 0b        bra [0x8D4D]
-8d42: 7f 00 4a     clr (0x004A)
-8d45: 7f 00 43     clr (0x0043)
-8d48: 18 de 46     ldy (0x0046)
-8d4b: 86 80        ldaa 0x80
-8d4d: 18 a7 00     staa (Y+0x00)
-8d50: 18 6f 01     clr (Y+0x01)
-8d53: 18 08        iny
-8d55: 18 08        iny
-8d57: 18 8c 05 80  cpy 0x0580
-8d5b: 25 04        bcs [0x8D61]
-8d5d: 18 ce 05 00  ldy 0x0500
-8d61: c6 0f        ldab 0x0F
-8d63: 96 4a        ldaa (0x004A)
-8d65: 27 fc        beq [0x8D63]
-8d67: 7f 00 4a     clr (0x004A)
-8d6a: 5a           decb
-8d6b: 27 1a        beq [0x8D87]
-8d6d: 81 24        cmpa 0x24
-8d6f: 27 16        beq [0x8D87]
-8d71: 18 6f 00     clr (Y+0x00)
-8d74: 18 a7 01     staa (Y+0x01)
-8d77: 18 08        iny
-8d79: 18 08        iny
-8d7b: 18 8c 05 80  cpy 0x0580
-8d7f: 25 04        bcs [0x8D85]
-8d81: 18 ce 05 00  ldy 0x0500
-8d85: 20 dc        bra [0x8D63]
-8d87: 5d           tstb
-8d88: 27 19        beq [0x8DA3]
-8d8a: 86 20        ldaa 0x20
-8d8c: 18 6f 00     clr (Y+0x00)
-8d8f: 18 a7 01     staa (Y+0x01)
-8d92: 18 08        iny
-8d94: 18 08        iny
-8d96: 18 8c 05 80  cpy 0x0580
-8d9a: 25 04        bcs [0x8DA0]
-8d9c: 18 ce 05 00  ldy 0x0500
-8da0: 5a           decb
-8da1: 26 e9        bne [0x8D8C]
-8da3: 18 6f 00     clr (Y+0x00)
-8da6: 18 6f 01     clr (Y+0x01)
-8da9: 18 df 46     sty (0x0046)
-8dac: 96 19        ldaa (0x0019)
-8dae: 97 4e        staa (0x004E)
-8db0: 86 01        ldaa 0x01
-8db2: 97 43        staa (0x0043)
-8db4: 39           rts
+        clr     (0x004A)
+        clr     (0x0043)
+        ldy     (0x0046)
+        ldaa    #0xC0
+        bra     L8D4D  
+        clr     (0x004A)
+        clr     (0x0043)
+        ldy     (0x0046)
+        ldaa    #0x80
+L8D4D:
+        staa    0,Y     
+        clr     1,Y     
+        iny
+        iny
+        cpy     #0x0580
+        bcs     L8D61  
+        ldy     #0x0500
+L8D61:
+        ldab    #0x0F
+L8D63:
+        ldaa    (0x004A)
+        beq     L8D63  
+        clr     (0x004A)
+        decb
+        beq     L8D87  
+        cmpa    #0x24
+        beq     L8D87  
+        clr     0,Y     
+        staa    1,Y     
+        iny
+        iny
+        cpy     #0x0580
+        bcs     L8D85  
+        ldy     #0x0500
+L8D85:
+        bra     L8D63  
+L8D87:
+        tstb
+        beq     L8DA3  
+        ldaa    #0x20
+L8D8C:
+        clr     0,Y     
+        staa    1,Y     
+        iny
+        iny
+        cpy     #0x0580
+        bcs     L8DA0  
+        ldy     #0x0500
+L8DA0:
+        decb
+        bne     L8D8C  
+L8DA3:
+        clr     0,Y     
+        clr     1,Y     
+        sty     (0x0046)
+        ldaa    (0x0019)
+        staa    (0x004E)
+        ldaa    #0x01
+        staa    (0x0043)
+        rts
 
 ; display ASCII in B at location
-8db5: 36           psha
-8db6: 37           pshb
-8db7: c1 4f        cmpb 0x4F
-8db9: 22 13        bhi [0x8DCE]
-8dbb: c1 28        cmpb 0x28
-8dbd: 25 03        bcs [0x8DC2]
-8dbf: 0c           clc
-8dc0: c9 18        adcb 0x18
-8dc2: 0c           clc
-8dc3: c9 80        adcb 0x80
-8dc5: 17           tba
-8dc6: bd 8e 4b     jsr (0x8E4B)     ; send lcd command
-8dc9: 33           pulb
-8dca: 32           pula
-8dcb: bd 8e 70     jsr (0x8E70)     ; send lcd char
-8dce: 39           rts
+        psha
+        pshb
+        cmpb    #0x4F
+        bhi     L8DCE  
+        cmpb    #0x28
+        bcs     L8DC2  
+        clc
+        adcb    #0x18
+L8DC2:
+        clc
+        adcb    #0x80
+        tba
+        jsr     (0x8E4B)     ; send lcd command
+        pulb
+        pula
+        jsr     (0x8E70)     ; send lcd char
+L8DCE:
+        rts
 
 ; 4 routines to write to the LCD display?
 
-8dcf: 18 de 46     ldy (0x0046)     ; get buffer pointer
-8dd2: 86 90        ldaa 0x90        ; command to set LCD RAM ptr to chr 0x10
-8dd4: 20 13        bra [0x8DE9]
+        ldy     (0x0046)     ; get buffer pointer
+        ldaa    #0x90        ; command to set LCD RAM ptr to chr 0x10
+        bra     L8DE9  
 
-8dd6: 18 de 46     ldy (0x0046)     ; get buffer pointer
-8dd9: 86 d0        ldaa 0xD0        ; command to set LCD RAM ptr to chr 0x50
-8ddb: 20 0c        bra [0x8DE9]
+        ldy     (0x0046)     ; get buffer pointer
+        ldaa    #0xD0        ; command to set LCD RAM ptr to chr 0x50
+        bra     L8DE9  
 
 ; Write to the LCD 2nd line
-8ddd: 18 de 46     ldy (0x0046)     ; get buffer pointer
-8de0: 86 c0        ldaa 0xC0        ; command to set LCD RAM ptr to chr 0x40
-8de2: 20 05        bra [0x8DE9]
+        ldy     (0x0046)     ; get buffer pointer
+        ldaa    #0xC0        ; command to set LCD RAM ptr to chr 0x40
+        bra     L8DE9  
 
 ; Write to the LCD 1st line
-8de4: 18 de 46     ldy (0x0046)     ; get buffer pointer
-8de7: 86 80        ldaa 0x80        ; command to load LCD RAM ptr to chr 0x00
+        ldy     (0x0046)     ; get buffer pointer
+        ldaa    #0x80        ; command to load LCD RAM ptr to chr 0x00
 
 ; Put LCD command into a buffer, 4 bytes for each entry?
-8de9: 18 a7 00     staa (Y+0x00)    ; store command here
-8dec: 18 6f 01     clr (Y+0x01)     ; clear next byte
-8def: 18 08        iny
-8df1: 18 08        iny
+L8DE9:
+        staa    0,Y         ; store command here
+        clr     1,Y          ; clear next byte
+        iny
+        iny
 
 ; Add characters at return address to LCD buffer
-8df3: 18 8c 05 80  cpy 0x0580       ; check for buffer overflow
-8df7: 25 04        bcs [0x8DFD]
-8df9: 18 ce 05 00  ldy 0x0500
-8dfd: 38           pulx             ; get start of data
-8dfe: df 17        stx (0x0017)     ; save this here
-8e00: a6 00        ldaa (X+0x00)    ; get character
-8e02: 27 36        beq [0x8E3A]     ; is it 00, if so jump ahead
-8e04: 2b 17        bmi [0x8E1D]     ; high bit set, if so jump ahead
-8e06: 18 6f 00     clr (Y+0x00)     ; add character
-8e09: 18 a7 01     staa (Y+0x01)
-8e0c: 08           inx
-8e0d: 18 08        iny
-8e0f: 18 08        iny
-8e11: 18 8c 05 80  cpy 0x0580       ; check for buffer overflow
-8e15: 25 e9        bcs [0x8E00]
-8e17: 18 ce 05 00  ldy 0x0500
-8e1b: 20 e3        bra [0x8E00]
+        cpy     #0x0580       ; check for buffer overflow
+        bcs     L8DFD  
+        ldy     #0x0500
+L8DFD:
+        pulx                ; get start of data
+        stx     (0x0017)     ; save this here
+L8E00:
+        ldaa    0,X         ; get character
+        beq     L8E3A       ; is it 00, if so jump ahead
+        bmi     L8E1D       ; high bit set, if so jump ahead
+        clr     0,Y          ; add character
+        staa    1,Y     
+        inx
+        iny
+        iny
+        cpy     #0x0580       ; check for buffer overflow
+        bcs     L8E00  
+        ldy     #0x0500
+        bra     L8E00  
 
-8e1d: 84 7f        anda 0x7F
-8e1f: 18 6f 00     clr (Y+0x00)     ; add character
-8e22: 18 a7 01     staa (Y+0x01)
-8e25: 18 6f 02     clr (Y+0x02)
-8e28: 18 6f 03     clr (Y+0x03)
-8e2b: 08           inx
-8e2c: 18 08        iny
-8e2e: 18 08        iny
-8e30: 18 8c 05 80  cpy 0x0580       ; check for overflow
-8e34: 25 04        bcs [0x8E3A]
-8e36: 18 ce 05 00  ldy 0x0500
+L8E1D:
+        anda    #0x7F
+        clr     0,Y          ; add character
+        staa    1,Y     
+        clr     2,Y     
+        clr     3,Y     
+        inx
+        iny
+        iny
+        cpy     #0x0580       ; check for overflow
+        bcs     L8E3A  
+        ldy     #0x0500
 
-8e3a: 3c           pshx             ; put SP back
-8e3b: 86 01        ldaa 0x01
-8e3d: 97 43        staa (0x0043)    ; semaphore?
-8e3f: dc 46        ldd (0x0046)
-8e41: 18 6f 00     clr (Y+0x00)
-8e44: 18 6f 01     clr (Y+0x01)
-8e47: 18 df 46     sty (0x0046)     ; save buffer pointer
-8e4a: 39           rts
+L8E3A:
+        pshx                ; put SP back
+        ldaa    #0x01
+        staa    (0x0043)    ; semaphore?
+        ldd     (0x0046)
+        clr     0,Y     
+        clr     1,Y     
+        sty     (0x0046)     ; save buffer pointer
+        rts
 
 ; buffer LCD command?
-8e4b: 18 de 46     ldy (0x0046)
-8e4e: 18 a7 00     staa (Y+0x00)
-8e51: 18 6f 01     clr (Y+0x01)
-8e54: 18 08        iny
-8e56: 18 08        iny
-8e58: 18 8c 05 80  cpy 0x0580
-8e5c: 25 04        bcs [0x8E62]
-8e5e: 18 ce 05 00  ldy 0x0500
-8e62: 18 6f 00     clr (Y+0x00)
-8e65: 18 6f 01     clr (Y+0x01)
-8e68: 86 01        ldaa 0x01
-8e6a: 97 43        staa (0x0043)
-8e6c: 18 df 46     sty (0x0046)
-8e6f: 39           rts
+        ldy     (0x0046)
+        staa    0,Y     
+        clr     1,Y     
+        iny
+        iny
+        cpy     #0x0580
+        bcs     L8E62  
+        ldy     #0x0500
+L8E62:
+        clr     0,Y     
+        clr     1,Y     
+        ldaa    #0x01
+        staa    (0x0043)
+        sty     (0x0046)
+        rts
 
-8e70: 18 de 46     ldy (0x0046)
-8e73: 18 6f 00     clr (Y+0x00)
-8e76: 18 a7 01     staa (Y+0x01)
-8e79: 18 08        iny
-8e7b: 18 08        iny
-8e7d: 18 8c 05 80  cpy 0x0580
-8e81: 25 04        bcs [0x8E87]
-8e83: 18 ce 05 00  ldy 0x0500
-8e87: 18 6f 00     clr (Y+0x00)
-8e8a: 18 6f 01     clr (Y+0x01)
-8e8d: 86 01        ldaa 0x01
-8e8f: 97 43        staa (0x0043)
-8e91: 18 df 46     sty (0x0046)
-8e94: 39           rts
+        ldy     (0x0046)
+        clr     0,Y     
+        staa    1,Y     
+        iny
+        iny
+        cpy     #0x0580
+        bcs     L8E87  
+        ldy     #0x0500
+L8E87:
+        clr     0,Y     
+        clr     1,Y     
+        ldaa    #0x01
+        staa    (0x0043)
+        sty     (0x0046)
+        rts
 
-8e95: 96 30        ldaa (0x0030)
-8e97: 26 09        bne [0x8EA2]
-8e99: 96 31        ldaa (0x0031)
-8e9b: 26 11        bne [0x8EAE]
-8e9d: 96 32        ldaa (0x0032)
-8e9f: 26 19        bne [0x8EBA]
-8ea1: 39           rts
+        ldaa    (0x0030)
+        bne     L8EA2  
+        ldaa    (0x0031)
+        bne     L8EAE  
+        ldaa    (0x0032)
+        bne     L8EBA  
+        rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-8ea2: 7f 00 30     clr (0x0030)
-8ea5: 7f 00 32     clr (0x0032)
-8ea8: 7f 00 31     clr (0x0031)
-8eab: 86 01        ldaa 0x01
-8ead: 39           rts
+L8EA2:
+        clr     (0x0030)
+        clr     (0x0032)
+        clr     (0x0031)
+        ldaa    #0x01
+        rts
 
-8eae: 7f 00 31     clr (0x0031)
-8eb1: 7f 00 30     clr (0x0030)
-8eb4: 7f 00 32     clr (0x0032)
-8eb7: 86 02        ldaa 0x02
-8eb9: 39           rts
+L8EAE:
+        clr     (0x0031)
+        clr     (0x0030)
+        clr     (0x0032)
+        ldaa    #0x02
+        rts
 
-8eba: 7f 00 32     clr (0x0032)
-8ebd: 7f 00 30     clr (0x0030)
-8ec0: 7f 00 31     clr (0x0031)
-8ec3: 86 0d        ldaa 0x0D
-8ec5: 39           rts
+L8EBA:
+        clr     (0x0032)
+        clr     (0x0030)
+        clr     (0x0031)
+        ldaa    #0x0D
+        rts
 
-8ec6: b6 18 04     ldaa (0x1804)
-8ec9: 84 07        anda 0x07
-8ecb: 97 2c        staa (0x002C)
-8ecd: 78 00 2c     asl (0x002C)
-8ed0: 78 00 2c     asl (0x002C)
-8ed3: 78 00 2c     asl (0x002C)
-8ed6: 78 00 2c     asl (0x002C)
-8ed9: 78 00 2c     asl (0x002C)
-8edc: ce 00 00     ldx 0x0000
-8edf: 8c 00 03     cpx 0x0003
-8ee2: 27 24        beq [0x8F08]
-8ee4: 78 00 2c     asl (0x002C)
-8ee7: 25 12        bcs [0x8EFB]
-8ee9: a6 2d        ldaa (X+0x2D)
-8eeb: 81 0f        cmpa 0x0F
-8eed: 24 1a        bcc [0x8F09]
-8eef: 6c 2d        inc (X+0x2D)
-8ef1: a6 2d        ldaa (X+0x2D)
-8ef3: 81 02        cmpa 0x02
-8ef5: 26 02        bne [0x8EF9]
-8ef7: a7 30        staa (X+0x30)
-8ef9: 20 0a        bra [0x8F05]
-8efb: 6f 2d        clr (X+0x2D)
-8efd: 20 06        bra [0x8F05]
-8eff: a6 2d        ldaa (X+0x2D)
-8f01: 27 02        beq [0x8F05]
-8f03: 6a 2d        dec (X+0x2D)
-8f05: 08           inx
-8f06: 20 d7        bra [0x8EDF]
-8f08: 39           rts
+        ldaa    (0x1804)
+        anda    #0x07
+        staa    (0x002C)
+        asl     (0x002C)
+        asl     (0x002C)
+        asl     (0x002C)
+        asl     (0x002C)
+        asl     (0x002C)
+        ldx     #0x0000
+L8EDF:
+        cpx     #0x0003
+        beq     L8F08  
+        asl     (0x002C)
+        bcs     L8EFB  
+        ldaa    0x2D,X
+        cmpa    #0x0F
+        bcc     L8F09  
+        inc     0x2D,X
+        ldaa    0x2D,X
+        cmpa    #0x02
+        bne     L8EF9  
+        staa    0x30,X
+L8EF9:
+        bra     L8F05  
+L8EFB:
+        clr     0x2D,X
+        bra     L8F05  
+        ldaa    0x2D,X
+        beq     L8F05  
+        dec     0x2D,X
+L8F05:
+        inx
+        bra     L8EDF  
+L8F08:
+        rts
 
-8f09: 8c 00 02     cpx 0x0002
-8f0c: 27 02        beq [0x8F10]
-8f0e: 6f 2d        clr (X+0x2D)
-8f10: 20 f3        bra [0x8F05]
-8f12: b6 10 0a     ldaa PORTE
-8f15: 97 51        staa (0x0051)
-8f17: ce 00 00     ldx 0x0000
-8f1a: 8c 00 08     cpx 0x0008
-8f1d: 27 22        beq [0x8F41]
-8f1f: 77 00 51     asr (0x0051)
-8f22: 25 10        bcs [0x8F34]
-8f24: a6 52        ldaa (X+0x52)
-8f26: 81 0f        cmpa 0x0F
-8f28: 6c 52        inc (X+0x52)
-8f2a: a6 52        ldaa (X+0x52)
-8f2c: 81 04        cmpa 0x04
-8f2e: 26 02        bne [0x8F32]
-8f30: a7 5a        staa (X+0x5A)
-8f32: 20 0a        bra [0x8F3E]
-8f34: 6f 52        clr (X+0x52)
-8f36: 20 06        bra [0x8F3E]
-8f38: a6 52        ldaa (X+0x52)
-8f3a: 27 02        beq [0x8F3E]
-8f3c: 6a 52        dec (X+0x52)
-8f3e: 08           inx
-8f3f: 20 d9        bra [0x8F1A]
-8f41: 39           rts
+L8F09:
+        cpx     #0x0002
+        beq     L8F10  
+        clr     0x2D,X
+L8F10:
+        bra     L8F05  
+        ldaa    PORTE
+        staa    (0x0051)
+        ldx     #0x0000
+L8F1A:
+        cpx     #0x0008
+        beq     L8F41  
+        asr     (0x0051)
+        bcs     L8F34  
+        ldaa    0x52,X
+        cmpa    #0x0F
+        inc     0x52,X
+        ldaa    0x52,X
+        cmpa    #0x04
+        bne     L8F32  
+        staa    0x5A,X
+L8F32:
+        bra     L8F3E  
+L8F34:
+        clr     0x52,X
+        bra     L8F3E  
+        ldaa    0x52,X
+        beq     L8F3E  
+        dec     0x52,X
+L8F3E:
+        inx
+        bra     L8F1A  
+L8F41:
+        rts
 
-8f42: 6f 52        clr (X+0x52)
-8f44: 20 f8        bra [0x8F3E]
+        clr     0x52,X
+        bra     L8F3E  
 
-'0.5
- 1.0
- 1.5
- 2.0
- 2.5
- 3.0'
+        .ascii      '0.5'
+        .ascii      '1.0'
+        .ascii      '1.5'
+        .ascii      '2.0'
+        .ascii      '2.5'
+        .ascii      '3.0'
 
-8f46: 30           tsx
-8f47: 2e 35        bgt [0x8F7E]
-8f49: 31           ins
-8f4a: 2e 30        bgt [0x8F7C]
-8f4c: 31           ins
-8f4d: 2e 35        bgt [0x8F84]
-8f4f: 32           pula
-8f50: 2e 30        bgt [0x8F82]
-8f52: 32           pula
-8f53: 2e 35        bgt [0x8F8A]
-8f55: 33           pulb
-8f56: 2e 30        bgt [0x8F88]
+        pshx
+        ldaa    (0x0012)
+        suba    #0x01
+        ldab    #0x03
+        mul
 
-8f58: 3c           pshx
-8f59: 96 12        ldaa (0x0012)
-8f5b: 80 01        suba 0x01
-8f5d: c6 03        ldab 0x03
-8f5f: 3d           mul
+        ldx     #0x8F46
+        abx
+        ldab    #0x2C
+L8F66:
+        ldaa    0,X     
+        inx
+        jsr     (0x8DB5)         ; display char here on LCD display
+        incb
+        cmpb    #0x2F
+        bne     L8F66  
+        pulx
+        rts
 
-8f60: ce 8f 46     ldx 0x8F46
-8f63: 3a           abx
-8f64: c6 2c        ldab 0x2C
-8f66: a6 00        ldaa (X+0x00)
-8f68: 08           inx
-8f69: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-8f6c: 5c           incb
-8f6d: c1 2f        cmpb 0x2F
-8f6f: 26 f5        bne [0x8F66]
-8f71: 38           pulx
-8f72: 39           rts
+        psha
+        jsr     (0x8CF2)
+        ldab    #0x02
+        jsr     (0x8C30)
+        pula
+        staa    (0x00B4)
+        cmpa    #0x03
+        bne     L8F94  
+        jsr     (0x8DE4)
 
-8f73: 36           psha
-8f74: bd 8c f2     jsr (0x8CF2)
-8f77: c6 02        ldab 0x02
-8f79: bd 8c 30     jsr (0x8C30)
-8f7c: 32           pula
-8f7d: 97 b4        staa (0x00B4)
-8f7f: 81 03        cmpa 0x03
-8f81: 26 11        bne [0x8F94]
-8f83: bd 8d e4     jsr (0x8DE4)
+        .ascis  'Chuck    '
 
-'Chuck    '
-8f86: 43 68 75 63 6b 20 20 20 a0
+        ldx     #0x9072
+        bra     L8FE1  
+L8F94:
+        cmpa    #0x04
+        bne     L8FA9  
+        jsr     (0x8DE4)
 
-8f8f: ce 90 72     ldx 0x9072
-8f92: 20 4d        bra [0x8FE1]
-8f94: 81 04        cmpa 0x04
-8f96: 26 11        bne [0x8FA9]
-8f98: bd 8d e4     jsr (0x8DE4)
+        .ascis  'Jasper   '
 
-'Jasper   '
-8f9b: 4a 61 73 70 65 72 20 20 a0 
+        ldx     #0x90DE
+        bra     L8FE1  
+L8FA9:
+        cmpa    #0x05
+        bne     L8FBE  
+        jsr     (0x8DE4)
 
-8fa4: ce 90 de     ldx 0x90DE
-8fa7: 20 38        bra [0x8FE1]
-8fa9: 81 05        cmpa 0x05
-8fab: 26 11        bne [0x8FBE]
-8fad: bd 8d e4     jsr (0x8DE4)
+        .ascis  'Pasqually'
 
-'Pasqually'
-8fb0: 50 61 73 71 75 61 6c 6c f9
+        ldx     #0x9145
+        bra     L8FE1  
+L8FBE:
+        cmpa    #0x06
+        bne     L8FD3  
+        jsr     (0x8DE4)
 
-8fb9: ce 91 45     ldx 0x9145
-8fbc: 20 23        bra [0x8FE1]
-8fbe: 81 06        cmpa 0x06
-8fc0: 26 11        bne [0x8FD3]
-8fc2: bd 8d e4     jsr (0x8DE4)
+        .ascis  'Munch    '
 
-'Munch    '
-8fc5: 4d 75 6e 63 68 20 20 20 a0
+        ldx     #0x91BA
+        bra     L8FE1  
+L8FD3:
+        jsr     (0x8DE4)
 
-8fce: ce 91 ba     ldx 0x91BA
-8fd1: 20 0e        bra [0x8FE1]
-8fd3: bd 8d e4     jsr (0x8DE4)
+        .ascis  'Helen   '
 
-'Helen   '
-8fd6: 48 65 6c 65 6e 20 20 a0
+        ldx     #0x9226
+L8FE1:
+        ldaa    (0x00B4)
+        suba    #0x03
+        asla
+        asla
+        staa    (0x004B)
+        jsr     (0x9504)
+        staa    (0x004C)
+        cmpa    #0x0F
+        bne     L8FF3  
+        rts
 
-8fde: ce 92 26     ldx 0x9226
-8fe1: 96 b4        ldaa (0x00B4)
-8fe3: 80 03        suba 0x03
-8fe5: 48           asla
-8fe6: 48           asla
-8fe7: 97 4b        staa (0x004B)
-8fe9: bd 95 04     jsr (0x9504)
-8fec: 97 4c        staa (0x004C)
-8fee: 81 0f        cmpa 0x0F
-8ff0: 26 01        bne [0x8FF3]
-8ff2: 39           rts
+L8FF3:
+        cmpa    #0x08
+        bls     L8FFF  
+        suba    #0x08
+        ldab    (0x004B)
+        addb    #0x02
+        stab    (0x004B)
+L8FFF:
+        psha
+        ldy     (0x0046)
+        pula
+        clrb
+        sec
+L9006:
+        rolb
+        deca
+        bne     L9006  
+        stab    (0x0050)
+        ldab    (0x004B)
+        ldx     #0x1080
+        abx
+        ldaa    #0x02
+        staa    (0x0012)
+L9016:
+        ldaa    0,X     
+        eora    (0x0050)
+        staa    0,X     
+        tst     0,X     
+        beq     L9036  
+        ldaa    #0x4F            ;'O'
+        ldab    #0x0C        
+        jsr     (0x8DB5)         ; display char here on LCD display
+        ldaa    #0x6E            ;'n'
+        ldab    #0x0D
+        jsr     (0x8DB5)         ; display char here on LCD display
+        ldd     #0x200E          ;' '
+        jsr     (0x8DB5)         ; display char here on LCD display
+        bra     L9044  
+L9036:
+        ldaa    #0x66            ;'f'
+        ldab    #0x0D
+        jsr     (0x8DB5)         ; display char here on LCD display
+        ldaa    #0x66            ;'f'
+        ldab    #0x0E
+        jsr     (0x8DB5)         ; display char here on LCD display
+L9044:
+        ldab    (0x0012)
+        jsr     (0x8C30)
+        jsr     (0x8E95)
+        cmpa    #0x0D
+        beq     L9064  
+        bra     L9016  
+        cmpa    #0x02
+        bne     L9016  
+        ldaa    (0x0012)
+        cmpa    #0x06
+        beq     L9016  
+        inca
+        staa    (0x0012)
+        jsr     (0x8F58)
+        bra     L9016  
+L9064:
+        ldaa    0,X     
+        oraa    (0x0050)
+        eora    (0x0050)
+        staa    0,X     
+        ldaa    (0x00B4)
+        jmp     (0x8F73)
+        rts
 
-8ff3: 81 08        cmpa 0x08
-8ff5: 23 08        bls [0x8FFF]
-8ff7: 80 08        suba 0x08
-8ff9: d6 4b        ldab (0x004B)
-8ffb: cb 02        addb 0x02
-8ffd: d7 4b        stab (0x004B)
-8fff: 36           psha
-9000: 18 de 46     ldy (0x0046)
-9003: 32           pula
-9004: 5f           clrb
-9005: 0d           sec
-9006: 59           rolb
-9007: 4a           deca
-9008: 26 fc        bne [0x9006]
-900a: d7 50        stab (0x0050)
-900c: d6 4b        ldab (0x004B)
-900e: ce 10 80     ldx 0x1080
-9011: 3a           abx
-9012: 86 02        ldaa 0x02
-9014: 97 12        staa (0x0012)
-9016: a6 00        ldaa (X+0x00)
-9018: 98 50        eora (0x0050)
-901a: a7 00        staa (X+0x00)
-901c: 6d 00        tst (X+0x00)
-901e: 27 16        beq [0x9036]
-9020: 86 4f        ldaa 0x4F            ;'O'
-9022: c6 0c        ldab 0x0C        
-9024: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-9027: 86 6e        ldaa 0x6E            ;'n'
-9029: c6 0d        ldab 0x0D
-902b: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-902e: cc 20 0e     ldd 0x200E           ' '
-9031: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-9034: 20 0e        bra [0x9044]
-9036: 86 66        ldaa 0x66            ;'f'
-9038: c6 0d        ldab 0x0D
-903a: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-903d: 86 66        ldaa 0x66            ;'f'
-903f: c6 0e        ldab 0x0E
-9041: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-9044: d6 12        ldab (0x0012)
-9046: bd 8c 30     jsr (0x8C30)
-9049: bd 8e 95     jsr (0x8E95)
-904c: 81 0d        cmpa 0x0D
-904e: 27 14        beq [0x9064]
-9050: 20 c4        bra [0x9016]
-9052: 81 02        cmpa 0x02
-9054: 26 c0        bne [0x9016]
-9056: 96 12        ldaa (0x0012)
-9058: 81 06        cmpa 0x06
-905a: 27 ba        beq [0x9016]
-905c: 4c           inca
-905d: 97 12        staa (0x0012)
-905f: bd 8f 58     jsr (0x8F58)
-9062: 20 b2        bra [0x9016]
-9064: a6 00        ldaa (X+0x00)
-9066: 9a 50        oraa (0x0050)
-9068: 98 50        eora (0x0050)
-906a: a7 00        staa (X+0x00)
-906c: 96 b4        ldaa (0x00B4)
-906e: 7e 8f 73     jmp (0x8F73)
-9071: 39           rts
-
+.if 0
 ; Comma seperated text
 9072: 4d           tsta
 9073: 6f 75        clr (X+0x75)
@@ -2142,7 +2169,6 @@ L8D29:
 90bc: 2c 44        bge [0x9102]
 90be: 53           comb
 90bf: 39           rts
-
 90c0: 2c 44        bge [0x9106]
 90c2: 53           comb
 90c3: 31           ins
@@ -2205,7 +2231,6 @@ L8D29:
 9123: 2c 44        bge [0x9169]
 9125: 53           comb
 9126: 39           rts
-
 9127: 2c 44        bge [0x916D]
 9129: 53           comb
 912a: 31           ins
@@ -2277,7 +2302,6 @@ L8D29:
 9198: 2c 44        bge [0x91DE]
 919a: 53           comb
 919b: 39           rts
-
 919c: 2c 44        bge [0x91E2]
 919e: 53           comb
 919f: 31           ins
@@ -2431,127 +2455,142 @@ L8D29:
 928c: 34           des
 928d: 2c 45        bge [0x92D4]
 928f: 78 69 f4     asl (0x69F4)
-9292: bd 86 c4     jsr L86C4
-9295: c6 01        ldab 0x01
-9297: bd 8c 30     jsr (0x8C30)
-929a: bd 8d e4     jsr (0x8DE4)
+.endif
+        .org    0x9292
+; code again
+        jsr     L86C4
+L9295:
+        ldab    #0x01
+        jsr     (0x8C30)
 
-'  Diagnostics   '
-929d: 20 20 44 69 61 67 6e 6f 73 74 69 63 73 20 20 a0
+        jsr     (0x8DE4)
+        .ascis  '  Diagnostics   '
 
-92ad: bd 8d dd     jsr (0x8DDD)
+        jsr     (0x8DDD)
+        .ascis  '                '
 
-'                '
-92b0: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 a0
+        ldab    #0x01
+        jsr     (0x8C30)
+        jsr     (0x8D03)
+        ldx     #0x93D3
+        jsr     (0x9504)
+        cmpa    #0x11
+        bne     L92E6  
+        jsr     L86C4
+        clrb
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        ldaa    (0x1804)
+        anda    #0xBF
+        staa    (0x1804)
+        jmp     (0x81D7)
+L92E6:
+        cmpa    #0x03
+        bcs     L92F3  
+        cmpa    #0x08
+        bcc     L92F3  
+        jsr     (0x8F73)
+        bra     L9295  
+L92F3:
+        cmpa    #0x02
+        bne     L92FF  
+        jsr     (0x9F1E)
+        bcs     L9295  
+        jmp     (0x9675)
+L92FF:
+        cmpa    #0x0B
+        bne     L9310  
+        jsr     (0x8D03)
+        jsr     (0x9ECC)
+        ldab    #0x03
+        jsr     (0x8C30)
+        bra     L9295  
+L9310:
+        cmpa    #0x09
+        bne     L9322  
+        jsr     (0x9F1E)
+        bcc     L931C  
+        jmp     (0x9295)
+L931C:
+        jsr     (0x9E92)     ; reset R counts
+        jmp     (0x9295)
+L9322:
+        cmpa    #0x0A
+        bne     L9331  
+        jsr     (0x9F1E)
+        bcs     L932E  
+        jsr     (0x9EAF)     ; reset L counts
+L932E:
+        jmp     (0x9295)
+L9331:
+        cmpa    #0x01
+        bne     L9338  
+        jmp     (0xA0E9)
+L9338:
+        cmpa    #0x08
+        bne     L935B  
+        jsr     (0x9F1E)
+        bcs     L935B  
 
-92c0: c6 01        ldab 0x01
-92c2: bd 8c 30     jsr (0x8C30)
-92c5: bd 8d 03     jsr (0x8D03)
-92c8: ce 93 d3     ldx 0x93D3
-92cb: bd 95 04     jsr (0x9504)
-92ce: 81 11        cmpa 0x11
-92d0: 26 14        bne [0x92E6]
-92d2: bd 86 c4     jsr L86C4
-92d5: 5f           clrb
-92d6: d7 62        stab (0x0062)
-92d8: bd f9 c5     jsr (0xF9C5)
-92db: b6 18 04     ldaa (0x1804)
-92de: 84 bf        anda 0xBF
-92e0: b7 18 04     staa (0x1804)
-92e3: 7e 81 d7     jmp (0x81D7)
-92e6: 81 03        cmpa 0x03
-92e8: 25 09        bcs [0x92F3]
-92ea: 81 08        cmpa 0x08
-92ec: 24 05        bcc [0x92F3]
-92ee: bd 8f 73     jsr (0x8F73)
-92f1: 20 a2        bra [0x9295]
-92f3: 81 02        cmpa 0x02
-92f5: 26 08        bne [0x92FF]
-92f7: bd 9f 1e     jsr (0x9F1E)
-92fa: 25 99        bcs [0x9295]
-92fc: 7e 96 75     jmp (0x9675)
-92ff: 81 0b        cmpa 0x0B
-9301: 26 0d        bne [0x9310]
-9303: bd 8d 03     jsr (0x8D03)
-9306: bd 9e cc     jsr (0x9ECC)
-9309: c6 03        ldab 0x03
-930b: bd 8c 30     jsr (0x8C30)
-930e: 20 85        bra [0x9295]
-9310: 81 09        cmpa 0x09
-9312: 26 0e        bne [0x9322]
-9314: bd 9f 1e     jsr (0x9F1E)
-9317: 24 03        bcc [0x931C]
-9319: 7e 92 95     jmp (0x9295)
-931c: bd 9e 92     jsr (0x9E92)     ; reset R counts
-931f: 7e 92 95     jmp (0x9295)
-9322: 81 0a        cmpa 0x0A
-9324: 26 0b        bne [0x9331]
-9326: bd 9f 1e     jsr (0x9F1E)
-9329: 25 03        bcs [0x932E]
-932b: bd 9e af     jsr (0x9EAF)     ; reset L counts
-932e: 7e 92 95     jmp (0x9295)
-9331: 81 01        cmpa 0x01
-9333: 26 03        bne [0x9338]
-9335: 7e a0 e9     jmp (0xA0E9)
-9338: 81 08        cmpa 0x08
-933a: 26 1f        bne [0x935B]
-933c: bd 9f 1e     jsr (0x9F1E)
-933f: 25 1a        bcs [0x935B]
-9341: bd 8d e4     jsr (0x8DE4)
+        jsr     (0x8DE4)
+        .ascis  'Reset System!'
 
-'Reset System!'
-9344: 52 65 73 65 74 20 53 79 73 74 65 6d a1
+        jmp     (0xA249)
+        ldab    #0x02
+        jsr     (0x8C30)
+        bra     L9373  
+L935B:
+        cmpa    #0x0C
+        bne     L9373  
+        jsr     (0x8B48)
+        clrb
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        ldaa    (0x1804)
+        anda    #0xBF
+        staa    (0x1804)
+        jmp     (0x9292)
+L9373:
+        cmpa    #0x0D
+        bne     L93A5  
+        jsr     (0x8CE9)
 
-9351: 7e a2 49     jmp (0xA249)
-9354: c6 02        ldab 0x02
-9356: bd 8c 30     jsr (0x8C30)
-9359: 20 18        bra [0x9373]
-935b: 81 0c        cmpa 0x0C
-935d: 26 14        bne [0x9373]
-935f: bd 8b 48     jsr (0x8B48)
-9362: 5f           clrb
-9363: d7 62        stab (0x0062)
-9365: bd f9 c5     jsr (0xF9C5)
-9368: b6 18 04     ldaa (0x1804)
-936b: 84 bf        anda 0xBF
-936d: b7 18 04     staa (0x1804)
-9370: 7e 92 92     jmp (0x9292)
-9373: 81 0d        cmpa 0x0D
-9375: 26 2e        bne [0x93A5]
-9377: bd 8c e9     jsr (0x8CE9)
-937a: bd 8d e4     jsr (0x8DE4)
+        jsr     (0x8DE4)
+        .ascis  '  Button  test'
 
-'  Button  test'
-937d: 20 20 42 75 74 74 6f 6e 20 20 74 65 73 f4
+        jsr     (0x8DDD)
+        .ascis  '   PROG exits'
 
-938A: bd 8d dd     bsr [0x936B]
+        jsr     (0xA526)
+        clrb
+        jsr     (0xF9C5)
+        jmp     (0x9295)
+L93A5:
+        cmpa    #0x0E
+        bne     L93B9  
+        jsr     (0x9F1E)
+        bcc     L93B1  
+        jmp     (0x9295)
+L93B1:
+        ldab    #0x01
+        jsr     (0x8C30)
+        jmp     (0x949A)
+L93B9:
+        cmpa    #0x0F
+        bne     L93C3  
+        jsr     (0xA86A)
+        jmp     (0x9295)
+L93C3:
+        cmpa    #0x10
+        bne     L93D0  
+        jsr     (0x9F1E)
+        jsr     (0x95BA)
+        jmp     (0x9295)
 
-'   PROG exits'
-938e: 20 20 20 50 52 4f 47 20 65 78 69 74 f3
+L93D0:
+        jmp     (0x92D2)
 
-939b: bd a5 26     jsr (0xA526)
-939e: 5f           clrb
-939f: bd f9 c5     jsr (0xF9C5)
-93a2: 7e 92 95     jmp (0x9295)
-93a5: 81 0e        cmpa 0x0E
-93a7: 26 10        bne [0x93B9]
-93a9: bd 9f 1e     jsr (0x9F1E)
-93ac: 24 03        bcc [0x93B1]
-93ae: 7e 92 95     jmp (0x9295)
-93b1: c6 01        ldab 0x01
-93b3: bd 8c 30     jsr (0x8C30)
-93b6: 7e 94 9a     jmp (0x949A)
-93b9: 81 0f        cmpa 0x0F
-93bb: 26 06        bne [0x93C3]
-93bd: bd a8 6a     jsr (0xA86A)
-93c0: 7e 92 95     jmp (0x9295)
-93c3: 81 10        cmpa 0x10
-93c5: 26 09        bne [0x93D0]
-93c7: bd 9f 1e     jsr (0x9F1E)
-93ca: bd 95 ba     jsr (0x95BA)
-93cd: 7e 92 95     jmp (0x9295)
-93d0: 7e 92 d2     jmp (0x92D2)
-
+.if 0
 ; Comma seperated text
 93d3: 56           rorb
 93d4: 43           coma
@@ -2661,150 +2700,166 @@ L8D29:
 9498: f3 
 9499: 00           test
 
-949a: 7d 04 2a     tst (0x042A)
-949d: 27 27        beq [0x94C6]
-949f: bd 8d e4     jsr (0x8DE4)
+.endif
+        .org    0x949A
 
-'King is Enabled'
-94a2: 4b 69 6e 67 20 69 73 20 45 6e 61 62 6c 65 e4 
+        tst     (0x042A)
+        beq     L94C6  
 
-94b1: bd 8d dd     jsr (0x8DDD)
+        jsr     (0x8DE4)
+        .ascis  'King is Enabled'
 
-'ENTER to disable'
-94b4: 45 4e 54 45 52 20 74 6f 20 64 69 73 61 62 6c e5
+        jsr     (0x8DDD)
+        .ascis  'ENTER to disable'
 
-94c4: 20 25        bra [0x94EB]
-94c6: bd 8d e4     jsr (0x8DE4)
+        bra     L94EB  
 
-'King is Disabled'
-94c9: 4b 69 6e 67 20 69 73 20 44 69 73 61 62 6c 65 e4 
+L94C6:
+        jsr     (0x8DE4)
+        .ascis  'King is Disabled'
 
-94d9: bd 8d dd     jsr (0x8DDD)
+        jsr     (0x8DDD)
+        .ascis  'ENTER to enable'
 
-'ENTER to enable'
-94dc: 45 4e 54 45 52 20 74 6f 20 65 6e 61 62 6c e5
+L94EB:
+        jsr     (0x8E95)
+        tsta
+        beq     L94EB  
+        cmpa    #0x0D
+        beq     L94F7  
+        bra     L9501  
+L94F7:
+        ldaa    (0x042A)
+        anda    #0x01
+        eora    #0x01
+        staa    (0x042A)
+L9501:
+        jmp     (0x9295)
+        ldaa    #0x01
+        staa    (0x00A6)
+        staa    (0x00A7)
+        stx     (0x0012)
+        bra     L9517  
+        ldaa    #0x01
+        staa    (0x00A7)
+        clr     (0x00A6)
+        stx     (0x0012)
+L9517:
+        clr     (0x0016)
+        ldy     (0x0046)
+        tst     (0x00A6)
+        bne     L9529  
+        jsr     (0x8CF2)
+        ldaa    #0x80
+        bra     L952E  
+L9529:
+        jsr     (0x8D03)
+        ldaa    #0xC0
+L952E:
+        staa    0,Y     
+        clr     1,Y     
+        iny
+        iny
+        cpy     #0x0580
+        bcs     L9542  
+        ldy     #0x0500
+L9542:
+        stx     (0x0014)
+L9544:
+        ldaa    0,X     
+        bpl     L954C  
+        ldab    #0x01
+        stab    (0x0016)
+L954C:
+        cmpa    #0x2C
+        beq     L956E  
+        clr     0,Y     
+        anda    #0x7F
+        staa    1,Y     
+        iny
+        iny
+        cpy     #0x0580
+        bcs     L9566  
+        ldy     #0x0500
+L9566:
+        tst     (0x0016)
+        bne     L956E  
+        inx
+        bra     L9544  
+L956E:
+        inx
+        ldaa    #0x01
+        staa    (0x0043)
+        clr     0,Y     
+        clr     1,Y     
+        sty     (0x0046)
+L957C:
+        jsr     (0x8E95)
+        beq     L957C  
+        cmpa    #0x02
+        bne     L958F  
+        tst     (0x0016)
+        bne     L958F  
+        inc     (0x00A7)
+        bra     L9517  
+L958F:
+        cmpa    #0x01
+        bne     L95B3  
+        ldy     (0x0014)
+        cpy     (0x0012)
+        bls     L957C  
+        dec     (0x00A7)
+        ldx     (0x0014)
+        dex
+L95A1:
+        dex
+        cpx     (0x0012)
+        bne     L95A9  
+        jmp     (0x9517)
+L95A9:
+        ldaa    0,X     
+        cmpa    #0x2C
+        bne     L95A1  
+        inx
+        jmp     (0x9517)
+L95B3:
+        cmpa    #0x0D
+        bne     L957C  
+        ldaa    (0x00A7)
+        rts
 
-94eb: bd 8e 95     jsr (0x8E95)
-94ee: 4d           tsta
-94ef: 27 fa        beq [0x94EB]
-94f1: 81 0d        cmpa 0x0D
-94f3: 27 02        beq [0x94F7]
-94f5: 20 0a        bra [0x9501]
-94f7: b6 04 2a     ldaa (0x042A)
-94fa: 84 01        anda 0x01
-94fc: 88 01        eora 0x01
-94fe: b7 04 2a     staa (0x042A)
-9501: 7e 92 95     jmp (0x9295)
-9504: 86 01        ldaa 0x01
-9506: 97 a6        staa (0x00A6)
-9508: 97 a7        staa (0x00A7)
-950a: df 12        stx (0x0012)
-950c: 20 09        bra [0x9517]
-950e: 86 01        ldaa 0x01
-9510: 97 a7        staa (0x00A7)
-9512: 7f 00 a6     clr (0x00A6)
-9515: df 12        stx (0x0012)
-9517: 7f 00 16     clr (0x0016)
-951a: 18 de 46     ldy (0x0046)
-951d: 7d 00 a6     tst (0x00A6)
-9520: 26 07        bne [0x9529]
-9522: bd 8c f2     jsr (0x8CF2)
-9525: 86 80        ldaa 0x80
-9527: 20 05        bra [0x952E]
-9529: bd 8d 03     jsr (0x8D03)
-952c: 86 c0        ldaa 0xC0
-952e: 18 a7 00     staa (Y+0x00)
-9531: 18 6f 01     clr (Y+0x01)
-9534: 18 08        iny
-9536: 18 08        iny
-9538: 18 8c 05 80  cpy 0x0580
-953c: 25 04        bcs [0x9542]
-953e: 18 ce 05 00  ldy 0x0500
-9542: df 14        stx (0x0014)
-9544: a6 00        ldaa (X+0x00)
-9546: 2a 04        bpl [0x954C]
-9548: c6 01        ldab 0x01
-954a: d7 16        stab (0x0016)
-954c: 81 2c        cmpa 0x2C
-954e: 27 1e        beq [0x956E]
-9550: 18 6f 00     clr (Y+0x00)
-9553: 84 7f        anda 0x7F
-9555: 18 a7 01     staa (Y+0x01)
-9558: 18 08        iny
-955a: 18 08        iny
-955c: 18 8c 05 80  cpy 0x0580
-9560: 25 04        bcs [0x9566]
-9562: 18 ce 05 00  ldy 0x0500
-9566: 7d 00 16     tst (0x0016)
-9569: 26 03        bne [0x956E]
-956b: 08           inx
-956c: 20 d6        bra [0x9544]
-956e: 08           inx
-956f: 86 01        ldaa 0x01
-9571: 97 43        staa (0x0043)
-9573: 18 6f 00     clr (Y+0x00)
-9576: 18 6f 01     clr (Y+0x01)
-9579: 18 df 46     sty (0x0046)
-957c: bd 8e 95     jsr (0x8E95)
-957f: 27 fb        beq [0x957C]
-9581: 81 02        cmpa 0x02
-9583: 26 0a        bne [0x958F]
-9585: 7d 00 16     tst (0x0016)
-9588: 26 05        bne [0x958F]
-958a: 7c 00 a7     inc (0x00A7)
-958d: 20 88        bra [0x9517]
-958f: 81 01        cmpa 0x01
-9591: 26 20        bne [0x95B3]
-9593: 18 de 14     ldy (0x0014)
-9596: 18 9c 12     cpy (0x0012)
-9599: 23 e1        bls [0x957C]
-959b: 7a 00 a7     dec (0x00A7)
-959e: de 14        ldx (0x0014)
-95a0: 09           dex
-95a1: 09           dex
-95a2: 9c 12        cpx (0x0012)
-95a4: 26 03        bne [0x95A9]
-95a6: 7e 95 17     jmp (0x9517)
-95a9: a6 00        ldaa (X+0x00)
-95ab: 81 2c        cmpa 0x2C
-95ad: 26 f2        bne [0x95A1]
-95af: 08           inx
-95b0: 7e 95 17     jmp (0x9517)
-95b3: 81 0d        cmpa 0x0D
-95b5: 26 c5        bne [0x957C]
-95b7: 96 a7        ldaa (0x00A7)
-95b9: 39           rts
+        ldaa    (0x045C)
+        beq     L95D3  
 
-95ba: b6 04 5c     ldaa (0x045C)
-95bd: 27 14        beq [0x95D3]
-95bf: bd 8d e4     jsr (0x8DE4)
+        jsr     (0x8DE4)
+        .ascis  'Current: CNR   '
 
-'Current: CNR   '
-95c2: 43 75 72 72 65 6e 74 3a 20 43 4e 52 20 20 a0 
+        bra     L95E5  
 
-95d1: 20 12        bra [0x95E5]
-95d3: bd 8d e4     jsr (0x8DE4)
+L95D3:
+        jsr     (0x8DE4)
+        .ascis  'Current: R12   '
 
-'Current: R12   '
-95d6: 43 75 72 72 65 6e 74 3a 20 52 31 32 20 20 a0 
+L95E5:
+        jsr     (0x8DDD)
+        .ascis  '<Enter> to chg.'
 
-95e5: bd 8d dd     jsr (0x8DDD)
+L95F7:
+        jsr     (0x8E95)
+        beq     L95F7  
+        cmpa    #0x0D
+        bne     L960F  
+        ldaa    (0x045C)
+        beq     L960A  
+        clr     (0x045C)
+        bra     L960F  
+L960A:
+        ldaa    #0x01
+        staa    (0x045C)
+L960F:
+        rts
 
-'<Enter> to chg.'
-95e8: 3c 45 6e 74 65 72 3e 20 74 6f 20 63 68 67 ae
-
-95f7: bd 8e 95     jsr (0x8E95)
-95fa: 27 fb        beq [0x95F7]
-95fc: 81 0d        cmpa 0x0D
-95fe: 26 0f        bne [0x960F]
-9600: b6 04 5c     ldaa (0x045C)
-9603: 27 05        beq [0x960A]
-9605: 7f 04 5c     clr (0x045C)
-9608: 20 05        bra [0x960F]
-960a: 86 01        ldaa 0x01
-960c: b7 04 5c     staa (0x045C)
-960f: 39           rts
-
+.if 0
 ; Comma-separated text
 9610: 43           coma
 9611: 68 75        asl (X+0x75)
@@ -2861,432 +2916,469 @@ L8D29:
 966e: 6e 64        jmp (X+0x64)
 9670: 2c 45        bge [0x96B7]
 9672: 78 69 f4     asl (0x69F4)
-9675: bd 8d e4     jsr (0x8DE4)
 
-'Random          '
-9678: 52 61 6e 64 6f 6d 20 20 20 20 20 20 20 20 20 a0
+.endif
+        .org    0x9675
 
-9688: ce 96 10     ldx 0x9610
-968b: bd 95 04     jsr (0x9504)
-968e: 5f           clrb
-968f: 37           pshb
-9690: 81 0d        cmpa 0x0D
-9692: 26 03        bne [0x9697]
-9694: 7e 97 5b     jmp (0x975B)
-9697: 81 0c        cmpa 0x0C
-9699: 26 21        bne [0x96BC]
-969b: 7f 04 01     clr (0x0401)
-969e: 7f 04 2b     clr (0x042B)
-96a1: bd 8d e4     jsr (0x8DE4)
+; code again
+        jsr     (0x8DE4)
+        .ascis  'Random          '
 
-'All Rnd Cleared!'
-96a4: 41 6c 6c 20 52 6e 64 20 43 6c 65 61 72 65 64 a1
+        ldx     #0x9610
+        jsr     (0x9504)
+        clrb
+        pshb
+        cmpa    #0x0D
+        bne     L9697  
+        jmp     (0x975B)
+L9697:
+        cmpa    #0x0C
+        bne     L96BC  
+        clr     (0x0401)
+        clr     (0x042B)
 
-96b4: c6 64        ldab 0x64
-96b6: bd 8c 22     jsr (0x8C22)
-96b9: 7e 97 5b     jmp (0x975B)
-96bc: 81 09        cmpa 0x09
-96be: 25 05        bcs [0x96C5]
-96c0: 80 08        suba 0x08
-96c2: 33           pulb
-96c3: 5c           incb
-96c4: 37           pshb
-96c5: 5f           clrb
-96c6: 0d           sec
-96c7: 59           rolb
-96c8: 4a           deca
-96c9: 26 fc        bne [0x96C7]
-96cb: d7 12        stab (0x0012)
-96cd: c8 ff        eorb 0xFF
-96cf: d7 13        stab (0x0013)
-96d1: cc 20 34     ldd 0x2034           ;' '
-96d4: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-96d7: 33           pulb
-96d8: 37           pshb
-96d9: 5d           tstb
-96da: 27 05        beq [0x96E1]
-96dc: b6 04 2b     ldaa (0x042B)
-96df: 20 03        bra [0x96E4]
-96e1: b6 04 01     ldaa (0x0401)
-96e4: 94 12        anda (0x0012)
-96e6: 27 0a        beq [0x96F2]
-96e8: 18 de 46     ldy (0x0046)
-96eb: bd 8d fd     jsr (0x8DFD)
-96ee: 4f           clra
-96ef: ee 20        ldx (X+0x20)
-96f1: 09           dex
-96f2: 18 de 46     ldy (0x0046)
-96f5: bd 8d fd     jsr (0x8DFD)
-96f8: 4f           clra
-96f9: 66 e6        ror (X+0xE6)
-96fb: cc 20 34     ldd 0x2034           ;' '
-96fe: bd 8d b5     jsr (0x8DB5)         ; display char here on LCD display
-9701: bd 8e 95     jsr (0x8E95)
-9704: 27 fb        beq [0x9701]
-9706: 81 01        cmpa 0x01
-9708: 26 22        bne [0x972C]
-970a: 33           pulb
-970b: 37           pshb
-970c: 5d           tstb
-970d: 27 0a        beq [0x9719]
-970f: b6 04 2b     ldaa (0x042B)
-9712: 9a 12        oraa (0x0012)
-9714: b7 04 2b     staa (0x042B)
-9717: 20 08        bra [0x9721]
-9719: b6 04 01     ldaa (0x0401)
-971c: 9a 12        oraa (0x0012)
-971e: b7 04 01     staa (0x0401)
-9721: 18 de 46     ldy (0x0046)
-9724: bd 8d fd     jsr (0x8DFD)
-9727: 4f           clra
-9728: 6e a0        jmp (X+0xA0)
-972a: 20 a5        bra [0x96D1]
-972c: 81 02        cmpa 0x02
-972e: 26 23        bne [0x9753]
-9730: 33           pulb
-9731: 37           pshb
-9732: 5d           tstb
-9733: 27 0a        beq [0x973F]
-9735: b6 04 2b     ldaa (0x042B)
-9738: 94 13        anda (0x0013)
-973a: b7 04 2b     staa (0x042B)
-973d: 20 08        bra [0x9747]
-973f: b6 04 01     ldaa (0x0401)
-9742: 94 13        anda (0x0013)
-9744: b7 04 01     staa (0x0401)
-9747: 18 de 46     ldy (0x0046)
-974a: bd 8d fd     jsr (0x8DFD)
-974d: 4f           clra
-974e: 66 e6        ror (X+0xE6)
-9750: 7e 96 d1     jmp (0x96D1)
-9753: 81 0d        cmpa 0x0D
-9755: 26 aa        bne [0x9701]
-9757: 33           pulb
-9758: 7e 96 75     jmp (0x9675)
-975b: 33           pulb
-975c: 7e 92 92     jmp (0x9292)
+        jsr     (0x8DE4)
+        .ascis  'All Rnd Cleared!'
+
+        ldab    #0x64
+        jsr     (0x8C22)
+        jmp     (0x975B)
+L96BC:
+        cmpa    #0x09
+        bcs     L96C5  
+        suba    #0x08
+        pulb
+        incb
+        pshb
+L96C5:
+        clrb
+        sec
+L96C7:
+        rolb
+        deca
+        bne     L96C7  
+        stab    (0x0012)
+        eorb    #0xFF
+        stab    (0x0013)
+L96D1:
+        ldd     #0x2034           ;' '
+        jsr     (0x8DB5)         ; display char here on LCD display
+        pulb
+        pshb
+        tstb
+        beq     L96E1  
+        ldaa    (0x042B)
+        bra     L96E4  
+L96E1:
+        ldaa    (0x0401)
+L96E4:
+        anda    (0x0012)
+        beq     L96F2  
+        ldy     (0x0046)
+        jsr     (0x8DFD)
+        clra
+        ldx     0x20,X
+        dex
+L96F2:
+        ldy     (0x0046)
+        jsr     (0x8DFD)
+        clra
+        ror     0xE6,X
+        ldd     #0x2034           ;' '
+        jsr     (0x8DB5)         ; display char here on LCD display
+L9701:
+        jsr     (0x8E95)
+        beq     L9701  
+        cmpa    #0x01
+        bne     L972C  
+        pulb
+        pshb
+        tstb
+        beq     L9719  
+        ldaa    (0x042B)
+        oraa    (0x0012)
+        staa    (0x042B)
+        bra     L9721  
+L9719:
+        ldaa    (0x0401)
+        oraa    (0x0012)
+        staa    (0x0401)
+L9721:
+        ldy     (0x0046)
+        jsr     (0x8DFD)
+        clra
+        jmp     0xA0,X
+        bra     L96D1  
+L972C:
+        cmpa    #0x02
+        bne     L9753  
+        pulb
+        pshb
+        tstb
+        beq     L973F  
+        ldaa    (0x042B)
+        anda    (0x0013)
+        staa    (0x042B)
+        bra     L9747  
+L973F:
+        ldaa    (0x0401)
+        anda    (0x0013)
+        staa    (0x0401)
+L9747:
+        ldy     (0x0046)
+        jsr     (0x8DFD)
+        clra
+        ror     0xE6,X
+        jmp     (0x96D1)
+L9753:
+        cmpa    #0x0D
+        bne     L9701  
+        pulb
+        jmp     (0x9675)
+        pulb
+        jmp     (0x9292)
 
 ; do program rom checksum, and display it on the LCD screen
-975f: ce 00 00     ldx 0x0000
-9762: 18 ce 80 00  ldy 0x8000
-9766: 18 e6 00     ldab (Y+0x00)
-9769: 18 08        iny
-976b: 3a           abx
-976c: 18 8c 00 00  cpy 0x0000
-9770: 26 f4        bne [0x9766]
-9772: df 17        stx (0x0017)         ; store rom checksum here
-9774: 96 17        ldaa (0x0017)        ; get high byte of checksum
-9776: bd 97 9b     jsr (0x979B)         ; convert it to 2 hex chars
-9779: 96 12        ldaa (0x0012)
-977b: c6 33        ldab 0x33
-977d: bd 8d b5     jsr (0x8DB5)         ; display char 1 here on LCD display
-9780: 96 13        ldaa (0x0013)
-9782: c6 34        ldab 0x34
-9784: bd 8d b5     jsr (0x8DB5)         ; display char 2 here on LCD display
-9787: 96 18        ldaa (0x0018)        ; get low byte of checksum
-9789: bd 97 9b     jsr (0x979B)         ; convert it to 2 hex chars
-978c: 96 12        ldaa (0x0012)
-978e: c6 35        ldab 0x35
-9790: bd 8d b5     jsr (0x8DB5)         ; display char 1 here on LCD display
-9793: 96 13        ldaa (0x0013)
-9795: c6 36        ldab 0x36
-9797: bd 8d b5     jsr (0x8DB5)         ; display char 2 here on LCD display
-979a: 39           rts
+        ldx     #0x0000
+        ldy     #0x8000
+L9766:
+        ldab    0,Y     
+        iny
+        abx
+        cpy     #0x0000
+        bne     L9766  
+        stx     (0x0017)         ; store rom checksum here
+        ldaa    (0x0017)        ; get high byte of checksum
+        jsr     (0x979B)         ; convert it to 2 hex chars
+        ldaa    (0x0012)
+        ldab    #0x33
+        jsr     (0x8DB5)         ; display char 1 here on LCD display
+        ldaa    (0x0013)
+        ldab    #0x34
+        jsr     (0x8DB5)         ; display char 2 here on LCD display
+        ldaa    (0x0018)        ; get low byte of checksum
+        jsr     (0x979B)         ; convert it to 2 hex chars
+        ldaa    (0x0012)
+        ldab    #0x35
+        jsr     (0x8DB5)         ; display char 1 here on LCD display
+        ldaa    (0x0013)
+        ldab    #0x36
+        jsr     (0x8DB5)         ; display char 2 here on LCD display
+        rts
 
 ; convert A to ASCII hex digit, store in (0x0012:0x0013)
-979b: 36           psha
-979c: 84 0f        anda 0x0F
-979e: 8b 30        adda 0x30
-97a0: 81 39        cmpa 0x39
-97a2: 23 02        bls [0x97A6]
-97a4: 8b 07        adda 0x07
-97a6: 97 13        staa (0x0013)
-97a8: 32           pula
-97a9: 84 f0        anda 0xF0
-97ab: 44           lsra
-97ac: 44           lsra
-97ad: 44           lsra
-97ae: 44           lsra
-97af: 8b 30        adda 0x30
-97b1: 81 39        cmpa 0x39
-97b3: 23 02        bls [0x97B7]
-97b5: 8b 07        adda 0x07
-97b7: 97 12        staa (0x0012)
-97b9: 39           rts
+        psha
+        anda    #0x0F
+        adda    #0x30
+        cmpa    #0x39
+        bls     L97A6  
+        adda    #0x07
+L97A6:
+        staa    (0x0013)
+        pula
+        anda    #0xF0
+        lsra
+        lsra
+        lsra
+        lsra
+        adda    #0x30
+        cmpa    #0x39
+        bls     L97B7  
+        adda    #0x07
+L97B7:
+        staa    (0x0012)
+        rts
 
-97ba: bd 9d 18     jsr (0x9D18)
-97bd: 24 03        bcc [0x97C2]
-97bf: 7e 9a 7f     jmp (0x9A7F)
-97c2: 7d 00 79     tst (0x0079)
-97c5: 26 0b        bne [0x97D2]
-97c7: fc 04 10     ldd (0x0410)
-97ca: c3 00 01     addd 0x0001
-97cd: fd 04 10     std (0x0410)
-97d0: 20 09        bra [0x97DB]
-97d2: fc 04 12     ldd (0x0412)
-97d5: c3 00 01     addd 0x0001
-97d8: fd 04 12     std (0x0412)
-97db: 86 78        ldaa 0x78
-97dd: 97 63        staa (0x0063)
-97df: 97 64        staa (0x0064)
-97e1: bd a3 13     jsr (0xA313)
-97e4: bd aa db     jsr (0xAADB)
-97e7: 86 01        ldaa 0x01
-97e9: 97 4e        staa (0x004E)
-97eb: 97 76        staa (0x0076)
-97ed: 7f 00 75     clr (0x0075)
-97f0: 7f 00 77     clr (0x0077)
-97f3: bd 87 ae     jsr (0x87AE)
-97f6: d6 7b        ldab (0x007B)
-97f8: ca 20        orab 0x20
-97fa: c4 f7        andb 0xF7
-97fc: bd 87 48     jsr (0x8748)
-97ff: 7e 85 a4     jmp (0x85A4)
-9802: 7f 00 76     clr (0x0076)
-9805: 7f 00 75     clr (0x0075)
-9808: 7f 00 77     clr (0x0077)
-980b: 7f 00 4e     clr (0x004E)
-980e: d6 7b        ldab (0x007B)
-9810: ca 0c        orab 0x0C
-9812: bd 87 48     jsr (0x8748)
-9815: bd a3 1e     jsr (0xA31E)
-9818: bd 86 c4     jsr L86C4
-981b: bd 9c 51     jsr (0x9C51)
-981e: bd 8e 95     jsr (0x8E95)
-9821: 7e 84 4d     jmp (0x844D)
-9824: bd 9c 51     jsr (0x9C51)
-9827: 7f 00 4e     clr (0x004E)
-982a: d6 7b        ldab (0x007B)
-982c: ca 24        orab 0x24
-982e: c4 f7        andb 0xF7
-9830: bd 87 48     jsr (0x8748)
-9833: bd 87 ae     jsr (0x87AE)
-9836: bd 8e 95     jsr (0x8E95)
-9839: 7e 84 4d     jmp (0x844D)
-983c: 7f 00 78     clr (0x0078)
-983f: b6 10 8a     ldaa (0x108A)
-9842: 84 f9        anda 0xF9
-9844: b7 10 8a     staa (0x108A)
-9847: 7d 00 af     tst (0x00AF)
-984a: 26 61        bne [0x98AD]
-984c: 96 62        ldaa (0x0062)
-984e: 84 01        anda 0x01
-9850: 27 5b        beq [0x98AD]
-9852: c6 fd        ldab 0xFD
-9854: bd 86 e7     jsr (0x86E7)
-9857: cc 00 32     ldd 0x0032
-985a: dd 1b        std CDTIMR1
-985c: cc 75 30     ldd 0x7530
-985f: dd 1d        std CDTIMR2
-9861: 7f 00 5a     clr (0x005A)
-9864: bd 9b 19     jsr (0x9B19)
-9867: 7d 00 31     tst (0x0031)
-986a: 26 04        bne [0x9870]
-986c: 96 5a        ldaa (0x005A)
-986e: 27 19        beq [0x9889]
-9870: 7f 00 31     clr (0x0031)
-9873: d6 62        ldab (0x0062)
-9875: c4 fe        andb 0xFE
-9877: d7 62        stab (0x0062)
-9879: bd f9 c5     jsr (0xF9C5)
-987c: bd aa 13     jsr (0xAA13)
-987f: c6 fb        ldab 0xFB
-9881: bd 86 e7     jsr (0x86E7)
-9884: 7f 00 5a     clr (0x005A)
-9887: 20 4b        bra [0x98D4]
-9889: dc 1b        ldd CDTIMR1
-988b: 26 d7        bne [0x9864]
-988d: d6 62        ldab (0x0062)
-988f: c8 01        eorb 0x01
-9891: d7 62        stab (0x0062)
-9893: bd f9 c5     jsr (0xF9C5)
-9896: c4 01        andb 0x01
-9898: 26 05        bne [0x989F]
-989a: bd aa 0c     jsr (0xAA0C)
-989d: 20 03        bra [0x98A2]
-989f: bd aa 13     jsr (0xAA13)
-98a2: cc 00 32     ldd 0x0032
-98a5: dd 1b        std CDTIMR1
-98a7: dc 1d        ldd CDTIMR2
-98a9: 27 c5        beq [0x9870]
-98ab: 20 b7        bra [0x9864]
-98ad: 7d 00 75     tst (0x0075)
-98b0: 27 03        beq [0x98B5]
-98b2: 7e 99 39     jmp (0x9939)
-98b5: 96 62        ldaa (0x0062)
-98b7: 84 02        anda 0x02
-98b9: 27 4e        beq [0x9909]
-98bb: 7d 00 af     tst (0x00AF)
-98be: 26 0b        bne [0x98CB]
-98c0: fc 04 24     ldd (0x0424)
-98c3: c3 00 01     addd 0x0001
-98c6: fd 04 24     std (0x0424)
-98c9: 20 09        bra [0x98D4]
-98cb: fc 04 22     ldd (0x0422)
-98ce: c3 00 01     addd 0x0001
-98d1: fd 04 22     std (0x0422)
-98d4: fc 04 18     ldd (0x0418)
-98d7: c3 00 01     addd 0x0001
-98da: fd 04 18     std (0x0418)
-98dd: 86 78        ldaa 0x78
-98df: 97 63        staa (0x0063)
-98e1: 97 64        staa (0x0064)
-98e3: d6 62        ldab (0x0062)
-98e5: c4 f7        andb 0xF7
-98e7: ca 02        orab 0x02
-98e9: d7 62        stab (0x0062)
-98eb: bd f9 c5     jsr (0xF9C5)
-98ee: bd aa 18     jsr (0xAA18)
-98f1: 86 01        ldaa 0x01
-98f3: 97 4e        staa (0x004E)
-98f5: 97 75        staa (0x0075)
-98f7: d6 7b        ldab (0x007B)
-98f9: c4 df        andb 0xDF
-98fb: bd 87 48     jsr (0x8748)
-98fe: bd 87 ae     jsr (0x87AE)
-9901: bd a3 13     jsr (0xA313)
-9904: bd aa db     jsr (0xAADB)
-9907: 20 30        bra [0x9939]
-9909: d6 62        ldab (0x0062)
-990b: c4 f5        andb 0xF5
-990d: ca 40        orab 0x40
-990f: d7 62        stab (0x0062)
-9911: bd f9 c5     jsr (0xF9C5)
-9914: bd aa 1d     jsr (0xAA1D)
-9917: 7d 00 af     tst (0x00AF)
-991a: 26 04        bne [0x9920]
-991c: c6 01        ldab 0x01
-991e: d7 b6        stab (0x00B6)
-9920: bd 9c 51     jsr (0x9C51)
-9923: 7f 00 4e     clr (0x004E)
-9926: 7f 00 75     clr (0x0075)
-9929: 86 01        ldaa 0x01
-992b: 97 77        staa (0x0077)
-992d: d6 7b        ldab (0x007B)
-992f: ca 24        orab 0x24
-9931: c4 f7        andb 0xF7
-9933: bd 87 48     jsr (0x8748)
-9936: bd 87 91     jsr (0x8791)
-9939: 7f 00 af     clr (0x00AF)
-993c: 7e 85 a4     jmp (0x85A4)
-993f: 7f 00 77     clr (0x0077)
-9942: bd 9c 51     jsr (0x9C51)
-9945: 7f 00 4e     clr (0x004E)
-9948: d6 62        ldab (0x0062)
-994a: c4 bf        andb 0xBF
-994c: 7d 00 75     tst (0x0075)
-994f: 27 02        beq [0x9953]
-9951: c4 fd        andb 0xFD
-9953: d7 62        stab (0x0062)
-9955: bd f9 c5     jsr (0xF9C5)
-9958: bd aa 1d     jsr (0xAA1D)
-995b: 7f 00 5b     clr (0x005B)
-995e: bd 87 ae     jsr (0x87AE)
-9961: d6 7b        ldab (0x007B)
-9963: ca 20        orab 0x20
-9965: bd 87 48     jsr (0x8748)
-9968: 7f 00 75     clr (0x0075)
-996b: 7f 00 76     clr (0x0076)
-996e: 7e 98 15     jmp (0x9815)
-9971: d6 7b        ldab (0x007B)
-9973: c4 fb        andb 0xFB
-9975: bd 87 48     jsr (0x8748)
-9978: 7e 85 a4     jmp (0x85A4)
-997b: d6 7b        ldab (0x007B)
-997d: ca 04        orab 0x04
-997f: bd 87 48     jsr (0x8748)
-9982: 7e 85 a4     jmp (0x85A4)
-9985: d6 7b        ldab (0x007B)
-9987: c4 f7        andb 0xF7
-9989: bd 87 48     jsr (0x8748)
-998c: 7e 85 a4     jmp (0x85A4)
-998f: 7d 00 77     tst (0x0077)
-9992: 26 07        bne [0x999B]
-9994: d6 7b        ldab (0x007B)
-9996: ca 08        orab 0x08
-9998: bd 87 48     jsr (0x8748)
-999b: 7e 85 a4     jmp (0x85A4)
-999e: d6 7b        ldab (0x007B)
-99a0: c4 f3        andb 0xF3
-99a2: bd 87 48     jsr (0x8748)
-99a5: 39           rts
+        jsr     (0x9D18)
+        bcc     L97C2  
+        jmp     (0x9A7F)
+L97C2:
+        tst     (0x0079)
+        bne     L97D2  
+        ldd     (0x0410)
+        addd    #0x0001
+        std     (0x0410)
+        bra     L97DB  
+L97D2:
+        ldd     (0x0412)
+        addd    #0x0001
+        std     (0x0412)
+L97DB:
+        ldaa    #0x78
+        staa    (0x0063)
+        staa    (0x0064)
+        jsr     (0xA313)
+        jsr     (0xAADB)
+        ldaa    #0x01
+        staa    (0x004E)
+        staa    (0x0076)
+        clr     (0x0075)
+        clr     (0x0077)
+        jsr     (0x87AE)
+        ldab    (0x007B)
+        orab    #0x20
+        andb    #0xF7
+        jsr     (0x8748)
+        jmp     (0x85A4)
+        clr     (0x0076)
+        clr     (0x0075)
+        clr     (0x0077)
+        clr     (0x004E)
+        ldab    (0x007B)
+        orab    #0x0C
+        jsr     (0x8748)
+        jsr     (0xA31E)
+        jsr     L86C4
+        jsr     (0x9C51)
+        jsr     (0x8E95)
+        jmp     (0x844D)
+        jsr     (0x9C51)
+        clr     (0x004E)
+        ldab    (0x007B)
+        orab    #0x24
+        andb    #0xF7
+        jsr     (0x8748)
+        jsr     (0x87AE)
+        jsr     (0x8E95)
+        jmp     (0x844D)
+        clr     (0x0078)
+        ldaa    (0x108A)
+        anda    #0xF9
+        staa    (0x108A)
+        tst     (0x00AF)
+        bne     L98AD  
+        ldaa    (0x0062)
+        anda    #0x01
+        beq     L98AD  
+        ldab    #0xFD
+        jsr     (0x86E7)
+        ldd     #0x0032
+        std     CDTIMR1
+        ldd     #0x7530
+        std     CDTIMR2
+        clr     (0x005A)
+L9864:
+        jsr     (0x9B19)
+        tst     (0x0031)
+        bne     L9870  
+        ldaa    (0x005A)
+        beq     L9889  
+L9870:
+        clr     (0x0031)
+        ldab    (0x0062)
+        andb    #0xFE
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        jsr     (0xAA13)
+        ldab    #0xFB
+        jsr     (0x86E7)
+        clr     (0x005A)
+        bra     L98D4  
+L9889:
+        ldd     CDTIMR1
+        bne     L9864  
+        ldab    (0x0062)
+        eorb    #0x01
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        andb    #0x01
+        bne     L989F  
+        jsr     (0xAA0C)
+        bra     L98A2  
+L989F:
+        jsr     (0xAA13)
+L98A2:
+        ldd     #0x0032
+        std     CDTIMR1
+        ldd     CDTIMR2
+        beq     L9870  
+        bra     L9864  
+L98AD:
+        tst     (0x0075)
+        beq     L98B5  
+        jmp     (0x9939)
+L98B5:
+        ldaa    (0x0062)
+        anda    #0x02
+        beq     L9909  
+        tst     (0x00AF)
+        bne     L98CB  
+        ldd     (0x0424)
+        addd    #0x0001
+        std     (0x0424)
+        bra     L98D4  
+L98CB:
+        ldd     (0x0422)
+        addd    #0x0001
+        std     (0x0422)
+L98D4:
+        ldd     (0x0418)
+        addd    #0x0001
+        std     (0x0418)
+        ldaa    #0x78
+        staa    (0x0063)
+        staa    (0x0064)
+        ldab    (0x0062)
+        andb    #0xF7
+        orab    #0x02
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        jsr     (0xAA18)
+        ldaa    #0x01
+        staa    (0x004E)
+        staa    (0x0075)
+        ldab    (0x007B)
+        andb    #0xDF
+        jsr     (0x8748)
+        jsr     (0x87AE)
+        jsr     (0xA313)
+        jsr     (0xAADB)
+        bra     L9939  
+L9909:
+        ldab    (0x0062)
+        andb    #0xF5
+        orab    #0x40
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        jsr     (0xAA1D)
+        tst     (0x00AF)
+        bne     L9920  
+        ldab    #0x01
+        stab    (0x00B6)
+L9920:
+        jsr     (0x9C51)
+        clr     (0x004E)
+        clr     (0x0075)
+        ldaa    #0x01
+        staa    (0x0077)
+        ldab    (0x007B)
+        orab    #0x24
+        andb    #0xF7
+        jsr     (0x8748)
+        jsr     (0x8791)
+L9939:
+        clr     (0x00AF)
+        jmp     (0x85A4)
+        clr     (0x0077)
+        jsr     (0x9C51)
+        clr     (0x004E)
+        ldab    (0x0062)
+        andb    #0xBF
+        tst     (0x0075)
+        beq     L9953  
+        andb    #0xFD
+L9953:
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        jsr     (0xAA1D)
+        clr     (0x005B)
+        jsr     (0x87AE)
+        ldab    (0x007B)
+        orab    #0x20
+        jsr     (0x8748)
+        clr     (0x0075)
+        clr     (0x0076)
+        jmp     (0x9815)
+        ldab    (0x007B)
+        andb    #0xFB
+        jsr     (0x8748)
+        jmp     (0x85A4)
+        ldab    (0x007B)
+        orab    #0x04
+        jsr     (0x8748)
+        jmp     (0x85A4)
+        ldab    (0x007B)
+        andb    #0xF7
+        jsr     (0x8748)
+        jmp     (0x85A4)
+        tst     (0x0077)
+        bne     L999B  
+        ldab    (0x007B)
+        orab    #0x08
+        jsr     (0x8748)
+L999B:
+        jmp     (0x85A4)
+        ldab    (0x007B)
+        andb    #0xF3
+        jsr     (0x8748)
+        rts
 
 ; main2
-.endif
-        .org    0x99a6
 L99A6:
+        ldab    (0x007B)
+        andb    #0xDF        ; clear bit 5
+        jsr     (0x8748)
+        jsr     (0x8791)
+        rts
+
+        ldab    (0x007B)
+        orab    #0x20
+        jsr     (0x8748)
+        jsr     (0x87AE)
+        rts
+
+        ldab    (0x007B)
+        andb    #0xDF
+        jsr     (0x8748)
+        jsr     (0x87AE)
+        rts
+
+        ldab    (0x007B)
+        orab    #0x20
+        jsr     (0x8748)
+        jsr     (0x8791)
+        rts
+
+        ldaa    #0x01
+        staa    (0x0078)
+        jmp     (0x85A4)
+        ldx     #0x0E20
+        ldaa    0,X     
+        suba    #0x30
+        ldab    #0x0A
+        mul
+        tba
+        ldab    #0x64
+        mul
+        std     (0x0017)
+        ldaa    1,X     
+        suba    #0x30
+        ldab    #0x64
+        mul
+        addd    (0x0017)
+        std     (0x0017)
+        ldaa    2,X     
+        suba    #0x30
+        ldab    #0x0A
+        mul
+        addd    (0x0017)
+        std     (0x0017)
+        clra
+        ldab    3,X     
+        subb    #0x30
+        addd    (0x0017)
+        std     (0x029C)
+        ldx     #0x0E20
+L9A0C:
+        ldaa    0,X     
+        cmpa    #0x30
+        bcs     L9A25  
+        cmpa    #0x39
+        bhi     L9A25  
+        inx
+        cpx     #0x0E24
+        bne     L9A0C  
+        ldaa    (0x0E24)        ; check EEPROM signature
+        cmpa    #0xDB
+        bne     L9A25  
+        clc
+        rts
+
+L9A25:
+        sec
+        rts
+
 .if 0
-99a6: d6 7b        ldab (0x007B)
-99a8: c4 df        andb 0xDF        ; clear bit 5
-99aa: bd 87 48     jsr (0x8748)
-99ad: bd 87 91     jsr (0x8791)
-99b0: 39           rts
-
-99b1: d6 7b        ldab (0x007B)
-99b3: ca 20        orab 0x20
-99b5: bd 87 48     jsr (0x8748)
-99b8: bd 87 ae     jsr (0x87AE)
-99bb: 39           rts
-
-99bc: d6 7b        ldab (0x007B)
-99be: c4 df        andb 0xDF
-99c0: bd 87 48     jsr (0x8748)
-99c3: bd 87 ae     jsr (0x87AE)
-99c6: 39           rts
-
-99c7: d6 7b        ldab (0x007B)
-99c9: ca 20        orab 0x20
-99cb: bd 87 48     jsr (0x8748)
-99ce: bd 87 91     jsr (0x8791)
-99d1: 39           rts
-
-99d2: 86 01        ldaa 0x01
-99d4: 97 78        staa (0x0078)
-99d6: 7e 85 a4     jmp (0x85A4)
-99d9: ce 0e 20     ldx 0x0E20
-99dc: a6 00        ldaa (X+0x00)
-99de: 80 30        suba 0x30
-99e0: c6 0a        ldab 0x0A
-99e2: 3d           mul
-99e3: 17           tba
-99e4: c6 64        ldab 0x64
-99e6: 3d           mul
-99e7: dd 17        std (0x0017)
-99e9: a6 01        ldaa (X+0x01)
-99eb: 80 30        suba 0x30
-99ed: c6 64        ldab 0x64
-99ef: 3d           mul
-99f0: d3 17        addd (0x0017)
-99f2: dd 17        std (0x0017)
-99f4: a6 02        ldaa (X+0x02)
-99f6: 80 30        suba 0x30
-99f8: c6 0a        ldab 0x0A
-99fa: 3d           mul
-99fb: d3 17        addd (0x0017)
-99fd: dd 17        std (0x0017)
-99ff: 4f           clra
-9a00: e6 03        ldab (X+0x03)
-9a02: c0 30        subb 0x30
-9a04: d3 17        addd (0x0017)
-9a06: fd 02 9c     std (0x029C)
-9a09: ce 0e 20     ldx 0x0E20
-9a0c: a6 00        ldaa (X+0x00)
-9a0e: 81 30        cmpa 0x30
-9a10: 25 13        bcs [0x9A25]
-9a12: 81 39        cmpa 0x39
-9a14: 22 0f        bhi [0x9A25]
-9a16: 08           inx
-9a17: 8c 0e 24     cpx 0x0E24
-9a1a: 26 f0        bne [0x9A0C]
-9a1c: b6 0e 24     ldaa (0x0E24)        ; check EEPROM signature
-9a1f: 81 db        cmpa 0xDB
-9a21: 26 02        bne [0x9A25]
-9a23: 0c           clc
-9a24: 39           rts
-
-9a25: 0d           sec
-9a26: 39           rts
-
 9a27: bd 8d e4     jsr (0x8DE4)
 
 'Serial# '
