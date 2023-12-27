@@ -4,10 +4,10 @@
 ;   by
 ; David B. Philipsen
 ;
-; Reverse-engineered
+; Reverse-engineering
 ;   by
 ; Frank Palazzolo
-;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;
 
 ; 68HC11 Register definitions
 
