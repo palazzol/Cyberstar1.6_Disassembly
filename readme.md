@@ -1,7 +1,7 @@
 
 # Cyberstar 1.6 EPROM image disassembly/reassembly - WIP
 
-The Cyberamic Control Center was the original animatronic control computer designed for Chuck E. Cheese's Pizza Time Theatre in the last 70's
+The Cyberamic Control Center was the original animatronic control computer designed for Chuck E. Cheese's Pizza Time Theatre in the late 70's
 
 The first generation machine utilized a 6502 processor, and was used from around 1978-1984.
 
