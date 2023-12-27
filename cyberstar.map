@@ -1,0 +1,19 @@
+ASxxxx Linker V05.44                                                                Page 1
+Hexadecimal [16-Bits]                                 Wed Dec 27 16:02:59 2023
+
+Area                       Addr        Size        Decimal Bytes (Attributes)
+--------------------       ----        ----        ------- ----- ------------
+.  .ABS.                   0000        0000 =           0. bytes (ABS,OVR,CSEG)
+
+   Value  Global      Value  Global      Value  Global      Value  Global   
+   -----  ------      -----  ------      -----  ------      -----  ------   
+    0000  .__.ABS.
+ASxxxx Linker V05.44                                                                Page 2
+Hexadecimal [16-Bits]                                 Wed Dec 27 16:02:59 2023
+
+Files Linked                              [ module(s) ]
+
+cyberstar.rel                             [  ]
+
+
+
