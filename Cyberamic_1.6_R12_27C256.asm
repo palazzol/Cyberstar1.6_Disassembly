@@ -2127,339 +2127,12 @@ L9064:
         jmp     (0x8F73)
         rts
 
-.if 0
-; Comma seperated text
-9072: 4d           tsta
-9073: 6f 75        clr (X+0x75)
-9075: 74 68 2c     lsr (0x682C)
-9078: 48           asla
-9079: 65           ?
-907a: 61           ?
-907b: 64 20        lsr (X+0x20)
-907d: 6c 65        inc (X+0x65)
-907f: 66 74        ror (X+0x74)
-9081: 2c 48        bge [0x90CB]
-9083: 65           ?
-9084: 61           ?
-9085: 64 20        lsr (X+0x20)
-9087: 72           ?
-9088: 69 67        rol (X+0x67)
-908a: 68 74        asl (X+0x74)
-908c: 2c 48        bge [0x90D6]
-908e: 65           ?
-908f: 61           ?
-9090: 64 20        lsr (X+0x20)
-9092: 75           ?
-9093: 70 2c 45     neg (0x2C45)
-9096: 79 65 73     rol (0x6573)
-9099: 20 72        bra [0x910D]
-909b: 69 67        rol (X+0x67)
-909d: 68 74        asl (X+0x74)
-909f: 2c 45        bge [0x90E6]
-90a1: 79 65 6c     rol (0x656C)
-90a4: 69 64        rol (X+0x64)
-90a6: 73 2c 52     com (0x2C52)
-90a9: 69 67        rol (X+0x67)
-90ab: 68 74        asl (X+0x74)
-90ad: 20 68        bra [0x9117]
-90af: 61           ?
-90b0: 6e 64        jmp (X+0x64)
-90b2: 2c 45        bge [0x90F9]
-90b4: 79 65 73     rol (0x6573)
-90b7: 20 6c        bra [0x9125]
-90b9: 65           ?
-90ba: 66 74        ror (X+0x74)
-90bc: 2c 44        bge [0x9102]
-90be: 53           comb
-90bf: 39           rts
-90c0: 2c 44        bge [0x9106]
-90c2: 53           comb
-90c3: 31           ins
-90c4: 30           tsx
-90c5: 2c 44        bge [0x910B]
-90c7: 53           comb
-90c8: 31           ins
-90c9: 31           ins
-90ca: 2c 44        bge [0x9110]
-90cc: 53           comb
-90cd: 31           ins
-90ce: 32           pula
-90cf: 2c 44        bge [0x9115]
-90d1: 53           comb
-90d2: 31           ins
-90d3: 33           pulb
-90d4: 2c 44        bge [0x911A]
-90d6: 53           comb
-90d7: 31           ins
-90d8: 34           des
-90d9: 2c 45        bge [0x9120]
-90db: 78 69 f4     asl (0x69F4)
-90de: 4d           tsta
-90df: 6f 75        clr (X+0x75)
-90e1: 74 68 2c     lsr (0x682C)
-90e4: 48           asla
-90e5: 65           ?
-90e6: 61           ?
-90e7: 64 20        lsr (X+0x20)
-90e9: 6c 65        inc (X+0x65)
-90eb: 66 74        ror (X+0x74)
-90ed: 2c 48        bge [0x9137]
-90ef: 65           ?
-90f0: 61           ?
-90f1: 64 20        lsr (X+0x20)
-90f3: 72           ?
-90f4: 69 67        rol (X+0x67)
-90f6: 68 74        asl (X+0x74)
-90f8: 2c 48        bge [0x9142]
-90fa: 65           ?
-90fb: 61           ?
-90fc: 64 20        lsr (X+0x20)
-90fe: 75           ?
-90ff: 70 2c 45     neg (0x2C45)
-9102: 79 65 73     rol (0x6573)
-9105: 20 72        bra [0x9179]
-9107: 69 67        rol (X+0x67)
-9109: 68 74        asl (X+0x74)
-910b: 2c 45        bge [0x9152]
-910d: 79 65 6c     rol (0x656C)
-9110: 69 64        rol (X+0x64)
-9112: 73 2c 48     com (0x2C48)
-9115: 61           ?
-9116: 6e 64        jmp (X+0x64)
-9118: 73 2c 45     com (0x2C45)
-911b: 79 65 73     rol (0x6573)
-911e: 20 6c        bra [0x918C]
-9120: 65           ?
-9121: 66 74        ror (X+0x74)
-9123: 2c 44        bge [0x9169]
-9125: 53           comb
-9126: 39           rts
-9127: 2c 44        bge [0x916D]
-9129: 53           comb
-912a: 31           ins
-912b: 30           tsx
-912c: 2c 44        bge [0x9172]
-912e: 53           comb
-912f: 31           ins
-9130: 31           ins
-9131: 2c 44        bge [0x9177]
-9133: 53           comb
-9134: 31           ins
-9135: 32           pula
-9136: 2c 44        bge [0x917C]
-9138: 53           comb
-9139: 31           ins
-913a: 33           pulb
-913b: 2c 44        bge [0x9181]
-913d: 53           comb
-913e: 31           ins
-913f: 34           des
-9140: 2c 45        bge [0x9187]
-9142: 78 69 f4     asl (0x69F4)
-9145: 4d           tsta
-9146: 6f 75        clr (X+0x75)
-9148: 74 68 2d     lsr (0x682D)
-914b: 4d           tsta
-914c: 75           ?
-914d: 73 74 61     com (0x7461)
-9150: 63 68        com (X+0x68)
-9152: 65           ?
-9153: 2c 48        bge [0x919D]
-9155: 65           ?
-9156: 61           ?
-9157: 64 20        lsr (X+0x20)
-9159: 6c 65        inc (X+0x65)
-915b: 66 74        ror (X+0x74)
-915d: 2c 48        bge [0x91A7]
-915f: 65           ?
-9160: 61           ?
-9161: 64 20        lsr (X+0x20)
-9163: 72           ?
-9164: 69 67        rol (X+0x67)
-9166: 68 74        asl (X+0x74)
-9168: 2c 4c        bge [0x91B6]
-916a: 65           ?
-916b: 66 74        ror (X+0x74)
-916d: 20 61        bra [0x91D0]
-916f: 72           ?
-9170: 6d 2c        tst (X+0x2C)
-9172: 45           ?
-9173: 79 65 73     rol (0x6573)
-9176: 20 72        bra [0x91EA]
-9178: 69 67        rol (X+0x67)
-917a: 68 74        asl (X+0x74)
-917c: 2c 45        bge [0x91C3]
-917e: 79 65 6c     rol (0x656C)
-9181: 69 64        rol (X+0x64)
-9183: 73 2c 52     com (0x2C52)
-9186: 69 67        rol (X+0x67)
-9188: 68 74        asl (X+0x74)
-918a: 20 61        bra [0x91ED]
-918c: 72           ?
-918d: 6d 2c        tst (X+0x2C)
-918f: 45           ?
-9190: 79 65 73     rol (0x6573)
-9193: 20 6c        bra [0x9201]
-9195: 65           ?
-9196: 66 74        ror (X+0x74)
-9198: 2c 44        bge [0x91DE]
-919a: 53           comb
-919b: 39           rts
-919c: 2c 44        bge [0x91E2]
-919e: 53           comb
-919f: 31           ins
-91a0: 30           tsx
-91a1: 2c 44        bge [0x91E7]
-91a3: 53           comb
-91a4: 31           ins
-91a5: 31           ins
-91a6: 2c 44        bge [0x91EC]
-91a8: 53           comb
-91a9: 31           ins
-91aa: 32           pula
-91ab: 2c 44        bge [0x91F1]
-91ad: 53           comb
-91ae: 31           ins
-91af: 33           pulb
-91b0: 2c 44        bge [0x91F6]
-91b2: 53           comb
-91b3: 31           ins
-91b4: 34           des
-91b5: 2c 45        bge [0x91FC]
-91b7: 78 69 f4     asl (0x69F4)
-91ba: 4d           tsta
-91bb: 6f 75        clr (X+0x75)
-91bd: 74 68 2c     lsr (0x682C)
-91c0: 48           asla
-91c1: 65           ?
-91c2: 61           ?
-91c3: 64 20        lsr (X+0x20)
-91c5: 6c 65        inc (X+0x65)
-91c7: 66 74        ror (X+0x74)
-91c9: 2c 48        bge [0x9213]
-91cb: 65           ?
-91cc: 61           ?
-91cd: 64 20        lsr (X+0x20)
-91cf: 72           ?
-91d0: 69 67        rol (X+0x67)
-91d2: 68 74        asl (X+0x74)
-91d4: 2c 4c        bge [0x9222]
-91d6: 65           ?
-91d7: 66 74        ror (X+0x74)
-91d9: 20 61        bra [0x923C]
-91db: 72           ?
-91dc: 6d 2c        tst (X+0x2C)
-91de: 45           ?
-91df: 79 65 73     rol (0x6573)
-91e2: 20 72        bra [0x9256]
-91e4: 69 67        rol (X+0x67)
-91e6: 68 74        asl (X+0x74)
-91e8: 2c 45        bge [0x922F]
-91ea: 79 65 6c     rol (0x656C)
-91ed: 69 64        rol (X+0x64)
-91ef: 73 2c 52     com (0x2C52)
-91f2: 69 67        rol (X+0x67)
-91f4: 68 74        asl (X+0x74)
-91f6: 20 61        bra [0x9259]
-91f8: 72           ?
-91f9: 6d 2c        tst (X+0x2C)
-91fb: 45           ?
-91fc: 79 65 73     rol (0x6573)
-91ff: 20 6c        bra [0x926D]
-9201: 65           ?
-9202: 66 74        ror (X+0x74)
-9204: 2c 44        bge [0x924A]
-9206: 53           comb
-9207: 39           rts
-9208: 2c 44        bge [0x924E]
-920a: 53           comb
-920b: 31           ins
-920c: 30           tsx
-920d: 2c 44        bge [0x9253]
-920f: 53           comb
-9210: 31           ins
-9211: 31           ins
-9212: 2c 44        bge [0x9258]
-9214: 53           comb
-9215: 31           ins
-9216: 32           pula
-9217: 2c 44        bge [0x925D]
-9219: 53           comb
-921a: 31           ins
-921b: 33           pulb
-921c: 2c 44        bge [0x9262]
-921e: 53           comb
-921f: 31           ins
-9220: 34           des
-9221: 2c 45        bge [0x9268]
-9223: 78 69 f4     asl (0x69F4)
-9226: 4d           tsta
-9227: 6f 75        clr (X+0x75)
-9229: 74 68 2c     lsr (0x682C)
-922c: 48           asla
-922d: 65           ?
-922e: 61           ?
-922f: 64 20        lsr (X+0x20)
-9231: 6c 65        inc (X+0x65)
-9233: 66 74        ror (X+0x74)
-9235: 2c 48        bge [0x927F]
-9237: 65           ?
-9238: 61           ?
-9239: 64 20        lsr (X+0x20)
-923b: 72           ?
-923c: 69 67        rol (X+0x67)
-923e: 68 74        asl (X+0x74)
-9240: 2c 48        bge [0x928A]
-9242: 65           ?
-9243: 61           ?
-9244: 64 20        lsr (X+0x20)
-9246: 75           ?
-9247: 70 2c 45     neg (0x2C45)
-924a: 79 65 73     rol (0x6573)
-924d: 20 72        bra [0x92C1]
-924f: 69 67        rol (X+0x67)
-9251: 68 74        asl (X+0x74)
-9253: 2c 45        bge [0x929A]
-9255: 79 65 6c     rol (0x656C)
-9258: 69 64        rol (X+0x64)
-925a: 73 2c 52     com (0x2C52)
-925d: 69 67        rol (X+0x67)
-925f: 68 74        asl (X+0x74)
-9261: 20 68        bra [0x92CB]
-9263: 61           ?
-9264: 6e 64        jmp (X+0x64)
-9266: 2c 45        bge [0x92AD]
-9268: 79 65 73     rol (0x6573)
-926b: 20 6c        bra [0x92D9]
-926d: 65           ?
-926e: 66 74        ror (X+0x74)
-9270: 2c 44        bge [0x92B6]
-9272: 53           comb
-9273: 39           rts
-9274: 2c 44        bge [0x92BA]
-9276: 53           comb
-9277: 31           ins
-9278: 30           tsx
-9279: 2c 44        bge [0x92BF]
-927b: 53           comb
-927c: 31           ins
-927d: 31           ins
-927e: 2c 44        bge [0x92C4]
-9280: 53           comb
-9281: 31           ins
-9282: 32           pula
-9283: 2c 44        bge [0x92C9]
-9285: 53           comb
-9286: 31           ins
-9287: 33           pulb
-9288: 2c 44        bge [0x92CE]
-928a: 53           comb
-928b: 31           ins
-928c: 34           des
-928d: 2c 45        bge [0x92D4]
-928f: 78 69 f4     asl (0x69F4)
-.endif
-        .org    0x9292
+        .ascis  'Mouth,Head left,Head right,Head up,Eyes right,Eyelids,Right hand,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
+        .ascis  'Mouth,Head left,Head right,Head up,Eyes right,Eyelids,Hands,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
+        .ascis  'Mouth-Mustache,Head left,Head right,Left arm,Eyes right,Eyelids,Right arm,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
+        .ascis  'Mouth,Head left,Head right,Left arm,Eyes right,Eyelids,Right arm,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
+        .ascis  'Mouth,Head left,Head right,Head up,Eyes right,Eyelids,Right hand,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
+        
 ; code again
         jsr     L86C4
 L9295:
@@ -2593,118 +2266,8 @@ L93C3:
 L93D0:
         jmp     (0x92D2)
 
-.if 0
-; Comma seperated text
-93d3: 56           rorb
-93d4: 43           coma
-93d5: 52           ?
-93d6: 20 61        bra [0x9439]
-93d8: 64 6a        lsr (X+0x6A)
-93da: 75           ?
-93db: 73 74 2c     com (0x742C)
-93de: 53           comb
-93df: 65           ?
-93e0: 74 20 52     lsr (0x2052)
-93e3: 61           ?
-93e4: 6e 64        jmp (X+0x64)
-93e6: 6f 6d        clr (X+0x6D)
-93e8: 2c 43        bge [0x942D]
-93ea: 68 75        asl (X+0x75)
-93ec: 63 6b        com (X+0x6B)
-93ee: 20 45        bra [0x9435]
-93f0: 2e 20        bgt [0x9412]
-93f2: 43           coma
-93f3: 68 65        asl (X+0x65)
-93f5: 65           ?
-93f6: 73 65 2c     com (0x652C)
-93f9: 4a           deca
-93fa: 61           ?
-93fb: 73 70 65     com (0x7065)
-93fe: 72           ?
-93ff: 2c 50        bge [0x9451]
-9401: 61           ?
-9402: 73 71 75     com (0x7175)
-9405: 61           ?
-9406: 6c 6c        inc (X+0x6C)
-9408: 79 2c 4d     rol (0x2C4D)
-940b: 75           ?
-940c: 6e 63        jmp (X+0x63)
-940e: 68 2c        asl (X+0x2C)
-9410: 48           asla
-9411: 65           ?
-9412: 6c 65        inc (X+0x65)
-9414: 6e 2c        jmp (X+0x2C)
-9416: 52           ?
-9417: 65           ?
-9418: 73 65 74     com (0x6574)
-941b: 20 53        bra [0x9470]
-941d: 79 73 74     rol (0x7374)
-9420: 65           ?
-9421: 6d 2c        tst (X+0x2C)
-9423: 52           ?
-9424: 65           ?
-9425: 73 65 74     com (0x6574)
-9428: 20 72        bra [0x949C]
-942a: 65           ?
-942b: 67 20        asr (X+0x20)
-942d: 74 61 70     lsr (0x6170)
-9430: 65           ?
-9431: 23 2c        bls [0x945F]
-9433: 52           ?
-9434: 65           ?
-9435: 73 65 74     com (0x6574)
-9438: 20 6c        bra [0x94A6]
-943a: 69 76        rol (X+0x76)
-943c: 20 74        bra [0x94B2]
-943e: 61           ?
-943f: 70 65 23     neg (0x6523)
-9442: 2c 56        bge [0x949A]
-9444: 69 65        rol (X+0x65)
-9446: 77 20 54     asr (0x2054)
-9449: 61           ?
-944a: 70 65 20     neg (0x6520)
-944d: 23 27        bls [0x9476]
-944f: 73 2c 41     com (0x2C41)
-9452: 6c 6c        inc (X+0x6C)
-9454: 20 4c        bra [0x94A2]
-9456: 69 67        rol (X+0x67)
-9458: 68 74        asl (X+0x74)
-945a: 73 20 4f     com (0x204F)
-945d: 6e 2c        jmp (X+0x2C)
-945f: 42           ?
-9460: 75           ?
-9461: 74 74 6f     lsr (0x746F)
-9464: 6e 20        jmp (X+0x20)
-9466: 74 65 73     lsr (0x6573)
-9469: 74 2c 4b     lsr (0x2C4B)
-946c: 69 6e        rol (X+0x6E)
-946e: 67 20        asr (X+0x20)
-9470: 65           ?
-9471: 6e 61        jmp (X+0x61)
-9473: 62           ?
-9474: 6c 65        inc (X+0x65)
-9476: 2c 57        bge [0x94CF]
-9478: 61           ?
-9479: 72           ?
-947a: 6d 2d        tst (X+0x2D)
-947c: 55           ?
-947d: 70 2c 53     neg (0x2C53)
-9480: 68 6f        asl (X+0x6F)
-9482: 77 20 54     asr (0x2054)
-9485: 79 70 65     rol (0x7065)
-9488: 2c 51        bge [0x94DB]
-948a: 75           ?
-948b: 69 74        rol (X+0x74)
-948d: 20 44        bra [0x94D3]
-948f: 69 61        rol (X+0x61)
-9491: 67 6e        asr (X+0x6E)
-9493: 6f 73        clr (X+0x73)
-9495: 74 69 63     lsr (0x6963)
-9498: f3 
-9499: 00           test
-
-.endif
-        .org    0x949A
+        .ascis  "VCR adjust,Set Random,Chuck E. Cheese,Jasper,Pasqually,Munch,Helen,Reset System,Reset reg tape#,Reset liv tape#,View Tape #'s,All Lights On,Button test,King enable,Warm-Up,Show Type,Quit Diagnostics"
+        .byte   0x00
 
         tst     (0x042A)
         beq     L94C6  
@@ -2862,66 +2425,7 @@ L960A:
 L960F:
         rts
 
-.if 0
-; Comma-separated text
-9610: 43           coma
-9611: 68 75        asl (X+0x75)
-9613: 63 6b        com (X+0x6B)
-9615: 2c 4a        bge [0x9661]
-9617: 61           ?
-9618: 73 70 65     com (0x7065)
-961b: 72           ?
-961c: 2c 50        bge [0x966E]
-961e: 61           ?
-961f: 73 71 75     com (0x7175)
-9622: 61           ?
-9623: 6c 6c        inc (X+0x6C)
-9625: 79 2c 4d     rol (0x2C4D)
-9628: 75           ?
-9629: 6e 63        jmp (X+0x63)
-962b: 68 2c        asl (X+0x2C)
-962d: 48           asla
-962e: 65           ?
-962f: 6c 65        inc (X+0x65)
-9631: 6e 2c        jmp (X+0x2C)
-9633: 4c           inca
-9634: 69 67        rol (X+0x67)
-9636: 68 74        asl (X+0x74)
-9638: 20 31        bra [0x966B]
-963a: 2c 4c        bge [0x9688]
-963c: 69 67        rol (X+0x67)
-963e: 68 74        asl (X+0x74)
-9640: 20 32        bra [0x9674]
-9642: 2c 4c        bge [0x9690]
-9644: 69 67        rol (X+0x67)
-9646: 68 74        asl (X+0x74)
-9648: 20 33        bra [0x967D]
-964a: 2c 53        bge [0x969F]
-964c: 74 61 72     lsr (0x6172)
-964f: 20 45        bra [0x9696]
-9651: 46           rora
-9652: 58           aslb
-9653: 2c 57        bge [0x96AC]
-9655: 69 6e        rol (X+0x6E)
-9657: 6b           ?
-9658: 20 53        bra [0x96AD]
-965a: 70 6f 74     neg (0x6F74)
-965d: 2c 47        bge [0x96A6]
-965f: 6f 62        clr (X+0x62)
-9661: 6f 2c        clr (X+0x2C)
-9663: 43           coma
-9664: 6c 65        inc (X+0x65)
-9666: 61           ?
-9667: 72           ?
-9668: 20 41        bra [0x96AB]
-966a: 6c 6c        inc (X+0x6C)
-966c: 20 52        bra [0x96C0]
-966e: 6e 64        jmp (X+0x64)
-9670: 2c 45        bge [0x96B7]
-9672: 78 69 f4     asl (0x69F4)
-
-.endif
-        .org    0x9675
+        .ascis  "Chuck,Jasper,Pasqually,Munch,Helen,Light 1,Light 2,Light 3,Star EFX,Wink Spot,Gobo,Clear All Rnd,Exit"
 
 ; code again
         jsr     (0x8DE4)
@@ -5675,648 +5179,42 @@ LAE2C:
         rts
 
 LAE38:
-.if 0
-;        .ascii      '^0101Serial #:^0140#0000^0111~4'
-;???
-
-ae38: 5e           ?
-ae39: 30           tsx
-ae3a: 31           ins
-ae3b: 30           tsx
-ae3c: 31           ins
-ae3d: 53           comb
-ae3e: 65           ?
-ae3f: 72           ?
-ae40: 69 61        rol (X+0x61)
-ae42: 6c 20        inc (X+0x20)
-ae44: 23 3a        bls [0xAE80]
-ae46: 5e           ?
-ae47: 30           tsx
-ae48: 31           ins
-ae49: 34           des
-ae4a: 30           tsx
-ae4b: 23 30        bls [0xAE7D]
-ae4d: 30           tsx
-ae4e: 30           tsx
-ae4f: 30           tsx
-ae50: 5e           ?
-ae51: 30           tsx
-ae52: 31           ins
-ae53: 31           ins
-ae54: 31           ins
-ae55: 7e 34 0e     jmp (0x340E)
-ae58: 20 5e        bra [0xAEB8]
-ae5a: 30           tsx
-ae5b: 31           ins
-ae5c: 34           des
-ae5d: 31           ins
-ae5e: 7c 04 28     inc (0x0428)
-ae61: 5e           ?
-ae62: 30           tsx
-ae63: 33           pulb
-ae64: 30           tsx
-ae65: 31           ins
-ae66: 43           coma
-ae67: 55           ?
-ae68: 52           ?
-ae69: 52           ?
-ae6a: 45           ?
-ae6b: 4e           ?
-ae6c: 54           lsrb
-ae6d: 5e           ?
-ae6e: 30           tsx
-ae6f: 33           pulb
-ae70: 34           des
-ae71: 30           tsx
-ae72: 48           asla
-ae73: 49           rola
-ae74: 53           comb
-ae75: 54           lsrb
-ae76: 4f           clra
-ae77: 52           ?
-ae78: 59           rolb
-ae79: 5e           ?
-ae7a: 30           tsx
-ae7b: 35           txs
-ae7c: 30           tsx
-ae7d: 31           ins
-ae7e: 53           comb
-ae7f: 68 6f        asl (X+0x6F)
-ae81: 77 20 53     asr (0x2053)
-ae84: 74 61 74     lsr (0x6174)
-ae87: 75           ?
-ae88: 73 3a 5e     com (0x3A5E)
-ae8b: 30           tsx
-ae8c: 35           txs
-ae8d: 34           des
-ae8e: 30           tsx
-ae8f: 54           lsrb
-ae90: 6f 74        clr (X+0x74)
-ae92: 61           ?
-ae93: 6c 20        inc (X+0x20)
-ae95: 23 20        bls [0xAEB7]
-ae97: 72           ?
-ae98: 65           ?
-ae99: 67 2e        asr (X+0x2E)
-ae9b: 20 73        bra [0xAF10]
-ae9d: 68 6f        asl (X+0x6F)
-ae9f: 77 73 3a     asr (0x733A)
-aea2: 5e           ?
-aea3: 30           tsx
-aea4: 36           psha
-aea5: 30           tsx
-aea6: 31           ins
-aea7: 52           ?
-aea8: 61           ?
-aea9: 6e 64        jmp (X+0x64)
-aeab: 6f 6d        clr (X+0x6D)
-aead: 20 53        bra [0xAF02]
-aeaf: 74 61 74     lsr (0x6174)
-aeb2: 75           ?
-aeb3: 73 3a 5e     com (0x3A5E)
-aeb6: 30           tsx
-aeb7: 35           txs
-aeb8: 37           pshb
-aeb9: 30           tsx
-aeba: 7c 04 10     inc (0x0410)
-aebd: 5e           ?
-aebe: 30           tsx
-aebf: 36           psha
-aec0: 34           des
-aec1: 30           tsx
-aec2: 54           lsrb
-aec3: 6f 74        clr (X+0x74)
-aec5: 61           ?
-aec6: 6c 20        inc (X+0x20)
-aec8: 23 20        bls [0xAEEA]
-aeca: 6c 69        inc (X+0x69)
-aecc: 76 65 20     ror (0x6520)
-aecf: 73 68 6f     com (0x686F)
-aed2: 77 73 3a     asr (0x733A)
-aed5: 5e           ?
-aed6: 30           tsx
-aed7: 37           pshb
-aed8: 30           tsx
-aed9: 31           ins
-aeda: 43           coma
-aedb: 75           ?
-aedc: 72           ?
-aedd: 72           ?
-aede: 65           ?
-aedf: 6e 74        jmp (X+0x74)
-aee1: 20 52        bra [0xAF35]
-aee3: 65           ?
-aee4: 67 20        asr (X+0x20)
-aee6: 54           lsrb
-aee7: 61           ?
-aee8: 70 65 20     neg (0x6520)
-aeeb: 23 3a        bls [0xAF27]
-aeed: 5e           ?
-aeee: 30           tsx
-aeef: 36           psha
-aef0: 37           pshb
-aef1: 30           tsx
-aef2: 7c 04 12     inc (0x0412)
-aef5: 5e           ?
-aef6: 30           tsx
-aef7: 37           pshb
-aef8: 33           pulb
-aef9: 30           tsx
-aefa: 7e 33 04     jmp (0x3304)
-aefd: 02           idiv
-aefe: 5e           ?
-aeff: 30           tsx
-af00: 37           pshb
-af01: 34           des
-af02: 30           tsx
-af03: 54           lsrb
-af04: 6f 74        clr (X+0x74)
-af06: 61           ?
-af07: 6c 20        inc (X+0x20)
-af09: 23 20        bls [0xAF2B]
-af0b: 66 61        ror (X+0x61)
-af0d: 69 6c        rol (X+0x6C)
-af0f: 65           ?
-af10: 64 20        lsr (X+0x20)
-af12: 70 73 77     neg (0x7377)
-af15: 64 20        lsr (X+0x20)
-af17: 61           ?
-af18: 74 74 65     lsr (0x7465)
-af1b: 6d 70        tst (X+0x70)
-af1d: 74 73 3a     lsr (0x733A)
-af20: 5e           ?
-af21: 30           tsx
-af22: 38           pulx
-af23: 30           tsx
-af24: 31           ins
-af25: 43           coma
-af26: 75           ?
-af27: 72           ?
-af28: 72           ?
-af29: 65           ?
-af2a: 6e 74        jmp (X+0x74)
-af2c: 20 4c        bra [0xAF7A]
-af2e: 69 76        rol (X+0x76)
-af30: 65           ?
-af31: 20 54        bra [0xAF87]
-af33: 61           ?
-af34: 70 65 20     neg (0x6520)
-af37: 23 3a        bls [0xAF73]
-af39: 5e           ?
-af3a: 30           tsx
-af3b: 37           pshb
-af3c: 37           pshb
-af3d: 30           tsx
-af3e: 7c 04 14     inc (0x0414)
-af41: 5e           ?
-af42: 30           tsx
-af43: 38           pulx
-af44: 33           pulb
-af45: 30           tsx
-af46: 7e 33 04     jmp (0x3304)
-af49: 05           asld
-af4a: 5e           ?
-af4b: 30           tsx
-af4c: 38           pulx
-af4d: 34           des
-af4e: 30           tsx
-af4f: 54           lsrb
-af50: 6f 74        clr (X+0x74)
-af52: 61           ?
-af53: 6c 20        inc (X+0x20)
-af55: 23 20        bls [0xAF77]
-af57: 73 75 63     com (0x7563)
-af5a: 63 65        com (X+0x65)
-af5c: 73 73 66     com (0x7366)
-af5f: 75           ?
-af60: 6c 20        inc (X+0x20)
-af62: 70 73 77     neg (0x7377)
-af65: 64 3a        lsr (X+0x3A)
-af67: 5e           ?
-af68: 30           tsx
-af69: 39           rts
-af6a: 30           tsx
-af6b: 31           ins
-af6c: 43           coma
-af6d: 75           ?
-af6e: 72           ?
-af6f: 72           ?
-af70: 65           ?
-af71: 6e 74        jmp (X+0x74)
-af73: 20 56        bra [0xAFCB]
-af75: 65           ?
-af76: 72           ?
-af77: 73 69 6f     com (0x696F)
-af7a: 6e 20        jmp (X+0x20)
-af7c: 23 3a        bls [0xAFB8]
-af7e: 5e           ?
-af7f: 30           tsx
-af80: 38           pulx
-af81: 37           pshb
-af82: 30           tsx
-af83: 7c 04 16     inc (0x0416)
-af86: 5e           ?
-af87: 30           tsx
-af88: 39           rts
-af89: 33           pulb
-af8a: 30           tsx
-af8b: 40           nega
-af8c: 04           lsrd
-af8d: 00           test
-af8e: 5e           ?
-af8f: 30           tsx
-af90: 39           rts
-af91: 34           des
-af92: 30           tsx
-af93: 54           lsrb
-af94: 6f 74        clr (X+0x74)
-af96: 61           ?
-af97: 6c 20        inc (X+0x20)
-af99: 23 20        bls [0xAFBB]
-af9b: 62           ?
-af9c: 64 61        lsr (X+0x61)
-af9e: 79 73 20     rol (0x7320)
-afa1: 70 6c 61     neg (0x6C61)
-afa4: 79 65 64     rol (0x6564)
-afa7: 3a           abx
-afa8: 5e           ?
-afa9: 31           ins
-afaa: 30           tsx
-afab: 34           des
-afac: 30           tsx
-afad: 54           lsrb
-afae: 6f 74        clr (X+0x74)
-afb0: 61           ?
-afb1: 6c 20        inc (X+0x20)
-afb3: 23 20        bls [0xAFD5]
-afb5: 56           rorb
-afb6: 43           coma
-afb7: 52           ?
-afb8: 20 61        bra [0xB01B]
-afba: 64 6a        lsr (X+0x6A)
-afbc: 75           ?
-afbd: 73 74 73     com (0x7473)
-afc0: 3a           abx
-afc1: 5e           ?
-afc2: 30           tsx
-afc3: 39           rts
-afc4: 37           pshb
-afc5: 30           tsx
-afc6: 7c 04 18     inc (0x0418)
-afc9: 5e           ?
-afca: 31           ins
-afcb: 30           tsx
-afcc: 37           pshb
-afcd: 30           tsx
-afce: 7c 04 1a     inc (0x041A)
-afd1: 5e           ?
-afd2: 31           ins
-afd3: 31           ins
-afd4: 34           des
-afd5: 30           tsx
-afd6: 54           lsrb
-afd7: 6f 74        clr (X+0x74)
-afd9: 61           ?
-afda: 6c 20        inc (X+0x20)
-afdc: 23 20        bls [0xAFFE]
-afde: 72           ?
-afdf: 65           ?
-afe0: 6d 6f        tst (X+0x6F)
-afe2: 74 65 20     lsr (0x6520)
-afe5: 61           ?
-afe6: 63 63        com (X+0x63)
-afe8: 65           ?
-afe9: 73 73 65     com (0x7365)
-afec: 73 3a 5e     com (0x3A5E)
-afef: 31           ins
-aff0: 32           pula
-aff1: 34           des
-aff2: 30           tsx
-aff3: 54           lsrb
-aff4: 6f 74        clr (X+0x74)
-aff6: 61           ?
-aff7: 6c 20        inc (X+0x20)
-aff9: 23 20        bls [0xB01B]
-affb: 61           ?
-affc: 63 63        com (X+0x63)
-affe: 65           ?
-afff: 73 73 20     com (0x7320)
-b002: 61           ?
-b003: 74 74 65     lsr (0x7465)
-b006: 6d 70        tst (X+0x70)
-b008: 74 73 3a     lsr (0x733A)
-b00b: 5e           ?
-b00c: 31           ins
-b00d: 31           ins
-b00e: 37           pshb
-b00f: 30           tsx
-b010: 7c 04 1c     inc (0x041C)
-b013: 5e           ?
-b014: 31           ins
-b015: 32           pula
-b016: 37           pshb
-b017: 30           tsx
-b018: 7c 04 1e     inc (0x041E)
-b01b: 5e           ?
-b01c: 31           ins
-b01d: 33           pulb
-b01e: 34           des
-b01f: 30           tsx
-b020: 54           lsrb
-b021: 6f 74        clr (X+0x74)
-b023: 61           ?
-b024: 6c 20        inc (X+0x20)
-b026: 23 20        bls [0xB048]
-b028: 72           ?
-b029: 65           ?
-b02a: 6a 65        dec (X+0x65)
-b02c: 63 74        com (X+0x74)
-b02e: 65           ?
-b02f: 64 20        lsr (X+0x20)
-b031: 73 68 6f     com (0x686F)
-b034: 77 74 61     asr (0x7461)
-b037: 70 65 73     neg (0x6573)
-b03a: 3a           abx
-b03b: 5e           ?
-b03c: 31           ins
-b03d: 34           des
-b03e: 34           des
-b03f: 30           tsx
-b040: 54           lsrb
-b041: 6f 74        clr (X+0x74)
-b043: 61           ?
-b044: 6c 20        inc (X+0x20)
-b046: 23 20        bls [0xB068]
-b048: 53           comb
-b049: 68 6f        asl (X+0x6F)
-b04b: 72           ?
-b04c: 74 20 62     lsr (0x2062)
-b04f: 64 61        lsr (X+0x61)
-b051: 79 73 3a     rol (0x733A)
-b054: 5e           ?
-b055: 31           ins
-b056: 33           pulb
-b057: 37           pshb
-b058: 30           tsx
-b059: 7c 04 20     inc (0x0420)
-b05c: 5e           ?
-b05d: 31           ins
-b05e: 34           des
-b05f: 37           pshb
-b060: 30           tsx
-b061: 7c 04 22     inc (0x0422)
-b064: 5e           ?
-b065: 31           ins
-b066: 35           txs
-b067: 34           des
-b068: 30           tsx
-b069: 54           lsrb
-b06a: 6f 74        clr (X+0x74)
-b06c: 61           ?
-b06d: 6c 20        inc (X+0x20)
-b06f: 23 20        bls [0xB091]
-b071: 52           ?
-b072: 65           ?
-b073: 67 20        asr (X+0x20)
-b075: 62           ?
-b076: 64 61        lsr (X+0x61)
-b078: 79 73 3a     rol (0x733A)
-b07b: 5e           ?
-b07c: 31           ins
-b07d: 36           psha
-b07e: 34           des
-b07f: 30           tsx
-b080: 54           lsrb
-b081: 6f 74        clr (X+0x74)
-b083: 61           ?
-b084: 6c 20        inc (X+0x20)
-b086: 23 20        bls [0xB0A8]
-b088: 72           ?
-b089: 65           ?
-b08a: 73 65 74     com (0x6574)
-b08d: 73 2d 70     com (0x2D70)
-b090: 77 72 20     asr (0x7220)
-b093: 75           ?
-b094: 70 73 3a     neg (0x733A)
-b097: 5e           ?
-b098: 31           ins
-b099: 35           txs
-b09a: 37           pshb
-b09b: 30           tsx
-b09c: 7c 04 24     inc (0x0424)
-b09f: 5e           ?
-b0a0: 31           ins
-b0a1: 36           psha
-b0a2: 37           pshb
-b0a3: 30           tsx
-b0a4: 7c 04 26     inc (0x0426)
-b0a7: 5e           ?
-b0a8: 31           ins
-b0a9: 38           pulx
-b0aa: 30           tsx
-b0ab: 31           ins
-b0ac: 46           rora
-b0ad: 55           ?
-b0ae: 4e           ?
-b0af: 43           coma
-b0b0: 54           lsrb
-b0b1: 49           rola
-b0b2: 4f           clra
-b0b3: 4e           ?
-b0b4: 53           comb
-b0b5: 5e           ?
-b0b6: 31           ins
-b0b7: 38           pulx
-b0b8: 32           pula
-b0b9: 33           pulb
-b0ba: 53           comb
-b0bb: 65           ?
-b0bc: 6c 65        inc (X+0x65)
-b0be: 63 74        com (X+0x74)
-b0c0: 20 46        bra [0xB108]
-b0c2: 75           ?
-b0c3: 6e 63        jmp (X+0x63)
-b0c5: 74 69 6f     lsr (0x696F)
-b0c8: 6e 3a        jmp (X+0x3A)
-b0ca: 5e           ?
-b0cb: 32           pula
-b0cc: 30           tsx
-b0cd: 30           tsx
-b0ce: 31           ins
-b0cf: 31           ins
-b0d0: 2e 43        bgt [0xB115]
-b0d2: 6c 65        inc (X+0x65)
-b0d4: 61           ?
-b0d5: 72           ?
-b0d6: 20 72        bra [0xB14A]
-b0d8: 6e 64        jmp (X+0x64)
-b0da: 20 65        bra [0xB141]
-b0dc: 6e 61        jmp (X+0x61)
-b0de: 62           ?
-b0df: 6c 65        inc (X+0x65)
-b0e1: 73 5e 32     com (0x5E32)
-b0e4: 30           tsx
-b0e5: 32           pula
-b0e6: 38           pulx
-b0e7: 20 36        bra [0xB11F]
-b0e9: 2e 53        bgt [0xB13E]
-b0eb: 65           ?
-b0ec: 74 20 6c     lsr (0x206C)
-b0ef: 6f 63        clr (X+0x63)
-b0f1: 20 6e        bra [0xB161]
-b0f3: 61           ?
-b0f4: 6d 65        tst (X+0x65)
-b0f6: 2d 23        blt [0xB11B]
-b0f8: 5e           ?
-b0f9: 32           pula
-b0fa: 30           tsx
-b0fb: 35           txs
-b0fc: 34           des
-b0fd: 31           ins
-b0fe: 31           ins
-b0ff: 2e 44        bgt [0xB145]
-b101: 69 61        rol (X+0x61)
-b103: 67 6e        asr (X+0x6E)
-b105: 6f 73        clr (X+0x73)
-b107: 74 69 63     lsr (0x6963)
-b10a: 73 5e 32     com (0x5E32)
-b10d: 31           ins
-b10e: 30           tsx
-b10f: 31           ins
-b110: 32           pula
-b111: 2e 53        bgt [0xB166]
-b113: 65           ?
-b114: 74 20 72     lsr (0x2072)
-b117: 6e 64        jmp (X+0x64)
-b119: 20 65        bra [0xB180]
-b11b: 6e 61        jmp (X+0x61)
-b11d: 62           ?
-b11e: 6c 65        inc (X+0x65)
-b120: 73 5e 32     com (0x5E32)
-b123: 31           ins
-b124: 32           pula
-b125: 38           pulx
-b126: 20 37        bra [0xB15F]
-b128: 2e 53        bgt [0xB17D]
-b12a: 65           ?
-b12b: 74 20 54     lsr (0x2054)
-b12e: 69 6d        rol (X+0x6D)
-b130: 65           ?
-b131: 5e           ?
-b132: 32           pula
-b133: 31           ins
-b134: 35           txs
-b135: 34           des
-b136: 31           ins
-b137: 32           pula
-b138: 2e 5e        bgt [0xB198]
-b13a: 32           pula
-b13b: 32           pula
-b13c: 30           tsx
-b13d: 31           ins
-b13e: 33           pulb
-b13f: 2e 53        bgt [0xB194]
-b141: 65           ?
-b142: 74 20 72     lsr (0x2072)
-b145: 65           ?
-b146: 67 20        asr (X+0x20)
-b148: 74 61 70     lsr (0x6170)
-b14b: 65           ?
-b14c: 20 23        bra [0xB171]
-b14e: 5e           ?
-b14f: 32           pula
-b150: 32           pula
-b151: 32           pula
-b152: 38           pulx
-b153: 20 38        bra [0xB18D]
-b155: 2e 44        bgt [0xB19B]
-b157: 69 73        rol (X+0x73)
-b159: 62           ?
-b15a: 6c 2d        inc (X+0x2D)
-b15c: 65           ?
-b15d: 6e 62        jmp (X+0x62)
-b15f: 6c 20        inc (X+0x20)
-b161: 73 68 6f     com (0x686F)
-b164: 77 5e 32     asr (0x5E32)
-b167: 32           pula
-b168: 35           txs
-b169: 34           des
-b16a: 31           ins
-b16b: 33           pulb
-b16c: 2e 5e        bgt [0xB1CC]
-b16e: 32           pula
-b16f: 33           pulb
-b170: 30           tsx
-b171: 31           ins
-b172: 34           des
-b173: 2e 53        bgt [0xB1C8]
-b175: 65           ?
-b176: 74 20 6c     lsr (0x206C)
-b179: 69 76        rol (X+0x76)
-b17b: 20 74        bra [0xB1F1]
-b17d: 61           ?
-b17e: 70 65 20     neg (0x6520)
-b181: 23 5e        bls [0xB1E1]
-b183: 32           pula
-b184: 33           pulb
-b185: 32           pula
-b186: 38           pulx
-b187: 20 39        bra [0xB1C2]
-b189: 2e 55        bgt [0xB1E0]
-b18b: 70 6c 6f     neg (0x6C6F)
-b18e: 61           ?
-b18f: 64 20        lsr (X+0x20)
-b191: 70 72 6f     neg (0x726F)
-b194: 67 72        asr (X+0x72)
-b196: 61           ?
-b197: 6d 5e        tst (X+0x5E)
-b199: 32           pula
-b19a: 33           pulb
-b19b: 35           txs
-b19c: 34           des
-b19d: 31           ins
-b19e: 34           des
-b19f: 2e 5e        bgt [0xB1FF]
-b1a1: 32           pula
-b1a2: 34           des
-b1a3: 30           tsx
-b1a4: 31           ins
-b1a5: 35           txs
-b1a6: 2e 52        bgt [0xB1FA]
-b1a8: 65           ?
-b1a9: 73 65 74     com (0x6574)
-b1ac: 20 68        bra [0xB216]
-b1ae: 69 73        rol (X+0x73)
-b1b0: 74 6f 72     lsr (0x6F72)
-b1b3: 79 5e 32     rol (0x5E32)
-b1b6: 34           des
-b1b7: 32           pula
-b1b8: 38           pulx
-b1b9: 31           ins
-b1ba: 30           tsx
-b1bb: 2e 44        bgt [0xB201]
-b1bd: 65           ?
-b1be: 62           ?
-b1bf: 75           ?
-b1c0: 67 67        asr (X+0x67)
-b1c2: 65           ?
-b1c3: 72           ?
-b1c4: 5e           ?
-b1c5: 32           pula
-b1c6: 34           des
-b1c7: 35           txs
-b1c8: 34           des
-b1c9: 31           ins
-b1ca: 35           txs
-b1cb: 2e 5e        bgt [0xB22B]
-b1cd: 31           ins
-b1ce: 38           pulx
-b1cf: 34           des
-b1d0: 30           tsx
-b1d1: 00           test
-.endif
-
-        .org    0xb1d2
+        .ascii  "^0101Serial #:^0140#0000^0111~4"
+        .byte   0x0E,0x20
+        .ascii  "^0141|"
+        .byte   0x04,0x28
+        .ascii  "^0301CURRENT^0340HISTORY^0501Show Status:^0540Total # reg. shows:^0601Random Status:^0570|"
+        .byte   0x04,0x10
+        .ascii  "^0640Total # live shows:^0701Current Reg Tape #:^0670|"
+        .byte   0x04,0x12
+        .ascii  "^0730~3"
+        .byte   0x04,0x02
+        .ascii  "^0740Total # failed pswd attempts:^0801Current Live Tape #:^0770|"
+        .byte   0x04,0x14
+        .ascii  "^0830~3"
+        .byte   0x04,0x05
+        .ascii  "^0840Total # successful pswd:^0901Current Version #:^0870|"
+        .byte   0x04,0x16
+        .ascii  "^0930@"
+        .byte   0x04,0x00
+        .ascii  "^0940Total # bdays played:^1040Total # VCR adjusts:^0970|"
+        .byte   0x04,0x18
+        .ascii  "^1070|"
+        .byte   0x04,0x1A
+        .ascii  "^1140Total # remote accesses:^1240Total # access attempts:^1170|"
+        .byte   0x04,0x1C
+        .ascii  "^1270|"
+        .byte   0x04,0x1E
+        .ascii  "^1340Total # rejected showtapes:^1440Total # Short bdays:^1370|"
+        .byte   0x04,0x20
+        .ascii  "^1470|"
+        .byte   0x04,0x22
+        .ascii  "^1540Total # Reg bdays:^1640Total # resets-pwr ups:^1570|"
+        .byte   0x04,0x24
+        .ascii  "^1670|"
+        .byte   0x04,0x26
+        .ascii  "^1801FUNCTIONS^1823Select Function:^20011.Clear rnd enables^2028 6.Set loc name-#^205411.Diagnostics^21012.Set rnd enables^2128 7.Set Time^215412.^22013.Set reg tape #^2228 8.Disbl-enbl show^225413.^23014.Set liv tape #^2328 9.Upload program^235414.^24015.Reset history^242810.Debugger^245415.^1840"
+        .byte   0x00
 
 ; back to code
         ldx     #LB1D8       ; escape sequence?
@@ -6457,511 +5355,117 @@ LB2AA:
         jsr     L8A1A  
         rts
 
-.if 0
-; table
-b2c7: 5e           ?
-b2c8: 32           pula
-b2c9: 30           tsx
-b2ca: 30           tsx
-b2cb: 31           ins
-b2cc: 25 5e        bcs [0xB32C]
-b2ce: 32           pula
-b2cf: 31           ins
-b2d0: 30           tsx
-b2d1: 31           ins
-b2d2: 25 5e        bcs [0xB332]
-b2d4: 32           pula
-b2d5: 32           pula
-b2d6: 30           tsx
-b2d7: 31           ins
-b2d8: 25 5e        bcs [0xB338]
-b2da: 32           pula
-b2db: 33           pulb
-b2dc: 30           tsx
-b2dd: 31           ins
-b2de: 25 5e        bcs [0xB33E]
-b2e0: 32           pula
-b2e1: 34           des
-b2e2: 30           tsx
-b2e3: 31           ins
-b2e4: 25 5e        bcs [0xB344]
-b2e6: 32           pula
-b2e7: 30           tsx
-b2e8: 30           tsx
-b2e9: 31           ins
-b2ea: 00           test
+        .asciz  "^2001%^2101%^2201%^2301%^2401%^2001"
 
-b2eb: fa 20 fa     orab (0x20FA)
-b2ee: 20 f6        bra [0xB2E6]
-b2f0: 22 f5        bhi [0xB2E7]
-b2f2: 20 f5        bra [0xB2E9]
-b2f4: 20 f3        bra [0xB2E9]
-b2f6: 22 f2        bhi [0xB2EA]
-b2f8: 20 e5        bra [0xB2DF]
-b2fa: 22 e5        bhi [0xB2E1]
-b2fc: 22 e2        bhi [0xB2E0]
-b2fe: 20 d2        bra [0xB2D2]
-b300: 20 be        bra [0xB2C0]
-b302: 00           test
-b303: bc 22 bb     cpx (0x22BB)
-b306: 30           tsx
-b307: b9 32 b9     adca (0x32B9)
-b30a: 32           pula
-b30b: b7 30 b6     staa (0x30B6)
-b30e: 32           pula
-b30f: b5 30 b4     bita (0x30B4)
-b312: 32           pula
-b313: b4 32 b3     anda (0x32B3)
-b316: 20 b3        bra [0xB2CB]
-b318: 20 b1        bra [0xB2CB]
-b31a: a0 b1        suba (X+0xB1)
-b31c: a0 b0        suba (X+0xB0)
-b31e: a2 af        sbca (X+0xAF)
-b320: a0 af        suba (X+0xAF)
-b322: a6 ae        ldaa (X+0xAE)
-b324: a0 ae        suba (X+0xAE)
-b326: a6 ad        ldaa (X+0xAD)
-b328: a4 ac        anda (X+0xAC)
-b32a: a0 ac        suba (X+0xAC)
-b32c: a0 ab        suba (X+0xAB)
-b32e: a0 aa        suba (X+0xAA)
-b330: a0 aa        suba (X+0xAA)
-b332: a0 a2        suba (X+0xA2)
-b334: 80 a0        suba 0xA0
-b336: a0 a0        suba (X+0xA0)
-b338: a0 8d        suba (X+0x8D)
-b33a: 80 8a        suba 0x8A
-b33c: a0 7e        suba (X+0x7E)
-b33e: 80 7b        suba 0x7B
-b340: a0 79        suba (X+0x79)
-b342: a4 78        anda (X+0x78)
-b344: a0 77        suba (X+0x77)
-b346: a4 76        anda (X+0x76)
-b348: a0 75        suba (X+0x75)
-b34a: a4 74        anda (X+0x74)
-b34c: a0 73        suba (X+0x73)
-b34e: a4 72        anda (X+0x72)
-b350: a0 71        suba (X+0x71)
-b352: a4 70        anda (X+0x70)
-b354: a0 6f        suba (X+0x6F)
-b356: a4 6e        anda (X+0x6E)
-b358: a0 6d        suba (X+0x6D)
-b35a: a4 6c        anda (X+0x6C)
-b35c: a0 69        suba (X+0x69)
-b35e: 80 69        suba 0x69
-b360: 80 67        suba 0x67
-b362: a0 5e        suba (X+0x5E)
-b364: 20 58        bra [0xB3BE]
-b366: 24 57        bcc [0xB3BF]
-b368: 20 57        bra [0xB3C1]
-b36a: 20 56        bra [0xB3C2]
-b36c: 24 55        bcc [0xB3C3]
-b36e: 20 54        bra [0xB3C4]
-b370: 24 54        bcc [0xB3C6]
-b372: 24 53        bcc [0xB3C7]
-b374: 20 52        bra [0xB3C8]
-b376: 24 52        bcc [0xB3CA]
-b378: 24 50        bcc [0xB3CA]
-b37a: 20 4f        bra [0xB3CB]
-b37c: 24 4e        bcc [0xB3CC]
-b37e: 20 4d        bra [0xB3CD]
-b380: 24 4c        bcc [0xB3CE]
-b382: 20 4c        bra [0xB3D0]
-b384: 20 4b        bra [0xB3D1]
-b386: 24 4a        bcc [0xB3D2]
-b388: 20 49        bra [0xB3D3]
-b38a: 20 49        bra [0xB3D5]
-b38c: 00           test
-b38d: 48           asla
-b38e: 20 47        bra [0xB3D7]
-b390: 20 47        bra [0xB3D9]
-b392: 20 46        bra [0xB3DA]
-b394: 20 45        bra [0xB3DB]
-b396: 24 45        bcc [0xB3DD]
-b398: 24 44        bcc [0xB3DE]
-b39a: 20 42        bra [0xB3DE]
-b39c: 20 42        bra [0xB3E0]
-b39e: 20 37        bra [0xB3D7]
-b3a0: 04           lsrd
-b3a1: 35           txs
-b3a2: 20 2e        bra [0xB3D2]
-b3a4: 04           lsrd
-b3a5: 2e 04        bgt [0xB3AB]
-b3a7: 2d 20        blt [0xB3C9]
-b3a9: 23 24        bls [0xB3CF]
-b3ab: 21 20        brn [0xB3CD]
-b3ad: 17           tba
-b3ae: 24 13        bcc [0xB3C3]
-b3b0: 00           test
-b3b1: 11           cba
-b3b2: 24 10        bcc [0xB3C4]
-b3b4: 30           tsx
-b3b5: 07           tpa
-b3b6: 34           des
-b3b7: 06           tap
-b3b8: 30           tsx
-b3b9: 05           asld
-b3ba: 30           tsx
-b3bb: ff ff d7     stx (0xFFD7)
-b3be: 22 d5        bhi [0xB395]
-b3c0: 20 c9        bra [0xB38B]
-b3c2: 22 c7        bhi [0xB38B]
-b3c4: 20 c4        bra [0xB38A]
-b3c6: 24 c3        bcc [0xB38B]
-b3c8: 20 c2        bra [0xB38C]
-b3ca: 24 c1        bcc [0xB38D]
-b3cc: 20 bf        bra [0xB38D]
-b3ce: 24 bf        bcc [0xB38F]
-b3d0: 24 be        bcc [0xB390]
-b3d2: 20 bd        bra [0xB391]
-b3d4: 24 bc        bcc [0xB392]
-b3d6: 20 bb        bra [0xB393]
-b3d8: 24 ba        bcc [0xB394]
-b3da: 20 b9        bra [0xB395]
-b3dc: 20 b8        bra [0xB396]
-b3de: 24 b7        bcc [0xB397]
-b3e0: 20 b4        bra [0xB396]
-b3e2: 00           test
-b3e3: b4 00 b2     anda (0x00B2)
-b3e6: 20 a9        bra [0xB391]
-b3e8: 20 a3        bra [0xB38D]
-b3ea: 20 a2        bra [0xB38E]
-b3ec: 20 a1        bra [0xB38F]
-b3ee: 20 a0        bra [0xB390]
-b3f0: 20 a0        bra [0xB392]
-b3f2: 20 9f        bra [0xB393]
-b3f4: 20 9f        bra [0xB395]
-b3f6: 20 9e        bra [0xB396]
-b3f8: 20 9d        bra [0xB397]
-b3fa: 24 9d        bcc [0xB399]
-b3fc: 24 9b        bcc [0xB399]
-b3fe: 20 9a        bra [0xB39A]
-b400: 24 99        bcc [0xB39B]
-b402: 20 98        bra [0xB39C]
-b404: 20 97        bra [0xB39D]
-b406: 24 97        bcc [0xB39F]
-b408: 24 95        bcc [0xB39F]
-b40a: 20 95        bra [0xB3A1]
-b40c: 20 94        bra [0xB3A2]
-b40e: 00           test
-b40f: 94 00        anda (0x0000)
-b411: 93 20        subd (0x0020)
-b413: 92 00        sbca (0x0000)
-b415: 92 00        sbca (0x0000)
-b417: 91 20        cmpa (0x0020)
-b419: 90 20        suba (0x0020)
-b41b: 90 20        suba (0x0020)
-b41d: 8f           xgdx
-b41e: 20 8d        bra [0xB3AD]
-b420: 20 8d        bra [0xB3AF]
-b422: 20 81        bra [0xB3A5]
-b424: 00           test
-b425: 7f 20 79     clr (0x2079)
-b428: 00           test
-b429: 79 00 78     rol (0x0078)
-b42c: 20 76        bra [0xB4A4]
-b42e: 20 6b        bra [0xB49B]
-b430: 00           test
-b431: 69 20        rol (X+0x20)
-b433: 5e           ?
-b434: 00           test
-b435: 5c           incb
-b436: 20 5b        bra [0xB493]
-b438: 30           tsx
-b439: 52           ?
-b43a: 10           sba
-b43b: 51           ?
-b43c: 30           tsx
-b43d: 50           negb
-b43e: 30           tsx
-b43f: 50           negb
-b440: 30           tsx
-b441: 4f           clra
-b442: 20 4e        bra [0xB492]
-b444: 20 4e        bra [0xB494]
-b446: 20 4d        bra [0xB495]
-b448: 20 46        bra [0xB490]
-b44a: a0 45        suba (X+0x45)
-b44c: a0 3d        suba (X+0x3D)
-b44e: a0 3d        suba (X+0x3D)
-b450: a0 39        suba (X+0x39)
-b452: 20 2a        bra [0xB47E]
-b454: 00           test
-b455: 28 20        bvc [0xB477]
-b457: 1e 00 1c 22  brset (X+0x00), 0x1C, [0xB47D]
-b45b: 1c 22 1b     bset (X+0x22), 0x1B
-b45e: 20 1a        bra [0xB47A]
-b460: 22 19        bhi [0xB47B]
-b462: 20 18        bra [0xB47C]
-b464: 22 18        bhi [0xB47E]
-b466: 22 16        bhi [0xB47E]
-b468: 20 15        bra [0xB47F]
-b46a: 22 15        bhi [0xB481]
-b46c: 22 14        bhi [0xB482]
-b46e: a0 13        suba (X+0x13)
-b470: a2 11        sbca (X+0x11)
-b472: a0 ff        suba (X+0xFF)
-b474: ff be 00     stx (0xBE00)
-b477: bc 22 bb     cpx (0x22BB)
-b47a: 30           tsx
-b47b: b9 32 b9     adca (0x32B9)
-b47e: 32           pula
-b47f: b7 30 b6     staa (0x30B6)
-b482: 32           pula
-b483: b5 30 b4     bita (0x30B4)
-b486: 32           pula
-b487: b4 32 b3     anda (0x32B3)
-b48a: 20 b3        bra [0xB43F]
-b48c: 20 b1        bra [0xB43F]
-b48e: a0 b1        suba (X+0xB1)
-b490: a0 b0        suba (X+0xB0)
-b492: a2 af        sbca (X+0xAF)
-b494: a0 af        suba (X+0xAF)
-b496: a6 ae        ldaa (X+0xAE)
-b498: a0 ae        suba (X+0xAE)
-b49a: a6 ad        ldaa (X+0xAD)
-b49c: a4 ac        anda (X+0xAC)
-b49e: a0 ac        suba (X+0xAC)
-b4a0: a0 ab        suba (X+0xAB)
-b4a2: a0 aa        suba (X+0xAA)
-b4a4: a0 aa        suba (X+0xAA)
-b4a6: a0 a2        suba (X+0xA2)
-b4a8: 80 a0        suba 0xA0
-b4aa: a0 a0        suba (X+0xA0)
-b4ac: a0 8d        suba (X+0x8D)
-b4ae: 80 8a        suba 0x8A
-b4b0: a0 7e        suba (X+0x7E)
-b4b2: 80 7b        suba 0x7B
-b4b4: a0 79        suba (X+0x79)
-b4b6: a4 78        anda (X+0x78)
-b4b8: a0 77        suba (X+0x77)
-b4ba: a4 76        anda (X+0x76)
-b4bc: a0 75        suba (X+0x75)
-b4be: a4 74        anda (X+0x74)
-b4c0: a0 73        suba (X+0x73)
-b4c2: a4 72        anda (X+0x72)
-b4c4: a0 71        suba (X+0x71)
-b4c6: a4 70        anda (X+0x70)
-b4c8: a0 6f        suba (X+0x6F)
-b4ca: a4 6e        anda (X+0x6E)
-b4cc: a0 6d        suba (X+0x6D)
-b4ce: a4 6c        anda (X+0x6C)
-b4d0: a0 69        suba (X+0x69)
-b4d2: 80 69        suba 0x69
-b4d4: 80 67        suba 0x67
-b4d6: a0 5e        suba (X+0x5E)
-b4d8: 20 58        bra [0xB532]
-b4da: 24 57        bcc [0xB533]
-b4dc: 20 57        bra [0xB535]
-b4de: 20 56        bra [0xB536]
-b4e0: 24 55        bcc [0xB537]
-b4e2: 20 54        bra [0xB538]
-b4e4: 24 54        bcc [0xB53A]
-b4e6: 24 53        bcc [0xB53B]
-b4e8: 20 52        bra [0xB53C]
-b4ea: 24 52        bcc [0xB53E]
-b4ec: 24 50        bcc [0xB53E]
-b4ee: 20 4f        bra [0xB53F]
-b4f0: 24 4e        bcc [0xB540]
-b4f2: 20 4d        bra [0xB541]
-b4f4: 24 4c        bcc [0xB542]
-b4f6: 20 4c        bra [0xB544]
-b4f8: 20 4b        bra [0xB545]
-b4fa: 24 4a        bcc [0xB546]
-b4fc: 20 49        bra [0xB547]
-b4fe: 20 49        bra [0xB549]
-b500: 00           test
-b501: 48           asla
-b502: 20 47        bra [0xB54B]
-b504: 20 47        bra [0xB54D]
-b506: 20 46        bra [0xB54E]
-b508: 20 45        bra [0xB54F]
-b50a: 24 45        bcc [0xB551]
-b50c: 24 44        bcc [0xB552]
-b50e: 20 42        bra [0xB552]
-b510: 20 42        bra [0xB554]
-b512: 20 37        bra [0xB54B]
-b514: 04           lsrd
-b515: 35           txs
-b516: 20 2e        bra [0xB546]
-b518: 04           lsrd
-b519: 2e 04        bgt [0xB51F]
-b51b: 2d 20        blt [0xB53D]
-b51d: 23 24        bls [0xB543]
-b51f: 21 20        brn [0xB541]
-b521: 17           tba
-b522: 24 13        bcc [0xB537]
-b524: 00           test
-b525: 11           cba
-b526: 24 10        bcc [0xB538]
-b528: 30           tsx
-b529: 07           tpa
-b52a: 34           des
-b52b: 06           tap
-b52c: 30           tsx
-b52d: 05           asld
-b52e: 30           tsx
-b52f: ff ff cd     stx (0xFFCD)
-b532: 20 cc        bra [0xB500]
-b534: 20 cb        bra [0xB501]
-b536: 20 cb        bra [0xB503]
-b538: 20 ca        bra [0xB504]
-b53a: 00           test
-b53b: c9 20        adcb 0x20
-b53d: c9 20        adcb 0x20
-b53f: c8 20        eorb 0x20
-b541: c1 a0        cmpb 0xA0
-b543: c0 a0        subb 0xA0
-b545: b8 a0 b8     eora (0xA0B8)
-b548: 20 b4        bra [0xB4FE]
-b54a: 20 a6        bra [0xB4F2]
-b54c: 00           test
-b54d: a4 20        anda (X+0x20)
-b54f: 99 00        adca (0x0000)
-b551: 97 22        staa (0x0022)
-b553: 97 22        staa (0x0022)
-b555: 96 20        ldaa (0x0020)
-b557: 95 22        bita (0x0022)
-b559: 94 20        anda (0x0020)
-b55b: 93 22        subd (0x0022)
-b55d: 93 22        subd (0x0022)
-b55f: 91 20        cmpa (0x0020)
-b561: 90 20        suba (0x0020)
-b563: 90 20        suba (0x0020)
-b565: 8d a0        bsr [0xB507]
-b567: 8c a0 7d     cpx 0xA07D
-b56a: a2 7d        sbca (X+0x7D)
-b56c: a2 7b        sbca (X+0x7B)
-b56e: a0 7b        suba (X+0x7B)
-b570: a0 79        suba (X+0x79)
-b572: a2 79        sbca (X+0x79)
-b574: a2 77        sbca (X+0x77)
-b576: a0 77        suba (X+0x77)
-b578: a0 76        suba (X+0x76)
-b57a: 80 75        suba 0x75
-b57c: a0 6e        suba (X+0x6E)
-b57e: 20 67        bra [0xB5E7]
-b580: 24 66        bcc [0xB5E8]
-b582: 20 65        bra [0xB5E9]
-b584: 24 64        bcc [0xB5EA]
-b586: 20 63        bra [0xB5EB]
-b588: 24 63        bcc [0xB5ED]
-b58a: 24 61        bcc [0xB5ED]
-b58c: 20 60        bra [0xB5EE]
-b58e: 24 5f        bcc [0xB5EF]
-b590: 20 5e        bra [0xB5F0]
-b592: 20 5d        bra [0xB5F1]
-b594: 24 5c        bcc [0xB5F2]
-b596: 20 5b        bra [0xB5F3]
-b598: 24 5a        bcc [0xB5F4]
-b59a: 20 59        bra [0xB5F5]
-b59c: 24 58        bcc [0xB5F6]
-b59e: 20 56        bra [0xB5F6]
-b5a0: 20 55        bra [0xB5F7]
-b5a2: 04           lsrd
-b5a3: 54           lsrb
-b5a4: 00           test
-b5a5: 53           comb
-b5a6: 24 52        bcc [0xB5FA]
-b5a8: 20 52        bra [0xB5FC]
-b5aa: 20 4f        bra [0xB5FB]
-b5ac: 24 4f        bcc [0xB5FD]
-b5ae: 24 4e        bcc [0xB5FE]
-b5b0: 30           tsx
-b5b1: 4d           tsta
-b5b2: 30           tsx
-b5b3: 47           asra
-b5b4: 10           sba
-b5b5: 45           ?
-b5b6: 30           tsx
-b5b7: 35           txs
-b5b8: 30           tsx
-b5b9: 33           pulb
-b5ba: 10           sba
-b5bb: 31           ins
-b5bc: 30           tsx
-b5bd: 31           ins
-b5be: 30           tsx
-b5bf: 1d 20 ff     bclr (X+0x20), 0xFF
-b5c2: ff a9 20     stx (0xA920)
-b5c5: a3 20        subd (X+0x20)
-b5c7: a2 20        sbca (X+0x20)
-b5c9: a1 20        cmpa (X+0x20)
-b5cb: a0 20        suba (X+0x20)
-b5cd: a0 20        suba (X+0x20)
-b5cf: 9f 20        sts (0x0020)
-b5d1: 9f 20        sts (0x0020)
-b5d3: 9e 20        lds (0x0020)
-b5d5: 9d 24        jsr (0x0024)
-b5d7: 9d 24        jsr (0x0024)
-b5d9: 9b 20        adda (0x0020)
-b5db: 9a 24        oraa (0x0024)
-b5dd: 99 20        adca (0x0020)
-b5df: 98 20        eora (0x0020)
-b5e1: 97 24        staa (0x0024)
-b5e3: 97 24        staa (0x0024)
-b5e5: 95 20        bita (0x0020)
-b5e7: 95 20        bita (0x0020)
-b5e9: 94 00        anda (0x0000)
-b5eb: 94 00        anda (0x0000)
-b5ed: 93 20        subd (0x0020)
-b5ef: 92 00        sbca (0x0000)
-b5f1: 92 00        sbca (0x0000)
-b5f3: 91 20        cmpa (0x0020)
-b5f5: 90 20        suba (0x0020)
-b5f7: 90 20        suba (0x0020)
-b5f9: 8f           xgdx
-b5fa: 20 8d        bra [0xB589]
-b5fc: 20 8d        bra [0xB58B]
-b5fe: 20 81        bra [0xB581]
-b600: 00           test
-b601: 7f 20 79     clr (0x2079)
-b604: 00           test
-b605: 79 00 78     rol (0x0078)
-b608: 20 76        bra [0xB680]
-b60a: 20 6b        bra [0xB677]
-b60c: 00           test
-b60d: 69 20        rol (X+0x20)
-b60f: 5e           ?
-b610: 00           test
-b611: 5c           incb
-b612: 20 5b        bra [0xB66F]
-b614: 30           tsx
-b615: 52           ?
-b616: 10           sba
-b617: 51           ?
-b618: 30           tsx
-b619: 50           negb
-b61a: 30           tsx
-b61b: 50           negb
-b61c: 30           tsx
-b61d: 4f           clra
-b61e: 20 4e        bra [0xB66E]
-b620: 20 4e        bra [0xB670]
-b622: 20 4d        bra [0xB671]
-b624: 20 46        bra [0xB66C]
-b626: a0 45        suba (X+0x45)
-b628: a0 3d        suba (X+0x3D)
-b62a: a0 3d        suba (X+0x3D)
-b62c: a0 39        suba (X+0x39)
-b62e: 20 2a        bra [0xB65A]
-b630: 00           test
-b631: 28 20        bvc [0xB653]
-b633: 1e 00 1c 22  brset (X+0x00), 0x1C, [0xB659]
-b637: 1c 22 1b     bset (X+0x22), 0x1B
-b63a: 20 1a        bra [0xB656]
-b63c: 22 19        bhi [0xB657]
-b63e: 20 18        bra [0xB658]
-b640: 22 18        bhi [0xB65A]
-b642: 22 16        bhi [0xB65A]
-b644: 20 15        bra [0xB65B]
-b646: 22 15        bhi [0xB65D]
-b648: 22 14        bhi [0xB65E]
-b64a: a0 13        suba (X+0x13)
-b64c: a2 11        sbca (X+0x11)
-b64e: a0 ff        suba (X+0xFF)
-
-.endif
+        .byte   0xfa,0x20,0xfa,0x20,0xf6,0x22,0xf5,0x20
+        .byte   0xf5,0x20,0xf3,0x22,0xf2,0x20,0xe5,0x22
+        .byte   0xe5,0x22,0xe2,0x20,0xd2,0x20,0xbe,0x00
+        .byte   0xbc,0x22,0xbb,0x30,0xb9,0x32,0xb9,0x32
+        .byte   0xb7,0x30,0xb6,0x32,0xb5,0x30,0xb4,0x32
+        .byte   0xb4,0x32,0xb3,0x20,0xb3,0x20,0xb1,0xa0
+        .byte   0xb1,0xa0,0xb0,0xa2,0xaf,0xa0,0xaf,0xa6
+        .byte   0xae,0xa0,0xae,0xa6,0xad,0xa4,0xac,0xa0
+        .byte   0xac,0xa0,0xab,0xa0,0xaa,0xa0,0xaa,0xa0
+        .byte   0xa2,0x80,0xa0,0xa0,0xa0,0xa0,0x8d,0x80
+        .byte   0x8a,0xa0,0x7e,0x80,0x7b,0xa0,0x79,0xa4
+        .byte   0x78,0xa0,0x77,0xa4,0x76,0xa0,0x75,0xa4
+        .byte   0x74,0xa0,0x73,0xa4,0x72,0xa0,0x71,0xa4
+        .byte   0x70,0xa0,0x6f,0xa4,0x6e,0xa0,0x6d,0xa4
+        .byte   0x6c,0xa0,0x69,0x80,0x69,0x80,0x67,0xa0
+        .byte   0x5e,0x20,0x58,0x24,0x57,0x20,0x57,0x20
+        .byte   0x56,0x24,0x55,0x20,0x54,0x24,0x54,0x24
+        .byte   0x53,0x20,0x52,0x24,0x52,0x24,0x50,0x20
+        .byte   0x4f,0x24,0x4e,0x20,0x4d,0x24,0x4c,0x20
+        .byte   0x4c,0x20,0x4b,0x24,0x4a,0x20,0x49,0x20
+        .byte   0x49,0x00,0x48,0x20,0x47,0x20,0x47,0x20
+        .byte   0x46,0x20,0x45,0x24,0x45,0x24,0x44,0x20
+        .byte   0x42,0x20,0x42,0x20,0x37,0x04,0x35,0x20
+        .byte   0x2e,0x04,0x2e,0x04,0x2d,0x20,0x23,0x24
+        .byte   0x21,0x20,0x17,0x24,0x13,0x00,0x11,0x24
+        .byte   0x10,0x30,0x07,0x34,0x06,0x30,0x05,0x30
+        .byte   0xff,0xff,0xd7,0x22,0xd5,0x20,0xc9,0x22
+        .byte   0xc7,0x20,0xc4,0x24,0xc3,0x20,0xc2,0x24
+        .byte   0xc1,0x20,0xbf,0x24,0xbf,0x24,0xbe,0x20
+        .byte   0xbd,0x24,0xbc,0x20,0xbb,0x24,0xba,0x20
+        .byte   0xb9,0x20,0xb8,0x24,0xb7,0x20,0xb4,0x00
+        .byte   0xb4,0x00,0xb2,0x20,0xa9,0x20,0xa3,0x20
+        .byte   0xa2,0x20,0xa1,0x20,0xa0,0x20,0xa0,0x20
+        .byte   0x9f,0x20,0x9f,0x20,0x9e,0x20,0x9d,0x24
+        .byte   0x9d,0x24,0x9b,0x20,0x9a,0x24,0x99,0x20
+        .byte   0x98,0x20,0x97,0x24,0x97,0x24,0x95,0x20
+        .byte   0x95,0x20,0x94,0x00,0x94,0x00,0x93,0x20
+        .byte   0x92,0x00,0x92,0x00,0x91,0x20,0x90,0x20
+        .byte   0x90,0x20,0x8f,0x20,0x8d,0x20,0x8d,0x20
+        .byte   0x81,0x00,0x7f,0x20,0x79,0x00,0x79,0x00
+        .byte   0x78,0x20,0x76,0x20,0x6b,0x00,0x69,0x20
+        .byte   0x5e,0x00,0x5c,0x20,0x5b,0x30,0x52,0x10
+        .byte   0x51,0x30,0x50,0x30,0x50,0x30,0x4f,0x20
+        .byte   0x4e,0x20,0x4e,0x20,0x4d,0x20,0x46,0xa0
+        .byte   0x45,0xa0,0x3d,0xa0,0x3d,0xa0,0x39,0x20
+        .byte   0x2a,0x00,0x28,0x20,0x1e,0x00,0x1c,0x22
+        .byte   0x1c,0x22,0x1b,0x20,0x1a,0x22,0x19,0x20
+        .byte   0x18,0x22,0x18,0x22,0x16,0x20,0x15,0x22
+        .byte   0x15,0x22,0x14,0xa0,0x13,0xa2,0x11,0xa0
+        .byte   0xff,0xff,0xbe,0x00,0xbc,0x22,0xbb,0x30
+        .byte   0xb9,0x32,0xb9,0x32,0xb7,0x30,0xb6,0x32
+        .byte   0xb5,0x30,0xb4,0x32,0xb4,0x32,0xb3,0x20
+        .byte   0xb3,0x20,0xb1,0xa0,0xb1,0xa0,0xb0,0xa2
+        .byte   0xaf,0xa0,0xaf,0xa6,0xae,0xa0,0xae,0xa6
+        .byte   0xad,0xa4,0xac,0xa0,0xac,0xa0,0xab,0xa0
+        .byte   0xaa,0xa0,0xaa,0xa0,0xa2,0x80,0xa0,0xa0
+        .byte   0xa0,0xa0,0x8d,0x80,0x8a,0xa0,0x7e,0x80
+        .byte   0x7b,0xa0,0x79,0xa4,0x78,0xa0,0x77,0xa4
+        .byte   0x76,0xa0,0x75,0xa4,0x74,0xa0,0x73,0xa4
+        .byte   0x72,0xa0,0x71,0xa4,0x70,0xa0,0x6f,0xa4
+        .byte   0x6e,0xa0,0x6d,0xa4,0x6c,0xa0,0x69,0x80
+        .byte   0x69,0x80,0x67,0xa0,0x5e,0x20,0x58,0x24
+        .byte   0x57,0x20,0x57,0x20,0x56,0x24,0x55,0x20
+        .byte   0x54,0x24,0x54,0x24,0x53,0x20,0x52,0x24
+        .byte   0x52,0x24,0x50,0x20,0x4f,0x24,0x4e,0x20
+        .byte   0x4d,0x24,0x4c,0x20,0x4c,0x20,0x4b,0x24
+        .byte   0x4a,0x20,0x49,0x20,0x49,0x00,0x48,0x20
+        .byte   0x47,0x20,0x47,0x20,0x46,0x20,0x45,0x24
+        .byte   0x45,0x24,0x44,0x20,0x42,0x20,0x42,0x20
+        .byte   0x37,0x04,0x35,0x20,0x2e,0x04,0x2e,0x04
+        .byte   0x2d,0x20,0x23,0x24,0x21,0x20,0x17,0x24
+        .byte   0x13,0x00,0x11,0x24,0x10,0x30,0x07,0x34
+        .byte   0x06,0x30,0x05,0x30,0xff,0xff,0xcd,0x20
+        .byte   0xcc,0x20,0xcb,0x20,0xcb,0x20,0xca,0x00
+        .byte   0xc9,0x20,0xc9,0x20,0xc8,0x20,0xc1,0xa0
+        .byte   0xc0,0xa0,0xb8,0xa0,0xb8,0x20,0xb4,0x20
+        .byte   0xa6,0x00,0xa4,0x20,0x99,0x00,0x97,0x22
+        .byte   0x97,0x22,0x96,0x20,0x95,0x22,0x94,0x20
+        .byte   0x93,0x22,0x93,0x22,0x91,0x20,0x90,0x20
+        .byte   0x90,0x20,0x8d,0xa0,0x8c,0xa0,0x7d,0xa2
+        .byte   0x7d,0xa2,0x7b,0xa0,0x7b,0xa0,0x79,0xa2
+        .byte   0x79,0xa2,0x77,0xa0,0x77,0xa0,0x76,0x80
+        .byte   0x75,0xa0,0x6e,0x20,0x67,0x24,0x66,0x20
+        .byte   0x65,0x24,0x64,0x20,0x63,0x24,0x63,0x24
+        .byte   0x61,0x20,0x60,0x24,0x5f,0x20,0x5e,0x20
+        .byte   0x5d,0x24,0x5c,0x20,0x5b,0x24,0x5a,0x20
+        .byte   0x59,0x24,0x58,0x20,0x56,0x20,0x55,0x04
+        .byte   0x54,0x00,0x53,0x24,0x52,0x20,0x52,0x20
+        .byte   0x4f,0x24,0x4f,0x24,0x4e,0x30,0x4d,0x30
+        .byte   0x47,0x10,0x45,0x30,0x35,0x30,0x33,0x10
+        .byte   0x31,0x30,0x31,0x30,0x1d,0x20,0xff,0xff
+        .byte   0xa9,0x20,0xa3,0x20,0xa2,0x20,0xa1,0x20
+        .byte   0xa0,0x20,0xa0,0x20,0x9f,0x20,0x9f,0x20
+        .byte   0x9e,0x20,0x9d,0x24,0x9d,0x24,0x9b,0x20
+        .byte   0x9a,0x24,0x99,0x20,0x98,0x20,0x97,0x24
+        .byte   0x97,0x24,0x95,0x20,0x95,0x20,0x94,0x00
+        .byte   0x94,0x00,0x93,0x20,0x92,0x00,0x92,0x00
+        .byte   0x91,0x20,0x90,0x20,0x90,0x20,0x8f,0x20
+        .byte   0x8d,0x20,0x8d,0x20,0x81,0x00,0x7f,0x20
+        .byte   0x79,0x00,0x79,0x00,0x78,0x20,0x76,0x20
+        .byte   0x6b,0x00,0x69,0x20,0x5e,0x00,0x5c,0x20
+        .byte   0x5b,0x30,0x52,0x10,0x51,0x30,0x50,0x30
+        .byte   0x50,0x30,0x4f,0x20,0x4e,0x20,0x4e,0x20
+        .byte   0x4d,0x20,0x46,0xa0,0x45,0xa0,0x3d,0xa0
+        .byte   0x3d,0xa0,0x39,0x20,0x2a,0x00,0x28,0x20
+        .byte   0x1e,0x00,0x1c,0x22,0x1c,0x22,0x1b,0x20
+        .byte   0x1a,0x22,0x19,0x20,0x18,0x22,0x18,0x22
+        .byte   0x16,0x20,0x15,0x22,0x15,0x22,0x14,0xa0
+        .byte   0x13,0xa2,0x11,0xa0
 
 ; All empty (0xFFs) in this gap
 
