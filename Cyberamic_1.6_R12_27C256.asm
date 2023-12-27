@@ -11,8 +11,13 @@
 
 ; 68HC11 Register definitions
 
+PORTA       .equ    0x1000
+DDRA        .equ    0x1001
+PORTG       .equ    0x1002
+DDRG        .equ    0x1003
 PORTE       .equ    0x100a
 TMSK1       .equ    0x1022
+TFLG1       .equ    0x1023
 TMSK2       .equ    0x1024
 BAUD        .equ    0x102b
 SCCR1       .equ    0x102c
@@ -979,659 +984,693 @@ L87FD:
         .byte   0xff,0xff
 
 L8815:
-.if 0
-8815: ce 88 3e     ldx 0x883E
-8818: ff 01 28     stx (0x0128)
-881b: 86 7e        ldaa 0x7E
-881d: b7 01 27     staa (0x0127)
-8820: ce 88 32     ldx 0x8832
-8823: ff 01 01     stx (0x0101)
-8826: b7 01 00     staa (0x0100)
-8829: b6 10 2d     ldaa SCCR2  
-882c: 8a 20        oraa 0x20
-882e: b7 10 2d     staa SCCR2  
-8831: 39           rts
+        ldx     #0x883E
+        stx     (0x0128)
+        ldaa    #0x7E
+        staa    (0x0127)
+        ldx     #0x8832
+        stx     (0x0101)
+        staa    (0x0100)
+        ldaa    SCCR2  
+        oraa    #0x20
+        staa    SCCR2  
+        rts
 
-8832: b6 10 2e     ldaa SCSR  
-8835: b6 10 2f     ldaa SCDR  
-8838: 7c 00 48     inc (0x0048)
-883b: 7e 88 62     jmp (0x8862)
-883e: 86 01        ldaa 0x01
-8840: b7 18 0c     staa (0x180C)
-8843: b6 18 0c     ldaa (0x180C)
-8846: 84 70        anda 0x70
-8848: 26 1f        bne [0x8869]
-884a: 86 0a        ldaa 0x0A
-884c: b7 18 0c     staa (0x180C)
-884f: b6 18 0c     ldaa (0x180C)
-8852: 84 c0        anda 0xC0
-8854: 26 22        bne [0x8878]
-8856: b6 18 0c     ldaa (0x180C)
-8859: 44           lsra
-885a: 24 35        bcc [0x8891]
-885c: 7c 00 48     inc (0x0048)
-885f: b6 18 0e     ldaa (0x180E)
-8862: bd f9 6f     jsr (0xF96F)
-8865: 97 4a        staa (0x004A)
-8867: 20 2d        bra [0x8896]
-8869: b6 18 0e     ldaa (0x180E)
-886c: 86 30        ldaa 0x30
-886e: b7 18 0c     staa (0x180C)
-8871: 86 07        ldaa 0x07
-8873: bd f9 6f     jsr (0xF96F)
-8876: 0c           clc
-8877: 3b           rti
+        ldaa    SCSR  
+        ldaa    SCDR  
+        inc     (0x0048)
+        jmp     (0x8862)
+        ldaa    #0x01
+        staa    (0x180C)
+        ldaa    (0x180C)
+        anda    #0x70
+        bne     L8869  
+        ldaa    #0x0A
+        staa    (0x180C)
+        ldaa    (0x180C)
+        anda    #0xC0
+        bne     L8878  
+        ldaa    (0x180C)
+        lsra
+        bcc     L8891  
+        inc     (0x0048)
+        ldaa    (0x180E)
+        jsr     (0xF96F)
+        staa    (0x004A)
+        bra     L8896  
+L8869:
+        ldaa    (0x180E)
+        ldaa    #0x30
+        staa    (0x180C)
+        ldaa    #0x07
+        jsr     (0xF96F)
+        clc
+        rti
 
-8878: 86 07        ldaa 0x07
-887a: bd f9 6f     jsr (0xF96F)
-887d: 86 0e        ldaa 0x0E
-887f: b7 18 0c     staa (0x180C)
-8882: 86 43        ldaa 0x43
-8884: b7 18 0c     staa (0x180C)
-8887: b6 18 0e     ldaa (0x180E)
-888a: 86 07        ldaa 0x07
-888c: bd f9 6f     jsr (0xF96F)
-888f: 0d           sec
-8890: 3b           rti
+L8878:
+        ldaa    #0x07
+        jsr     (0xF96F)
+        ldaa    #0x0E
+        staa    (0x180C)
+        ldaa    #0x43
+        staa    (0x180C)
+        ldaa    (0x180E)
+        ldaa    #0x07
+        jsr     (0xF96F)
+        sec
+        rti
 
-8891: b6 18 0e     ldaa (0x180E)
-8894: 0c           clc
-8895: 3b           rti
+L8891:
+        ldaa    (0x180E)
+        clc
+        rti
 
-8896: 84 7f        anda 0x7F
-8898: 81 24        cmpa 0x24
-889a: 27 44        beq [0x88E0]
-889c: 81 25        cmpa 0x25
-889e: 27 40        beq [0x88E0]
-88a0: 81 20        cmpa 0x20
-88a2: 27 3a        beq [0x88DE]
-88a4: 81 30        cmpa 0x30
-88a6: 25 35        bcs [0x88DD]
-88a8: 97 12        staa (0x0012)
-88aa: 96 4d        ldaa (0x004D)
-88ac: 81 02        cmpa 0x02
-88ae: 25 09        bcs [0x88B9]
-88b0: 7f 00 4d     clr (0x004D)
-88b3: 96 12        ldaa (0x0012)
-88b5: 97 49        staa (0x0049)
-88b7: 20 24        bra [0x88DD]
-88b9: 7d 00 4e     tst (0x004E)
-88bc: 27 1f        beq [0x88DD]
-88be: 86 78        ldaa 0x78
-88c0: 97 63        staa (0x0063)
-88c2: 97 64        staa (0x0064)
-88c4: 96 12        ldaa (0x0012)
-88c6: 81 40        cmpa 0x40
-88c8: 24 07        bcc [0x88D1]
-88ca: 97 4c        staa (0x004C)
-88cc: 7f 00 4d     clr (0x004D)
-88cf: 20 0c        bra [0x88DD]
-88d1: 81 60        cmpa 0x60
-88d3: 24 08        bcc [0x88DD]
-88d5: 97 4b        staa (0x004B)
-88d7: 7f 00 4d     clr (0x004D)
-88da: bd 88 e5     jsr (0x88E5)
-88dd: 3b           rti
+L8896:
+        anda    #0x7F
+        cmpa    #0x24
+        beq     L88E0  
+        cmpa    #0x25
+        beq     L88E0  
+        cmpa    #0x20
+        beq     L88DE  
+        cmpa    #0x30
+        bcs     L88DD  
+        staa    (0x0012)
+        ldaa    (0x004D)
+        cmpa    #0x02
+        bcs     L88B9  
+        clr     (0x004D)
+        ldaa    (0x0012)
+        staa    (0x0049)
+        bra     L88DD  
+L88B9:
+        tst     (0x004E)
+        beq     L88DD  
+        ldaa    #0x78
+        staa    (0x0063)
+        staa    (0x0064)
+        ldaa    (0x0012)
+        cmpa    #0x40
+        bcc     L88D1  
+        staa    (0x004C)
+        clr     (0x004D)
+        bra     L88DD  
+L88D1:
+        cmpa    #0x60
+        bcc     L88DD  
+        staa    (0x004B)
+        clr     (0x004D)
+        jsr     (0x88E5)
+L88DD:
+        rti
 
-88de: 20 fd        bra [0x88DD]
-88e0: 7c 00 4d     inc (0x004D)
-88e3: 20 f9        bra [0x88DE]
-88e5: d6 4b        ldab (0x004B)
-88e7: 96 4c        ldaa (0x004C)
-88e9: 7d 04 5c     tst (0x045C)
-88ec: 27 0d        beq [0x88FB]
-88ee: 81 3c        cmpa 0x3C
-88f0: 25 09        bcs [0x88FB]
-88f2: 81 3f        cmpa 0x3F
-88f4: 22 05        bhi [0x88FB]
-88f6: bd 89 93     jsr (0x8993)
-88f9: 20 65        bra [0x8960]
-88fb: 1a 83 30 48  cpd 0x3048
-88ff: 27 79        beq [0x897A]
-8901: 1a 83 31 48  cpd 0x3148
-8905: 27 5a        beq [0x8961]
-8907: 1a 83 34 4d  cpd 0x344D
-890b: 27 6d        beq [0x897A]
-890d: 1a 83 35 4d  cpd 0x354D
-8911: 27 4e        beq [0x8961]
-8913: 1a 83 36 4d  cpd 0x364D
-8917: 27 61        beq [0x897A]
-8919: 1a 83 37 4d  cpd 0x374D
-891d: 27 42        beq [0x8961]
-891f: ce 10 80     ldx 0x1080
-8922: d6 4c        ldab (0x004C)
-8924: c0 30        subb 0x30
-8926: 54           lsrb
-8927: 58           aslb
-8928: 58           aslb
-8929: 3a           abx
-892a: d6 4b        ldab (0x004B)
-892c: c1 50        cmpb 0x50
-892e: 24 30        bcc [0x8960]
-8930: c1 47        cmpb 0x47
-8932: 23 02        bls [0x8936]
-8934: 08           inx
-8935: 08           inx
-8936: c0 40        subb 0x40
-8938: c4 07        andb 0x07
-893a: 4f           clra
-893b: 0d           sec
-893c: 49           rola
-893d: 5d           tstb
-893e: 27 04        beq [0x8944]
-8940: 49           rola
-8941: 5a           decb
-8942: 26 fc        bne [0x8940]
-8944: 97 50        staa (0x0050)
-8946: 96 4c        ldaa (0x004C)
-8948: 84 01        anda 0x01
-894a: 27 08        beq [0x8954]
-894c: a6 00        ldaa (X+0x00)
-894e: 9a 50        oraa (0x0050)
-8950: a7 00        staa (X+0x00)
-8952: 20 0c        bra [0x8960]
-8954: 96 50        ldaa (0x0050)
-8956: 88 ff        eora 0xFF
-8958: 97 50        staa (0x0050)
-895a: a6 00        ldaa (X+0x00)
-895c: 94 50        anda (0x0050)
-895e: a7 00        staa (X+0x00)
-8960: 39           rts
+L88DE:
+        bra     L88DD  
+L88E0:
+        inc     (0x004D)
+        bra     L88DE  
+        ldab    (0x004B)
+        ldaa    (0x004C)
+        tst     (0x045C)
+        beq     L88FB  
+        cmpa    #0x3C
+        bcs     L88FB  
+        cmpa    #0x3F
+        bhi     L88FB  
+        jsr     (0x8993)
+        bra     L8960  
+L88FB:
+        cpd     #0x3048
+        beq     L897A  
+        cpd     #0x3148
+        beq     L8961  
+        cpd     #0x344D
+        beq     L897A  
+        cpd     #0x354D
+        beq     L8961  
+        cpd     #0x364D
+        beq     L897A  
+        cpd     #0x374D
+        beq     L8961  
+        ldx     #0x1080
+        ldab    (0x004C)
+        subb    #0x30
+        lsrb
+        aslb
+        aslb
+        abx
+        ldab    (0x004B)
+        cmpb    #0x50
+        bcc     L8960  
+        cmpb    #0x47
+        bls     L8936  
+        inx
+        inx
+L8936:
+        subb    #0x40
+        andb    #0x07
+        clra
+        sec
+        rola
+        tstb
+        beq     L8944  
+L8940:
+        rola
+        decb
+        bne     L8940  
+L8944:
+        staa    (0x0050)
+        ldaa    (0x004C)
+        anda    #0x01
+        beq     L8954  
+        ldaa    0,X
+        oraa    (0x0050)
+        staa    0,X
+        bra     L8960  
+L8954:
+        ldaa    (0x0050)
+        eora    #0xFF
+        staa    (0x0050)
+        ldaa    0,X
+        anda    (0x0050)
+        staa    0,X
+L8960:
+        rts
 
-8961: b6 10 82     ldaa (0x1082)
-8964: 8a 01        oraa 0x01
-8966: b7 10 82     staa (0x1082)
-8969: b6 10 8a     ldaa (0x108A)
-896c: 8a 20        oraa 0x20
-896e: b7 10 8a     staa (0x108A)
-8971: b6 10 8e     ldaa (0x108E)
-8974: 8a 20        oraa 0x20
-8976: b7 10 8e     staa (0x108E)
-8979: 39           rts
+L8961:
+        ldaa    (0x1082)
+        oraa    #0x01
+        staa    (0x1082)
+        ldaa    (0x108A)
+        oraa    #0x20
+        staa    (0x108A)
+        ldaa    (0x108E)
+        oraa    #0x20
+        staa    (0x108E)
+        rts
 
-897a: b6 10 82     ldaa (0x1082)
-897d: 84 fe        anda 0xFE
-897f: b7 10 82     staa (0x1082)
-8982: b6 10 8a     ldaa (0x108A)
-8985: 84 df        anda 0xDF
-8987: b7 10 8a     staa (0x108A)
-898a: b6 10 8e     ldaa (0x108E)
-898d: 84 df        anda 0xDF
-898f: b7 10 8e     staa (0x108E)
-8992: 39           rts
+L897A:
+        ldaa    (0x1082)
+        anda    #0xFE
+        staa    (0x1082)
+        ldaa    (0x108A)
+        anda    #0xDF
+        staa    (0x108A)
+        ldaa    (0x108E)
+        anda    #0xDF
+        staa    (0x108E)
+        rts
 
-8993: 3c           pshx
-8994: 81 3d        cmpa 0x3D
-8996: 22 05        bhi [0x899D]
-8998: ce f7 80     ldx 0xF780
-899b: 20 03        bra [0x89A0]
-899d: ce f7 a0     ldx 0xF7A0
-89a0: c0 40        subb 0x40
-89a2: 58           aslb
-89a3: 3a           abx
-89a4: 81 3c        cmpa 0x3C
-89a6: 27 34        beq [0x89DC]
-89a8: 81 3d        cmpa 0x3D
-89aa: 27 0a        beq [0x89B6]
-89ac: 81 3e        cmpa 0x3E
-89ae: 27 4b        beq [0x89FB]
-89b0: 81 3f        cmpa 0x3F
-89b2: 27 15        beq [0x89C9]
-89b4: 38           pulx
-89b5: 39           rts
+        pshx
+        cmpa    #0x3D
+        bhi     L899D  
+        ldx     #0xF780
+        bra     L89A0  
+L899D:
+        ldx     #0xF7A0
+L89A0:
+        subb    #0x40
+        aslb
+        abx
+        cmpa    #0x3C
+        beq     L89DC  
+        cmpa    #0x3D
+        beq     L89B6  
+        cmpa    #0x3E
+        beq     L89FB  
+        cmpa    #0x3F
+        beq     L89C9  
+        pulx
+        rts
 
-89b6: b6 10 98     ldaa (0x1098)
-89b9: aa 00        oraa (X+0x00)
-89bb: b7 10 98     staa (0x1098)
-89be: 08           inx
-89bf: b6 10 9a     ldaa (0x109A)
-89c2: aa 00        oraa (X+0x00)
-89c4: b7 10 9a     staa (0x109A)
-89c7: 38           pulx
-89c8: 39           rts
+L89B6:
+        ldaa    (0x1098)
+        oraa    0,X
+        staa    (0x1098)
+        inx
+        ldaa    (0x109A)
+        oraa    0,X
+        staa    (0x109A)
+        pulx
+        rts
 
-89c9: b6 10 9c     ldaa (0x109C)
-89cc: aa 00        oraa (X+0x00)
-89ce: b7 10 9c     staa (0x109C)
-89d1: 08           inx
-89d2: b6 10 9e     ldaa (0x109E)
-89d5: aa 00        oraa (X+0x00)
-89d7: b7 10 9e     staa (0x109E)
-89da: 38           pulx
-89db: 39           rts
+L89C9:
+        ldaa    (0x109C)
+        oraa    0,X
+        staa    (0x109C)
+        inx
+        ldaa    (0x109E)
+        oraa    0,X
+        staa    (0x109E)
+        pulx
+        rts
 
-89dc: e6 00        ldab (X+0x00)
-89de: c8 ff        eorb 0xFF
-89e0: d7 12        stab (0x0012)
-89e2: b6 10 98     ldaa (0x1098)
-89e5: 94 12        anda (0x0012)
-89e7: b7 10 98     staa (0x1098)
-89ea: 08           inx
-89eb: e6 00        ldab (X+0x00)
-89ed: c8 ff        eorb 0xFF
-89ef: d7 12        stab (0x0012)
-89f1: b6 10 9a     ldaa (0x109A)
-89f4: 94 12        anda (0x0012)
-89f6: b7 10 9a     staa (0x109A)
-89f9: 38           pulx
-89fa: 39           rts
+L89DC:
+        ldab    0,X
+        eorb    #0xFF
+        stab    (0x0012)
+        ldaa    (0x1098)
+        anda    (0x0012)
+        staa    (0x1098)
+        inx
+        ldab    0,X
+        eorb    #0xFF
+        stab    (0x0012)
+        ldaa    (0x109A)
+        anda    (0x0012)
+        staa    (0x109A)
+        pulx
+        rts
 
-89fb: e6 00        ldab (X+0x00)
-89fd: c8 ff        eorb 0xFF
-89ff: d7 12        stab (0x0012)
-8a01: b6 10 9c     ldaa (0x109C)
-8a04: 94 12        anda (0x0012)
-8a06: b7 10 9c     staa (0x109C)
-8a09: 08           inx
-8a0a: e6 00        ldab (X+0x00)
-8a0c: c8 ff        eorb 0xFF
-8a0e: d7 12        stab (0x0012)
-8a10: b6 10 9e     ldaa (0x109E)
-8a13: 94 12        anda (0x0012)
-8a15: b7 10 9e     staa (0x109E)
-8a18: 38           pulx
-8a19: 39           rts
+L89FB:
+        ldab    0,X
+        eorb    #0xFF
+        stab    (0x0012)
+        ldaa    (0x109C)
+        anda    (0x0012)
+        staa    (0x109C)
+        inx
+        ldab    0,X
+        eorb    #0xFF
+        stab    (0x0012)
+        ldaa    (0x109E)
+        anda    (0x0012)
+        staa    (0x109E)
+        pulx
+        rts
 
+L8A1A:
 ; Read from table location in X
-8a1a: 3c           pshx
-8a1b: 86 04        ldaa 0x04
-8a1d: b5 18 0d     bita (0x180D)
-8a20: 27 f9        beq [0x8A1B]
-8a22: a6 00        ldaa (X+0x00)
-8a24: 26 03        bne [0x8A29]     ; is it a nul?
-8a26: 7e 8b 21     jmp (0x8B21)     ; if so jump to exit
-8a29: 08           inx
-8a2a: 81 5e        cmpa 0x5E        ; is is a caret? '^'
-8a2c: 26 1d        bne [0x8A4B]     ; no, jump ahead
-8a2e: a6 00        ldaa (X+0x00)    ; yes, get the next char
-8a30: 08           inx
-8a31: b7 05 92     staa (0x0592)    
-8a34: a6 00        ldaa (X+0x00)
-8a36: 08           inx
-8a37: b7 05 93     staa (0x0593)
-8a3a: a6 00        ldaa (X+0x00)
-8a3c: 08           inx
-8a3d: b7 05 95     staa (0x0595)
-8a40: a6 00        ldaa (X+0x00)
-8a42: 08           inx
-8a43: b7 05 96     staa (0x0596)
-8a46: bd 8b 23     jsr (0x8B23)
-8a49: 20 d0        bra [0x8A1B]
+        pshx
+L8A1B:
+        ldaa    #0x04
+        bita    (0x180D)
+        beq     L8A1B  
+        ldaa    0,X     
+        bne     L8A29       ; is it a nul?
+        jmp     (0x8B21)     ; if so jump to exit
+L8A29:
+        inx
+        cmpa    #0x5E        ; is is a caret? '^'
+        bne     L8A4B       ; no, jump ahead
+        ldaa    0,X         ; yes, get the next char
+        inx
+        staa    (0x0592)    
+        ldaa    0,X     
+        inx
+        staa    (0x0593)
+        ldaa    0,X     
+        inx
+        staa    (0x0595)
+        ldaa    0,X     
+        inx
+        staa    (0x0596)
+        jsr     (0x8B23)
+        bra     L8A1B  
 
-8a4b: 81 40        cmpa 0x40
-8a4d: 26 3b        bne [0x8A8A]
-8a4f: 1a ee 00     ldy (X+0x00)
-8a52: 08           inx
-8a53: 08           inx
-8a54: 86 30        ldaa 0x30
-8a56: 97 b1        staa (0x00B1)
-8a58: 18 a6 00     ldaa (Y+0x00)
-8a5b: 81 64        cmpa 0x64
-8a5d: 25 07        bcs [0x8A66]
-8a5f: 7c 00 b1     inc (0x00B1)
-8a62: 80 64        suba 0x64
-8a64: 20 f5        bra [0x8A5B]
-8a66: 36           psha
-8a67: 96 b1        ldaa (0x00B1)
-8a69: bd 8b 3b     jsr (0x8B3B)
-8a6c: 86 30        ldaa 0x30
-8a6e: 97 b1        staa (0x00B1)
-8a70: 32           pula
-8a71: 81 0a        cmpa 0x0A
-8a73: 25 07        bcs [0x8A7C]
-8a75: 7c 00 b1     inc (0x00B1)
-8a78: 80 0a        suba 0x0A
-8a7a: 20 f5        bra [0x8A71]
-8a7c: 36           psha
-8a7d: 96 b1        ldaa (0x00B1)
-8a7f: bd 8b 3b     jsr (0x8B3B)
-8a82: 32           pula
-8a83: 8b 30        adda 0x30
-8a85: bd 8b 3b     jsr (0x8B3B)
-8a88: 20 91        bra [0x8A1B]
-8a8a: 81 7c        cmpa 0x7C
-8a8c: 26 59        bne [0x8AE7]
-8a8e: 1a ee 00     ldy (X+0x00)
-8a91: 08           inx
-8a92: 08           inx
-8a93: 86 30        ldaa 0x30
-8a95: 97 b1        staa (0x00B1)
-8a97: 18 ec 00     ldd (Y+0x00)
-8a9a: 1a 83 27 10  cpd 0x2710
-8a9e: 25 08        bcs [0x8AA8]
-8aa0: 7c 00 b1     inc (0x00B1)
-8aa3: 83 27 10     subd 0x2710
-8aa6: 20 f2        bra [0x8A9A]
-8aa8: 36           psha
-8aa9: 96 b1        ldaa (0x00B1)
-8aab: bd 8b 3b     jsr (0x8B3B)
-8aae: 86 30        ldaa 0x30
-8ab0: 97 b1        staa (0x00B1)
-8ab2: 32           pula
-8ab3: 1a 83 03 e8  cpd 0x03E8
-8ab7: 25 08        bcs [0x8AC1]
-8ab9: 7c 00 b1     inc (0x00B1)
-8abc: 83 03 e8     subd 0x03E8
-8abf: 20 f2        bra [0x8AB3]
-8ac1: 36           psha
-8ac2: 96 b1        ldaa (0x00B1)
-8ac4: bd 8b 3b     jsr (0x8B3B)
-8ac7: 86 30        ldaa 0x30
-8ac9: 97 b1        staa (0x00B1)
-8acb: 32           pula
-8acc: 1a 83 00 64  cpd 0x0064
-8ad0: 25 08        bcs [0x8ADA]
-8ad2: 7c 00 b1     inc (0x00B1)
-8ad5: 83 00 64     subd 0x0064
-8ad8: 20 f2        bra [0x8ACC]
-8ada: 96 b1        ldaa (0x00B1)
-8adc: bd 8b 3b     jsr (0x8B3B)
-8adf: 86 30        ldaa 0x30
-8ae1: 97 b1        staa (0x00B1)
-8ae3: 17           tba
-8ae4: 7e 8a 71     jmp (0x8A71)
-8ae7: 81 7e        cmpa 0x7E
-8ae9: 26 18        bne [0x8B03]
-8aeb: e6 00        ldab (X+0x00)
-8aed: c0 30        subb 0x30
-8aef: 08           inx
-8af0: 1a ee 00     ldy (X+0x00)
-8af3: 08           inx
-8af4: 08           inx
-8af5: 18 a6 00     ldaa (Y+0x00)
-8af8: 18 08        iny
-8afa: bd 8b 3b     jsr (0x8B3B)
-8afd: 5a           decb
-8afe: 26 f5        bne [0x8AF5]
-8b00: 7e 8a 1b     jmp (0x8A1B)
-8b03: 81 25        cmpa 0x25
-8b05: 26 14        bne [0x8B1B]
-8b07: ce 05 90     ldx 0x0590
-8b0a: cc 1b 5b     ldd 0x1B5B
-8b0d: ed 00        std (X+0x00)
-8b0f: 86 4b        ldaa 0x4B
-8b11: a7 02        staa (X+0x02)
-8b13: 6f 03        clr (X+0x03)
-8b15: bd 8a 1a     jsr (0x8A1A)
-8b18: 7e 8a 1b     jmp (0x8A1B)
-8b1b: b7 18 0f     staa (0x180F)
-8b1e: 7e 8a 1b     jmp (0x8A1B)
-8b21: 38           pulx
-8b22: 39           rts
+L8A4B:
+        cmpa    #0x40
+        bne     L8A8A  
+        ldy     0,X     
+        inx
+        inx
+        ldaa    #0x30
+        staa    (0x00B1)
+        ldaa    0,Y     
+L8A5B:
+        cmpa    #0x64
+        bcs     L8A66  
+        inc     (0x00B1)
+        suba    #0x64
+        bra     L8A5B  
+L8A66:
+        psha
+        ldaa    (0x00B1)
+        jsr     (0x8B3B)
+        ldaa    #0x30
+        staa    (0x00B1)
+        pula
+L8A71:
+        cmpa    #0x0A
+        bcs     L8A7C  
+        inc     (0x00B1)
+        suba    #0x0A
+        bra     L8A71  
+L8A7C:
+        psha
+        ldaa    (0x00B1)
+        jsr     (0x8B3B)
+        pula
+        adda    #0x30
+        jsr     (0x8B3B)
+        bra     L8A1B  
+L8A8A:
+        cmpa    #0x7C
+        bne     L8AE7  
+        ldy     0,X     
+        inx
+        inx
+        ldaa    #0x30
+        staa    (0x00B1)
+        ldd     0,Y     
+L8A9A:
+        cpd     #0x2710
+        bcs     L8AA8  
+        inc     (0x00B1)
+        subd    #0x2710
+        bra     L8A9A  
+L8AA8:
+        psha
+        ldaa    (0x00B1)
+        jsr     (0x8B3B)
+        ldaa    #0x30
+        staa    (0x00B1)
+        pula
+L8AB3:
+        cpd     #0x03E8
+        bcs     L8AC1  
+        inc     (0x00B1)
+        subd    #0x03E8
+        bra     L8AB3  
+L8AC1:
+        psha
+        ldaa    (0x00B1)
+        jsr     (0x8B3B)
+        ldaa    #0x30
+        staa    (0x00B1)
+        pula
+L8ACC:
+        cpd     #0x0064
+        bcs     L8ADA  
+        inc     (0x00B1)
+        subd    #0x0064
+        bra     L8ACC  
+L8ADA:
+        ldaa    (0x00B1)
+        jsr     (0x8B3B)
+        ldaa    #0x30
+        staa    (0x00B1)
+        tba
+        jmp     (0x8A71)
+L8AE7:
+        cmpa    #0x7E
+        bne     L8B03  
+        ldab    0,X     
+        subb    #0x30
+        inx
+        ldy     0,X     
+        inx
+        inx
+L8AF5:
+        ldaa    0,Y     
+        iny
+        jsr     (0x8B3B)
+        decb
+        bne     L8AF5  
+        jmp     (0x8A1B)
+L8B03:
+        cmpa    #0x25
+        bne     L8B1B  
+        ldx     #0x0590
+        ldd     #0x1B5B
+        std     0,X     
+        ldaa    #0x4B
+        staa    2,X
+        clr     3,X
+        jsr     L8A1A  
+        jmp     (0x8A1B)
+L8B1B:
+        staa    (0x180F)
+        jmp     (0x8A1B)
+        pulx
+        rts
 
-8b23: 3c           pshx
-8b24: ce 05 90     ldx 0x0590
-8b27: cc 1b 5b     ldd 0x1B5B
-8b2a: ed 00        std (X+0x00)
-8b2c: 86 48        ldaa 0x48
-8b2e: a7 07        staa (X+0x07)
-8b30: 86 3b        ldaa 0x3B
-8b32: a7 04        staa (X+0x04)
-8b34: 6f 08        clr (X+0x08)
-8b36: bd 8a 1a     jsr (0x8A1A)
-8b39: 38           pulx
-8b3a: 39           rts
+        pshx
+        ldx     #0x0590
+        ldd     #0x1B5B
+        std     0,X     
+        ldaa    #0x48
+        staa    7,X
+        ldaa    #0x3B
+        staa    4,X
+        clr     8,X
+        jsr     L8A1A  
+        pulx
+        rts
 
-8b3b: 36           psha
-8b3c: 86 04        ldaa 0x04
-8b3e: b5 18 0d     bita (0x180D)
-8b41: 27 f9        beq [0x8B3C]
-8b43: 32           pula
-8b44: b7 18 0f     staa (0x180F)
-8b47: 39           rts
+        psha
+L8B3C:
+        ldaa    #0x04
+        bita    (0x180D)
+        beq     L8B3C  
+        pula
+        staa    (0x180F)
+        rts
 
-8b48: bd a3 2e     jsr (0xA32E)
-8b4b: bd 8d e4     jsr (0x8DE4)
+        jsr     (0xA32E)
 
-; 'Light Diagnostic'
-8b4e: 4c 69 67 68 74 20 44 69 61 67 6e 6f 73 74 69 e3
+        jsr     (0x8DE4)
+        .ascis  'Light Diagnostic'
 
-8b5e: bd 8d dd     jsr (0x8DDD)
+        jsr     (0x8DDD)
+        .ascis  'Curtains opening'
 
-; 'Curtains opening'
-8b61: 43 75 72 74 61 69 6e 73 20 6f 70 65 6e 69 6e e7 
+        ldab    #0x14
+        jsr     (0x8C30)
+        ldab    #0xFF
+        stab    (0x1098)
+        stab    (0x109A)
+        stab    (0x109C)
+        stab    (0x109E)
+        jsr     (0xF9C5)
+        ldaa    (0x1804)
+        oraa    #0x40
+        staa    (0x1804)
 
-8b71: c6 14        ldab 0x14
-8b73: bd 8c 30     jsr (0x8C30)
-8b76: c6 ff        ldab 0xFF
-8b78: f7 10 98     stab (0x1098)
-8b7b: f7 10 9a     stab (0x109A)
-8b7e: f7 10 9c     stab (0x109C)
-8b81: f7 10 9e     stab (0x109E)
-8b84: bd f9 c5     jsr (0xF9C5)
-8b87: b6 18 04     ldaa (0x1804)
-8b8a: 8a 40        oraa 0x40
-8b8c: b7 18 04     staa (0x1804)
-8b8f: bd 8d e4     jsr (0x8DE4)
+        jsr     (0x8DE4)
+        .ascis  ' Press ENTER to '
 
-; ' Press ENTER to '
-8b92: 20 50 72 65 73 73 20 45 4e 54 45 52 20 74 6f a0
+        jsr     (0x8DDD)
+        .ascis  'turn lights  off'
 
-8ba2: bd 8d dd     jsr (0x8DDD)
-
-; 'turn lights  off'
-8ba5: 74 75 72 6e 20 6c 69 67 68 74 73 20 20 6f 66 e6
-
-8bb5: bd 8e 95     jsr (0x8E95)
-8bb8: 81 0d        cmpa 0x0D
-8bba: 26 f9        bne [0x8BB5]
-8bbc: bd a3 41     jsr (0xA341)
-8bbf: 39           rts
+L8BB5:
+        jsr     (0x8E95)
+        cmpa    #0x0D
+        bne     L8BB5  
+        jsr     (0xA341)
+        rts
 
 ; setup IRQ handlers!
-.endif
-        .org    0x8bc0
 L8BC0:
-.if 0
-8bc0: 86 80        ldaa 0x80
-8bc2: b7 10 22     staa TMSK1
-8bc5: ce ab cc     ldx 0xABCC
-8bc8: ff 01 19     stx (0x0119)
-8bcb: ce ad 0c     ldx 0xAD0C
-8bce: ff 01 16     stx (0x0116)
-8bd1: ce ad 0c     ldx 0xAD0C
-8bd4: ff 01 2e     stx (0x012E)
-8bd7: 86 7e        ldaa 0x7E
-8bd9: b7 01 18     staa (0x0118)
-8bdc: b7 01 15     staa (0x0115)
-8bdf: b7 01 2d     staa (0x012D)
-8be2: 4f           clra
-8be3: 5f           clrb
-8be4: dd 1b        std CDTIMR1     ; Reset all the countdown timers
-8be6: dd 1d        std CDTIMR2
-8be8: dd 1f        std CDTIMR3
-8bea: dd 21        std CDTIMR4
-8bec: dd 23        std CDTIMR5
+        ldaa    #0x80
+        staa    TMSK1
+        ldx     #0xABCC
+        stx     (0x0119)
+        ldx     #0xAD0C
+        stx     (0x0116)
+        ldx     #0xAD0C
+        stx     (0x012E)
+        ldaa    #0x7E
+        staa    (0x0118)
+        staa    (0x0115)
+        staa    (0x012D)
+        clra
+        clrb
+        std     CDTIMR1     ; Reset all the countdown timers
+        std     CDTIMR2
+        std     CDTIMR3
+        std     CDTIMR4
+        std     CDTIMR5
 
-.endif
-        .org    0x8bee
 L8BEE:
-.if 0
-8bee: 86 c0        ldaa 0xC0
-8bf0: b7 10 23     staa (TFLG1)
-8bf3: 39           rts
+        ldaa    #0xC0
+        staa    TFLG1  
+        rts
 
-8bf4: b6 10 0a     ldaa PORTE
-8bf7: 88 ff        eora 0xFF
-8bf9: 16           tab
-8bfa: d7 62        stab (0x0062)
-8bfc: bd f9 c5     jsr (0xF9C5)
-8bff: 20 f3        bra [0x8BF4]
-8c01: 39           rts
+L8BF4:
+        ldaa    PORTE
+        eora    #0xFF
+        tab
+        stab    (0x0062)
+        jsr     (0xF9C5)
+        bra     L8BF4  
+        rts
 
 ; Delay B seconds??
 
-8c02: 36           psha
-8c03: 86 64        ldaa 0x64
-8c05: 3d           mul
-8c06: dd 23        std CDTIMR5     ; store B*100 here
-8c08: bd 9b 19     jsr (0x9B19)     ; update 0x0023/0x0024 from RTC???
-8c0b: dc 23        ldd CDTIMR5
-8c0d: 26 f9        bne [0x8C08]
-8c0f: 32           pula
-8c10: 39           rts
+        psha
+        ldaa    #0x64
+        mul
+        std     CDTIMR5     ; store B*100 here
+L8C08:
+        jsr     (0x9B19)     ; update 0x0023/0x0024 from RTC???
+        ldd     CDTIMR5
+        bne     L8C08  
+        pula
+        rts
 
-8c11: 36           psha
-8c12: 86 3c        ldaa 0x3C
-8c14: 97 28        staa (0x0028)
-8c16: c6 01        ldab 0x01        ; delay 1 sec
-8c18: bd 8c 02     jsr (0x8C02)     ;
-8c1b: 96 28        ldaa (0x0028)
-8c1d: 4a           deca
-8c1e: 26 f4        bne [0x8C14]
-8c20: 32           pula
-8c21: 39           rts
+        psha
+        ldaa    #0x3C
+L8C14:
+        staa    (0x0028)
+        ldab    #0x01        ; delay 1 sec
+        jsr     (0x8C02)     ;
+        ldaa    (0x0028)
+        deca
+        bne     L8C14  
+        pula
+        rts
 
-8c22: 36           psha
-8c23: 4f           clra
-8c24: dd 23        std CDTIMR5
-8c26: bd 9b 19     jsr (0x9B19)
-8c29: 7d 00 24     tst CDTIMR5+1
-8c2c: 26 f8        bne [0x8C26]
-8c2e: 32           pula
-8c2f: 39           rts
+        psha
+        clra
+        std     CDTIMR5
+L8C26:
+        jsr     (0x9B19)
+        tst     CDTIMR5+1
+        bne     L8C26  
+        pula
+        rts
 
-8c30: 36           psha
-8c31: 86 32        ldaa 0x32
-8c33: 3d           mul
-8c34: dd 23        std CDTIMR5
-8c36: dc 23        ldd CDTIMR5
-8c38: 26 fc        bne [0x8C36]
-8c3a: 32           pula
-8c3b: 39           rts
+        psha
+        ldaa    #0x32
+        mul
+        std     CDTIMR5
+L8C36:
+        ldd     CDTIMR5
+        bne     L8C36  
+        pula
+        rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; LCD routines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-.endif
-        .org    0x8c3c
 L8C3C:
-.if 0
-8c3c: 86 ff        ldaa 0xFF
-8c3e: b7 10 01     staa (DDRA)
-8c41: 86 ff        ldaa 0xFF
-8c43: b7 10 03     staa (DDRG)
-8c46: b6 10 02     ldaa (PORTG)
-8c49: 8a 02        oraa 0x02
-8c4b: b7 10 02     staa (PORTG)
-8c4e: 86 38        ldaa 0x38
-8c50: bd 8c 86     jsr (0x8C86)     ; write byte to LCD
-8c53: 86 38        ldaa 0x38
-8c55: bd 8c 86     jsr (0x8C86)     ; write byte to LCD
-8c58: 86 06        ldaa 0x06
-8c5a: bd 8c 86     jsr (0x8C86)     ; write byte to LCD
-8c5d: 86 0e        ldaa 0x0E
-8c5f: bd 8c 86     jsr (0x8C86)     ; write byte to LCD
-8c62: 86 01        ldaa 0x01
-8c64: bd 8c 86     jsr (0x8C86)     ; write byte to LCD
-8c67: ce 00 ff     ldx 0x00FF
-8c6a: 01           nop
-8c6b: 01           nop
-8c6c: 09           dex
-8c6d: 26 fb        bne [0x8C6A]
-8c6f: 39           rts
+        ldaa    #0xFF
+        staa    DDRA  
+        ldaa    #0xFF
+        staa    DDRG 
+        ldaa    PORTG  
+        oraa    #0x02
+        staa    PORTG  
+        ldaa    #0x38
+        jsr     (0x8C86)     ; write byte to LCD
+        ldaa    #0x38
+        jsr     (0x8C86)     ; write byte to LCD
+        ldaa    #0x06
+        jsr     (0x8C86)     ; write byte to LCD
+        ldaa    #0x0E
+        jsr     (0x8C86)     ; write byte to LCD
+        ldaa    #0x01
+        jsr     (0x8C86)     ; write byte to LCD
+        ldx     #0x00FF
+L8C6A:
+        nop
+        nop
+        dex
+        bne     L8C6A  
+        rts
 
 ; toggle LCD ENABLE
-8c70: b6 10 02     ldaa (PORTG)
-8c73: 84 fd        anda 0xFD        ; clear LCD ENABLE
-8c75: b7 10 02     staa (PORTG)
-8c78: 8a 02        oraa 0x02        ; set LCD ENABLE
-8c7a: b7 10 02     staa (PORTG)
-8c7d: 39           rts
+        ldaa    PORTG  
+        anda    #0xFD        ; clear LCD ENABLE
+        staa    PORTG  
+        oraa    #0x02        ; set LCD ENABLE
+        staa    PORTG  
+        rts
 
 ; Reset LCD buffer?
-.endif
-        .org    0x8c7e
 L8C7E:
-.if 0
-8c7e: cc 05 00     ldd 0x0500       ; Reset LCD queue?
-8c81: dd 46        std (0x0046)     ; write pointer
-8c83: dd 44        std (0x0044)     ; read pointer?
-8c85: 39           rts
+        ldd     #0x0500       ; Reset LCD queue?
+        std     (0x0046)     ; write pointer
+        std     (0x0044)     ; read pointer?
+        rts
 
 ; write byte to LCD
-8c86: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8c89: b7 10 00     staa (PORTA)
-8c8c: b6 10 02     ldaa (PORTG)     
-8c8f: 84 f3        anda 0xF3        ; LCD RS and LCD RW low
-8c91: b7 10 02     staa (PORTG)
-8c94: bd 8c 70     jsr (0x8C70)     ; toggle LCD ENABLE
-8c97: 39           rts
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        staa    PORTA  
+        ldaa    PORTG       
+        anda    #0xF3        ; LCD RS and LCD RW low
+L8C91:
+        staa    PORTG  
+        jsr     (0x8C70)     ; toggle LCD ENABLE
+        rts
 
-8c98: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8c9b: b7 10 00     staa (PORTA)
-8c9e: b6 10 02     ldaa (PORTG)
-8ca1: 84 fb        anda 0xFB
-8ca3: 8a 08        oraa 0x08
-8ca5: 20 ea        bra [0x8C91]
-8ca7: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8caa: b6 10 02     ldaa (PORTG)
-8cad: 84 f7        anda 0xF7
-8caf: 8a 08        oraa 0x08
-8cb1: 20 de        bra [0x8C91]
-8cb3: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8cb6: b6 10 02     ldaa (PORTG)
-8cb9: 8a 0c        oraa 0x0C
-8cbb: 20 d4        bra [0x8C91]
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        staa    PORTA  
+        ldaa    PORTG  
+        anda    #0xFB
+        oraa    #0x08
+        bra     L8C91  
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        ldaa    PORTG  
+        anda    #0xF7
+        oraa    #0x08
+        bra     L8C91  
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        ldaa    PORTG  
+        oraa    #0x0C
+        bra     L8C91  
 
 ; wait for LCD not busy (or timeout)
-8cbd: 36           psha
-8cbe: 37           pshb
-8cbf: c6 ff        ldab 0xFF        ; init timeout counter
-8cc1: 5d           tstb
-8cc2: 27 1a        beq [0x8CDE]     ; times up, exit
-8cc4: b6 10 02     ldaa (PORTG)
-8cc7: 84 f7        anda 0xF7        ; bit 3 low
-8cc9: 8a 04        oraa 0x04        ; bit 3 high
-8ccb: b7 10 02     staa (PORTG)     ; LCD RS high
-8cce: bd 8c 70     jsr (0x8C70)     ; toggle LCD ENABLE
-8cd1: 7f 10 01     clr (DDRA)
-8cd4: b6 10 00     ldaa (PORTA)     ; read busy flag from LCD
-8cd7: 2b 08        bmi [0x8CE1]     ; if busy, keep looping
-8cd9: 86 ff        ldaa 0xFF
-8cdb: b7 10 01     staa (DDRA)      ; port A back to outputs
-8cde: 33           pulb             ; and exit
-8cdf: 32           pula
-8ce0: 39           rts
-8ce1: 5a           decb             ; decrement timer
-8ce2: 86 ff        ldaa 0xFF
-8ce4: b7 10 01     staa (DDRA)      ; port A back to outputs
-8ce7: 20 d8        bra [0x8CC1]     ; loop
+        psha
+        pshb
+        ldab    #0xFF        ; init timeout counter
+L8CC1:
+        tstb
+        beq     L8CDE       ; times up, exit
+        ldaa    PORTG  
+        anda    #0xF7        ; bit 3 low
+        oraa    #0x04        ; bit 3 high
+        staa    PORTG       ; LCD RS high
+        jsr     (0x8C70)     ; toggle LCD ENABLE
+        clr     DDRA  
+        ldaa    PORTA       ; read busy flag from LCD
+        bmi     L8CE1       ; if busy, keep looping
+        ldaa    #0xFF
+        staa    DDRA        ; port A back to outputs
+L8CDE:
+        pulb                ; and exit
+        pula
+        rts
+L8CE1:
+        decb                ; decrement timer
+        ldaa    #0xFF
+        staa    DDRA        ; port A back to outputs
+        bra     L8CC1       ; loop
 
-8ce9: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8cec: 86 01        ldaa 0x01
-8cee: bd 8c 86     jsr (0x8C86)     ; write byte to LCD
-8cf1: 39           rts
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        ldaa    #0x01
+        jsr     (0x8C86)     ; write byte to LCD
+        rts
 
-8cf2: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8cf5: 86 80        ldaa 0x80
-8cf7: bd 8d 14     jsr (0x8D14)
-8cfa: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8cfd: 86 80        ldaa 0x80
-8cff: bd 8c 86     jsr (0x8C86)     ; write byte to LCD
-8d02: 39           rts
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        ldaa    #0x80
+        jsr     (0x8D14)
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        ldaa    #0x80
+        jsr     (0x8C86)     ; write byte to LCD
+        rts
 
-8d03: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8d06: 86 c0        ldaa 0xC0
-8d08: bd 8d 14     jsr (0x8D14)
-8d0b: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8d0e: 86 c0        ldaa 0xC0
-8d10: bd 8c 86     jsr (0x8C86)     ; write byte to LCD
-8d13: 39           rts
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        ldaa    #0xC0
+        jsr     (0x8D14)
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        ldaa    #0xC0
+        jsr     (0x8C86)     ; write byte to LCD
+        rts
 
-8d14: bd 8c 86     jsr (0x8C86)     ; write byte to LCD
-8d17: 86 10        ldaa 0x10
-8d19: 97 14        staa (0x0014)
-8d1b: bd 8c bd     jsr (0x8CBD)     ; wait for LCD not busy
-8d1e: 86 20        ldaa 0x20
-8d20: bd 8c 98     jsr (0x8C98)
-8d23: 7a 00 14     dec (0x0014)
-8d26: 26 f3        bne [0x8D1B]
-8d28: 39           rts
+        jsr     (0x8C86)     ; write byte to LCD
+        ldaa    #0x10
+        staa    (0x0014)
+L8D1B:
+        jsr     (0x8CBD)     ; wait for LCD not busy
+        ldaa    #0x20
+        jsr     (0x8C98)
+        dec     (0x0014)
+        bne     L8D1B  
+        rts
 
-.endif
-        .org    0x8d29
 L8D29:
 .if 0
 8d29: 86 0c        ldaa 0x0C
@@ -5080,7 +5119,7 @@ abd1: fd 10 16     std (TOC1)
 abd4: dd 10        std T1NXT
 
 abd6: 86 80        ldaa 0x80
-abd8: b7 10 23     staa (TFLG1)     ; clear timer1 flag
+abd8: b7 10 23     staa TFLG1       ; clear timer1 flag
 
 ; Some blinking SPECIAL button every half second,
 ; if 0x0078 is non zero
@@ -5172,14 +5211,14 @@ ac5b: 27 55        beq [0xACB2]
 ac5d: de 44        ldx (0x0044)
 ac5f: a6 00        ldaa (X+0x00)
 ac61: 27 23        beq [0xAC86]
-ac63: b7 10 00     staa (PORTA)
-ac66: b6 10 02     ldaa (PORTG)
+ac63: b7 10 00     staa PORTA  
+ac66: b6 10 02     ldaa PORTG  
 ac69: 84 f3        anda 0xF3
-ac6b: b7 10 02     staa (PORTG)
+ac6b: b7 10 02     staa PORTG  
 ac6e: 84 fd        anda 0xFD
-ac70: b7 10 02     staa (PORTG)
+ac70: b7 10 02     staa PORTG  
 ac73: 8a 02        oraa 0x02
-ac75: b7 10 02     staa (PORTG)
+ac75: b7 10 02     staa PORTG  
 ac78: 08           inx
 ac79: 08           inx
 ac7a: 8c 05 80     cpx 0x0580
@@ -5189,15 +5228,15 @@ ac82: df 44        stx (0x0044)
 ac84: 20 2c        bra [0xACB2]
 ac86: a6 01        ldaa (X+0x01)
 ac88: 27 25        beq [0xACAF]
-ac8a: b7 10 00     staa (PORTA)
-ac8d: b6 10 02     ldaa (PORTG)
+ac8a: b7 10 00     staa PORTA  
+ac8d: b6 10 02     ldaa PORTG  
 ac90: 84 fb        anda 0xFB
 ac92: 8a 08        oraa 0x08
-ac94: b7 10 02     staa (PORTG)
+ac94: b7 10 02     staa PORTG  
 ac97: 84 fd        anda 0xFD
-ac99: b7 10 02     staa (PORTG)
+ac99: b7 10 02     staa PORTG  
 ac9c: 8a 02        oraa 0x02
-ac9e: b7 10 02     staa (PORTG)
+ac9e: b7 10 02     staa PORTG  
 aca1: 08           inx
 aca2: 08           inx
 aca3: 8c 05 80     cpx 0x0580
@@ -5256,7 +5295,7 @@ acf9: dc 10        ldd T1NXT
 acfb: 83 01 f4     subd 0x01F4      ; 625-500 = 125?
 acfe: fd 10 18     std (TOC2)       ; set this TOC2 to happen 0.5ms
 ad01: 86 40        ldaa 0x40        ; after the current TOC1 but before the next TOC1
-ad03: b7 10 23     staa (TFLG1)     ; clear timer2 irq flag, just in case?
+ad03: b7 10 23     staa TFLG1       ; clear timer2 irq flag, just in case?
 ad06: 86 c0        ldaa 0xC0        ;
 ad08: b7 10 22     staa TMSK1       ; enable TOC1 and TOC2
 ad0b: 3b           rti
@@ -5264,7 +5303,7 @@ ad0b: 3b           rti
 ; TOC2 Timer handler
 
 ad0c: 86 40        ldaa 0x40
-ad0e: b7 10 23     staa (TFLG1)     ; clear timer2 flag
+ad0e: b7 10 23     staa TFLG1       ; clear timer2 flag
 ad11: bf 01 3e     sts (0x013E)     ; switch stacks back???
 ad14: be 01 3c     lds (0x013C)
 ad17: 86 80        ldaa 0x80
@@ -5288,7 +5327,7 @@ ad29: 7f 00 b6     clr (0x00B6)
 ad2c: c6 04        ldab 0x04
 ad2e: 37           pshb
 ad2f: ce ad 3c     ldx #LAD3C
-ad32: bd 8a 1a     jsr (0x8A1A)
+ad32: bd 8a 1a     jsr L8A1A  
 ad35: 3f           swi
 ad36: 33           pulb
 ad37: 5a           decb
@@ -5325,15 +5364,15 @@ ad79: 0d           sec
 ad7a: 25 a1        bcs TASK2
 ad7c: 20 f8        bra [0xAD76]
 ad7e: ce ae 1e     ldx #LAE1E       ;+++
-ad81: bd 8a 1a     jsr (0x8A1A)
+ad81: bd 8a 1a     jsr L8A1A  
 ad84: c6 1e        ldab 0x1E
 ad86: bd ae 13     jsr (0xAE13)
 ad89: ce ae 22     ldx #LAE22       ;ATH
-ad8c: bd 8a 1a     jsr (0x8A1A)
+ad8c: bd 8a 1a     jsr L8A1A  
 ad8f: c6 1e        ldab 0x1E
 ad91: bd ae 13     jsr (0xAE13)
 ad94: ce ae 27     ldx #LAE27       ;ATZ
-ad97: bd 8a 1a     jsr (0x8A1A)
+ad97: bd 8a 1a     jsr L8A1A  
 ad9a: c6 1e        ldab 0x1E
 ad9c: bd ae 13     jsr (0xAE13)
 ad9f: 39           rts
@@ -5346,7 +5385,7 @@ ada8: 52 49 4e 47 00
 
 adad: 39           rts
 adae: ce ae 2c     ldx 0xAE2C
-adb1: bd 8a 1a     jsr (0x8A1A)     ;ATA
+adb1: bd 8a 1a     jsr L8A1A       ;ATA
 adb4: 0c           clc
 adb5: 39           rts
 adb6: 0c           clc
@@ -5363,7 +5402,7 @@ adcc: 32           pula
 adcd: 81 01        cmpa 0x01
 adcf: 26 08        bne [0xADD9]
 add1: ce b2 95     ldx #LB295
-add4: bd 8a 1a     jsr (0x8A1A)     ;'You have selected #1'
+add4: bd 8a 1a     jsr L8A1A       ;'You have selected #1'
 add7: 20 31        bra [0xAE0A]
 add9: 81 02        cmpa 0x02
 addb: 26 00        bne [0xADDD]
@@ -5386,7 +5425,7 @@ adfb: 26 00        bne [0xADFD]
 adfd: 81 0b        cmpa 0x0B
 adff: 26 09        bne [0xAE0A]
 ae01: ce b2 aa     ldx #LB2AA       ;'You have selected #11'
-ae04: bd 8a 1a     jsr (0x8A1A)
+ae04: bd 8a 1a     jsr L8A1A  
 ae07: 7e ae 0a     jmp (0xAE0A)
 ae0a: c6 14        ldab 0x14
 ae0c: bd ae 13     jsr (0xAE13)
@@ -5412,7 +5451,7 @@ LAE2C:
         .asciz      'ATA\r'
 
 ae31: ce ae 38     ldx 0xAE38       ; big long string of stats?
-ae34: bd 8a 1a     jsr (0x8A1A)
+ae34: bd 8a 1a     jsr L8A1A  
 ae37: 39           rts
 
         .ascii      '^0101Serial #:^0140#0000^0111~4'
@@ -6056,7 +6095,7 @@ b1d1: 00           test
 
 ; back to code
 b1d2: ce b1 d8     ldx 0xB1D8       ; escape sequence?
-b1d5: 7e 8a 1a     jmp (0x8A1A)
+b1d5: 7e 8a 1a     jmp L8A1A  
 
 ; esc[2J ?
 b1d8: 1b           aba
@@ -6186,7 +6225,7 @@ LB2AA:
 
 ; code
         ldx     #0xB2C7     ; strange text
-        jsr     (0x8A1A)
+        jsr     L8A1A  
         rts
 
 .if 0
