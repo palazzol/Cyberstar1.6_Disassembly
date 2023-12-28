@@ -65,11 +65,26 @@ CPYRTCS     .equ    0x040B      ; 0x040B/0x040C - copyright message checksum
 ERASEFLG    .equ    0x040F      ; 0 = normal boot, 1 = erasing EEPROM
 NUMBOOT     .equ    0x0426      ; 0x0426/0x0427
 
+; Main PIA on CPU card
+PIA0PRA     .equ    0x1804      ; CRA-2 = 1
+PIA0DDRA    .equ    0x1804      ; CRA-2 = 0
+PIA0CRA     .equ    0x1805
+PIA0PRB     .equ    0x1806      ; CRB-2 = 1
+PIA0DDRB    .equ    0x1806      ; CRB-2 = 0
+PIA0CRB     .equ    0x1807
+
+; Zilog 8530 SCC - A is aux serial, B is sync data
+SCCCTRLA    .equ    0x180C
+SCCCTRLB    .equ    0x180D
+SCCDATAA    .equ    0x180E
+SCCDATAB    .equ    0x180F
+
         .area   region1 (ABS)
         .org    0x8000
 
 ; Disassembly originally from unidasm
 
+L8000:
         jmp     L8050           ; jump past copyright message
 
 CPYRTMSG:
@@ -101,11 +116,11 @@ L807E:
         staa    (0x10A8)        ; board 11??
 
         ldab    #0x10
-        jsr     LF995           ; blank the diag display
+        jsr     DIAGDGT         ; blank the diag display
 
-        ldaa    (0x1804)        ; turn off reset button light
+        ldaa    PIA0PRA         ; turn off reset button light
         anda    #0xBF
-        staa    (0x1804)
+        staa    PIA0PRA 
         ldaa    #0xFF
         staa    (0x00AC)        ; ???
 
@@ -130,7 +145,7 @@ L80C1:
         bne     LOCKUP          ; bye bye
         clrb
         stab    (0x0062)        ; button light buffer?
-        jsr     (0xF9C5)        ; turn off? button lights
+        jsr     BUTNLIT         ; turn off? button lights
         jsr     (0xA341)
         ldaa    (0x0400)
         cmpa    #0x07
@@ -145,9 +160,9 @@ L80C1:
 L80EB:
         ldd     CDTIMR1
         beq     L80FA
-        jsr     (0xF945)
+        jsr     SERIALR     
         bcc     L80EB
-        cmpa    #0x44
+        cmpa    #0x44           ; 'D'
         bne     L80EB
         bra     L80FF
 L80FA:
@@ -158,32 +173,33 @@ L80FF:
         jsr     (0x9E92)        ; reset R counts
 L8105:
         ldaa    #0x39
-        staa    (0x0408)
+        staa    0x0408          ; rts here for later CPU test
         jsr     (0xA1D5)
         jsr     (0xAB17)
         ldaa    (0xF7C0)        ; a 00
-        staa    (0x045C)        ; ??? NVRAM
+        staa    0x045C          ; ??? NVRAM
         jmp     RESET           ; reset!
 
 LOCKUP: jmp     LOCKUP          ; infinite loop
 
+; CPU test?
 L811C:
         clr     (0x0079)
         clr     (0x007C)
-        jsr     (0x0408)        ; ????
-        jsr     (0x8013)
+        jsr     0x0408          ; rts should be here
+        jsr     (0x8013)        ; rts is here '9'
         ldab    #0xFD
         jsr     (0x86E7)
         ldab    #0xDF
-        jsr     (0x8748)
-        jsr     (0x8791)
+        jsr     L8748   
+        jsr     L8791   
         jsr     (0x9AF7)
         jsr     (0x9C51)
         clr     (0x0062)
         jsr     (0x99D9)
-        bcc     L8159
+        bcc     L8159           ; if carry clear, test is passed
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'Invalid CPU!'
 
         ldaa    #0x53
@@ -196,13 +212,13 @@ L8159:
         tst     (0x0000)
         beq     L8179
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'RAM test failed!'
 
         bra     L81BD
 
 L8179:
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  '32K RAM OK'
 
 ; R12 or CNR mode???
@@ -216,20 +232,20 @@ L8193:
         jsr     (0x8DB5)        ; display char here on LCD display
 
 L8199:
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'ROM Chksum='
 
         jsr     (0x975F)        ; print the checksum on the LCD
 
         ldab    #0x02           ; delay 2 secs
-        jsr     (0x8C02)        ;
+        jsr     L8C02           ;
 
         jsr     (0x9A27)        ; display Serial #
         jsr     (0x9ECC)        ; display R and L counts?
-        jsr     (0x9B19)        ; do the random tasks???
+        jsr     L9B19           ; do the random tasks???
 
         ldab    #0x02           ; delay 2 secs
-        jsr     (0x8C02)        ;
+        jsr     L8C02           ;
 
 L81BD:
         ldab    SCCR2           ; disable receive data interrupts
@@ -239,14 +255,13 @@ L81BD:
         jsr     (0x9AF7)        ; clear a bunch of ram
         ldab    #0xFD
         jsr     (0x86E7)
-        jsr     (0x8791)
+        jsr     L8791   
 
-        ldab    #0x00
+        ldab    #0x00           ; turn off button lights
         stab    (0x0062)
+        jsr     BUTNLIT 
 
-        jsr     (0xF9C5)
-
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  ' Cyberstar v1.6'
 
 
@@ -264,7 +279,7 @@ L81FF:
         cpd     #0x0001
         bne     L8220
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  " Dave's system  "
 
         bra     L8267
@@ -274,7 +289,7 @@ L8220:
         cpd     #0x044B
         bhi     L8241
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  '   SPT Studio   '
 
         bra L8267
@@ -306,13 +321,13 @@ L8267:
         clr     (0x005A)
         clr     (0x005E)
         clr     (0x0060)
-        jsr     (0x9B19)
+        jsr     L9B19   
         ldaa    (0x0060)
         beq     L8283
         jsr     (0xA97C)
         jmp     RESET       ; reset controller
 L8283:
-        ldaa    (0x1804)
+        ldaa    PIA0PRA 
         anda    #0x06
         bne     L8292
         jsr     (0x9CF1)    ; print credits
@@ -324,27 +339,27 @@ L8292:
         bne     L829C
         jmp     (0x9292)
 L829C:
-        jsr     (0xF945)
+        jsr     SERIALR     
         bcs     L82A4
 L82A1:
         jmp     L8333
 L82A4:
         cmpa    #0x44       ;'$'
         bne     L82AB
-        jmp     (0xA366)
+        jmp     LA366
 L82AB:
         cmpa    #0x53       ;'S'
         bne     L82A1
 
-        jsr     (0xF9D8)
+        jsr     SERMSGW      
         .ascis  '\n\rEnter security code: '
 
         sei
-        jsr     (0xA2EA)
+        jsr     LA2EA
         cli
         bcs     L8331
 
-        jsr     (0xF9D8)
+        jsr     SERMSGW      
         .ascii '\n\rEEPROM serial number programming enabled.'
         .ascis '\n\rPlease RESET the processor to continue\n\r'
 
@@ -363,7 +378,7 @@ L8333:
         ldab    (0x0062)
         eorb    #0x20
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         ldd     #0x0032
         std     CDTIMR1
 L8349:
@@ -378,15 +393,15 @@ L8351:
         ldab    (0x0062)
         andb    #0xDF
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         ldab    #0x02           ; delay 2 secs
-        jsr     (0x8C02)        ;
+        jsr     L8C02           ;
         ldaa    (0x007C)
         beq     L839B
         ldaa    (0x007F)
         staa    (0x004E)
         ldab    (0x0081)
-        jsr     (0x8748)
+        jsr     L8748   
         ldaa    (0x0082)
         bita    #0x01
         bne     L8383
@@ -398,12 +413,12 @@ L8383:
         oraa    #0x02
 L8387:
         staa    (0x00AC)
-        staa    (0x1806)
-        ldaa    (0x1804)
+        staa    PIA0PRB 
+        ldaa    PIA0PRA 
         oraa    #0x20
-        staa    (0x1804)
+        staa    PIA0PRA 
         anda    #0xDF
-        staa    (0x1804)
+        staa    PIA0PRA 
         bra     L83AF
 L839B:
         ldd     (0x040D)
@@ -418,7 +433,7 @@ L83AF:
         clr     (0x0030)
         clr     (0x0031)
         clr     (0x0032)
-        jsr     (0x9B19)
+        jsr     L9B19   
         jsr     (0x86A4)
         bcs     L83AF
         ldaa    (0x0079)
@@ -435,29 +450,29 @@ L83D4:
         staa    (0x00AA)
         jmp     (0x9A7F)
 L83DB:
-        jsr (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  '   Tape start   '
 
         ldab    (0x0062)
         orab    #0x80
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         ldab    #0xFB
         jsr     (0x86E7)
 
-        jsr     (0x8DCF)
+        jsr     LCDMSG1A
         .ascis  '68HC11 Proto'
 
-        jsr     (0x8DD6)
+        jsr     LCDMSG2A
         .ascis  'dbp'
 
         ldab    #0x03           ; delay 3 secs
-        jsr     (0x8C02)        ;
+        jsr     L8C02           ;
         tst     (0x007C)
         beq     L8430
         ldab    (0x0080)
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         ldab    (0x007D)
         stab    (0x0078)
         ldab    (0x007E)
@@ -511,7 +526,7 @@ L847B:
         jsr     L99A6
         ldab    (0x007B)
         orab    #0x0C
-        jsr     (0x8748)
+        jsr     L8748   
         jmp     L81BD
 L849B:
         cmpa    #0x42
@@ -663,8 +678,8 @@ L85BA:
 L85BF:
         ldd     CDTIMR5
         beq     L85D7
-        jsr     (0x9B19)
-        ldaa    (0x1804)
+        jsr     L9B19   
+        ldaa    PIA0PRA 
         eora    #0xFF
         anda    #0x06
         cmpa    #0x06
@@ -676,7 +691,7 @@ L85D7:
         ldab    (0x0062)
         eorb    #0x02
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         andb    #0x02
         beq     L85F4
         jsr     (0xAA18)
@@ -690,11 +705,11 @@ L85F4:
         jsr     (0x8C22)
         clr     (0x0030)
 L85FF:
-        jsr     (0x9B19)
+        jsr     L9B19   
         ldaa    PORTE
         anda    #0x10
         beq     L8614
-        ldaa    (0x1804)
+        ldaa    PIA0PRA 
         eora    #0xFF
         anda    #0x07
         cmpa    #0x06
@@ -707,7 +722,7 @@ L8614:
         ldab    (0x0062)
         andb    #0xFC
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         jsr     (0xAA13)
         jsr     (0xAA1D)
         jmp     (0x9A60)
@@ -723,8 +738,8 @@ L863C:
 L8641:
         ldd     CDTIMR5
         beq     L8658
-        jsr     (0x9B19)
-        ldaa    (0x1804)
+        jsr     L9B19   
+        ldaa    PIA0PRA 
         eora    #0xFF
         anda    #0x06
         cmpa    #0x06
@@ -736,7 +751,7 @@ L8658:
         ldab    (0x0062)
         eorb    #0x01
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         andb    #0x01
         beq     L8675
         jsr     (0xAA0C)
@@ -757,15 +772,15 @@ L8680:
         jsr     L86C4
         clrb
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         ldab    #0xFD
         jsr     (0x86E7)
         ldab    #0x04           ; delay 4 secs
-        jsr     (0x8C02)        ;
+        jsr     L8C02           ;
         jmp     (0x847F)
 L86A1:
         jmp     (0x844D)
-        jsr     (0x9B19)
+        jsr     L9B19   
         clr     CDTIMR5
         ldaa    #0x19
         staa    CDTIMR5+1
@@ -814,7 +829,7 @@ L86C7:
 
 ; ***
         psha
-        jsr     (0x9B19)
+        jsr     L9B19   
         ldaa    (0x00AC)
         cmpb    #0xFB
         bne     L86F5
@@ -831,38 +846,40 @@ L86FD:
         anda    #0xF7
 L8703:
         staa    (0x00AC)
-        staa    (0x1806)
-        jsr     (0x873A)     ; clock diagnostic indicator
+        staa    PIA0PRB 
+        jsr     L873A        ; clock diagnostic indicator
         ldaa    (0x007A)
         anda    #0x01
         staa    (0x007A)
         andb    #0xFE
         orab    (0x007A)
-        stab    (0x1806)
-        jsr     (0x8775)
+        stab    PIA0PRB 
+        jsr     L8775   
         ldab    #0x32
         jsr     (0x8C22)
         ldab    #0xFE
         orab    (0x007A)
-        stab    (0x1806)
+        stab    PIA0PRB 
         stab    (0x007A)
-        jsr     (0x8775)
+        jsr     L8775   
         ldaa    (0x00AC)
         oraa    #0x49
         staa    (0x00AC)
-        staa    (0x1806)
-        jsr     (0x873A)     ; clock diagnostic indicator
+        staa    PIA0PRB 
+        jsr     L873A        ; clock diagnostic indicator
         pula
         rts
 
 ; clock diagnostic indicator
-        ldaa    (0x1804)
+L873A:
+        ldaa    PIA0PRA 
         oraa    #0x20
-        staa    (0x1804)
+        staa    PIA0PRA 
         anda    #0xDF
-        staa    (0x1804)
+        staa    PIA0PRA 
         rts
 
+L8748:
         psha
         pshb
         ldaa    (0x00AC)
@@ -880,30 +897,33 @@ L875C:
         bne     L8762
         anda    #0xDF
 L8762:
-        staa    (0x1806)
+        staa    PIA0PRB 
         staa    (0x00AC)
-        jsr     (0x873A)        ; clock diagnostic indicator
+        jsr     L873A           ; clock diagnostic indicator
         pulb
-        stab    (0x1806)
+        stab    PIA0PRB 
         stab    (0x007B)
-        jsr     (0x8783)
+        jsr     L8783
         pula
         rts
 
-        ldaa    (0x1807)
-        oraa    #0x38
-        staa    (0x1807)
-        anda    #0xF7
-        staa    (0x1807)
+L8775:
+        ldaa    PIA0CRB 
+        oraa    #0x38       ; bits 3-4-5 on
+        staa    PIA0CRB 
+        anda    #0xF7       ; bit 3 off
+        staa    PIA0CRB 
         rts
 
-        ldaa    (0x1805)
-        oraa    #0x38
-        staa    (0x1805)
-        anda    #0xF7
-        staa    (0x1805)
+L8783:
+        ldaa    PIA0CRA 
+        oraa    #0x38       ; bits 3-4-5 on
+        staa    PIA0CRA 
+        anda    #0xF7       ; bit 3 off
+        staa    PIA0CRA 
         rts
 
+L8791:
         ldaa    (0x007A)
         anda    #0xFE
         psha
@@ -913,11 +933,11 @@ L8762:
         pula
 L879D:
         staa    (0x007A)
-        staa    (0x1806)
-        jsr     (0x8775)
+        staa    PIA0PRB 
+        jsr     L8775
         ldaa    (0x00AC)
-        staa    (0x1806)
-        jsr     (0x873A)        ; clock diagnostic indicator
+        staa    PIA0PRB 
+        jsr     L873A           ; clock diagnostic indicator
         rts
 
         ldaa    (0x007A)
@@ -936,15 +956,15 @@ L87BF:
         cmpa    #0xFF
         beq     L87D1
         inx
-        staa    (0x180D)
+        staa    SCCCTRLB
         ldaa    0,X
         inx
-        staa    (0x180D)
+        staa    SCCCTRLB
         bra     L87BF
 L87D1:
         rts
 
-; data table?
+; data table, sync data init
         .byte   0x09,0x8a
         .byte   0x01,0x00
         .byte   0x0c,0x18 
@@ -957,7 +977,7 @@ L87D1:
         .byte   0x0f,0x00
         .byte   0xff,0xff
 
-; SCC init?
+; SCC init, aux serial
 L87E8:
         ldx     #0xF857
 L87EB:
@@ -965,15 +985,15 @@ L87EB:
         cmpa    #0xFF
         beq     L87FD
         inx
-        staa    (0x180C)
+        staa    SCCCTRLA
         ldaa    0,X
         inx
-        staa    (0x180C)
+        staa    SCCCTRLA
         bra     L87EB
 L87FD:
         bra     L8815
 
-; data table
+; data table for aux serial config
         .byte   0x09,0x8a
         .byte   0x01,0x10
         .byte   0x0c,0x18
@@ -1004,47 +1024,47 @@ L8815:
         inc     (0x0048)
         jmp     (0x8862)
         ldaa    #0x01
-        staa    (0x180C)
-        ldaa    (0x180C)
+        staa    SCCCTRLA
+        ldaa    SCCCTRLA
         anda    #0x70
         bne     L8869  
         ldaa    #0x0A
-        staa    (0x180C)
-        ldaa    (0x180C)
+        staa    SCCCTRLA
+        ldaa    SCCCTRLA
         anda    #0xC0
         bne     L8878  
-        ldaa    (0x180C)
+        ldaa    SCCCTRLA
         lsra
         bcc     L8891  
         inc     (0x0048)
-        ldaa    (0x180E)
-        jsr     (0xF96F)
+        ldaa    SCCDATAA
+        jsr     SERIALW      
         staa    (0x004A)
         bra     L8896  
 L8869:
-        ldaa    (0x180E)
+        ldaa    SCCDATAA
         ldaa    #0x30
-        staa    (0x180C)
+        staa    SCCCTRLA
         ldaa    #0x07
-        jsr     (0xF96F)
+        jsr     SERIALW      
         clc
         rti
 
 L8878:
         ldaa    #0x07
-        jsr     (0xF96F)
+        jsr     SERIALW      
         ldaa    #0x0E
-        staa    (0x180C)
+        staa    SCCCTRLA
         ldaa    #0x43
-        staa    (0x180C)
-        ldaa    (0x180E)
+        staa    SCCCTRLA
+        ldaa    SCCDATAA
         ldaa    #0x07
-        jsr     (0xF96F)
+        jsr     SERIALW      
         sec
         rti
 
 L8891:
-        ldaa    (0x180E)
+        ldaa    SCCDATAA
         clc
         rti
 
@@ -1187,10 +1207,10 @@ L897A:
         pshx
         cmpa    #0x3D
         bhi     L899D  
-        ldx     #0xF780
+        ldx     #0xF780         ; table at the end
         bra     L89A0  
 L899D:
-        ldx     #0xF7A0
+        ldx     #0xF7A0         ; table at the end
 L89A0:
         subb    #0x40
         aslb
@@ -1267,14 +1287,14 @@ L8A1A:
         pshx
 L8A1B:
         ldaa    #0x04
-        bita    (0x180D)
+        bita    SCCCTRLB
         beq     L8A1B  
         ldaa    0,X     
         bne     L8A29       ; is it a nul?
-        jmp     (0x8B21)     ; if so jump to exit
+        jmp     (0x8B21)    ; if so jump to exit
 L8A29:
         inx
-        cmpa    #0x5E        ; is is a caret? '^'
+        cmpa    #0x5E       ; is is a caret? '^'
         bne     L8A4B       ; no, jump ahead
         ldaa    0,X         ; yes, get the next char
         inx
@@ -1403,7 +1423,7 @@ L8B03:
         jsr     L8A1A  
         jmp     (0x8A1B)
 L8B1B:
-        staa    (0x180F)
+        staa    SCCDATAB
         jmp     (0x8A1B)
         pulx
         rts
@@ -1424,18 +1444,18 @@ L8B1B:
         psha
 L8B3C:
         ldaa    #0x04
-        bita    (0x180D)
+        bita    SCCCTRLB
         beq     L8B3C  
         pula
-        staa    (0x180F)
+        staa    SCCDATAB
         rts
 
         jsr     (0xA32E)
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'Light Diagnostic'
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'Curtains opening'
 
         ldab    #0x14
@@ -1445,15 +1465,15 @@ L8B3C:
         stab    (0x109A)
         stab    (0x109C)
         stab    (0x109E)
-        jsr     (0xF9C5)
-        ldaa    (0x1804)
+        jsr     BUTNLIT 
+        ldaa    PIA0PRA 
         oraa    #0x40
-        staa    (0x1804)
+        staa    PIA0PRA 
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  ' Press ENTER to '
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'turn lights  off'
 
 L8BB5:
@@ -1495,18 +1515,18 @@ L8BF4:
         eora    #0xFF
         tab
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         bra     L8BF4  
         rts
 
-; Delay B seconds??
-
+; Delay B seconds
+L8C02:
         psha
         ldaa    #0x64
         mul
         std     CDTIMR5     ; store B*100 here
 L8C08:
-        jsr     (0x9B19)     ; update 0x0023/0x0024 from RTC???
+        jsr     L9B19   
         ldd     CDTIMR5
         bne     L8C08  
         pula
@@ -1516,8 +1536,8 @@ L8C08:
         ldaa    #0x3C
 L8C14:
         staa    (0x0028)
-        ldab    #0x01        ; delay 1 sec
-        jsr     (0x8C02)     ;
+        ldab    #0x01       ; delay 1 sec
+        jsr     L8C02       ;
         ldaa    (0x0028)
         deca
         bne     L8C14  
@@ -1528,7 +1548,7 @@ L8C14:
         clra
         std     CDTIMR5
 L8C26:
-        jsr     (0x9B19)
+        jsr     L9B19   
         tst     CDTIMR5+1
         bne     L8C26  
         pula
@@ -1584,9 +1604,9 @@ L8C6A:
 
 ; Reset LCD buffer?
 L8C7E:
-        ldd     #0x0500       ; Reset LCD queue?
-        std     (0x0046)     ; write pointer
-        std     (0x0044)     ; read pointer?
+        ldd     #0x0500     ; Reset LCD queue?
+        std     (0x0046)    ; write pointer
+        std     (0x0044)    ; read pointer?
         rts
 
 ; write byte to LCD
@@ -1625,7 +1645,7 @@ L8CC1:
         ldaa    PORTG  
         anda    #0xF7        ; bit 3 low
         oraa    #0x04        ; bit 3 high
-        staa    PORTG       ; LCD RS high
+        staa    PORTG        ; LCD RS high
         jsr     (0x8C70)     ; toggle LCD ENABLE
         clr     DDRA  
         ldaa    PORTA       ; read busy flag from LCD
@@ -1764,29 +1784,35 @@ L8DC2:
 L8DCE:
         rts
 
-; 4 routines to write to the LCD display?
+; 4 routines to write to the LCD display
 
+; Write to the LCD 1st line - extend past the end of a normal display
+LCDMSG1A:
         ldy     (0x0046)     ; get buffer pointer
         ldaa    #0x90        ; command to set LCD RAM ptr to chr 0x10
         bra     L8DE9  
 
+; Write to the LCD 2st line - extend past the end of a normal display
+LCDMSG2A:
         ldy     (0x0046)     ; get buffer pointer
         ldaa    #0xD0        ; command to set LCD RAM ptr to chr 0x50
         bra     L8DE9  
 
 ; Write to the LCD 2nd line
+LCDMSG2:
         ldy     (0x0046)     ; get buffer pointer
         ldaa    #0xC0        ; command to set LCD RAM ptr to chr 0x40
         bra     L8DE9  
 
 ; Write to the LCD 1st line
+LCDMSG1:
         ldy     (0x0046)     ; get buffer pointer
         ldaa    #0x80        ; command to load LCD RAM ptr to chr 0x00
 
 ; Put LCD command into a buffer, 4 bytes for each entry?
 L8DE9:
         staa    0,Y         ; store command here
-        clr     1,Y          ; clear next byte
+        clr     1,Y         ; clear next byte
         iny
         iny
 
@@ -1796,17 +1822,17 @@ L8DE9:
         ldy     #0x0500
 L8DFD:
         pulx                ; get start of data
-        stx     (0x0017)     ; save this here
+        stx     (0x0017)    ; save this here
 L8E00:
         ldaa    0,X         ; get character
         beq     L8E3A       ; is it 00, if so jump ahead
         bmi     L8E1D       ; high bit set, if so jump ahead
-        clr     0,Y          ; add character
+        clr     0,Y         ; add character
         staa    1,Y     
         inx
         iny
         iny
-        cpy     #0x0580       ; check for buffer overflow
+        cpy     #0x0580     ; check for buffer overflow
         bcs     L8E00  
         ldy     #0x0500
         bra     L8E00  
@@ -1898,7 +1924,7 @@ L8EBA:
         ldaa    #0x0D
         rts
 
-        ldaa    (0x1804)
+        ldaa    PIA0PRA 
         anda    #0x07
         staa    (0x002C)
         asl     (0x002C)
@@ -2006,8 +2032,8 @@ L8F66:
         staa    (0x00B4)
         cmpa    #0x03
         bne     L8F94  
-        jsr     (0x8DE4)
 
+        jsr     LCDMSG1 
         .ascis  'Chuck    '
 
         ldx     #0x9072
@@ -2015,8 +2041,8 @@ L8F66:
 L8F94:
         cmpa    #0x04
         bne     L8FA9  
-        jsr     (0x8DE4)
 
+        jsr     LCDMSG1 
         .ascis  'Jasper   '
 
         ldx     #0x90DE
@@ -2024,8 +2050,8 @@ L8F94:
 L8FA9:
         cmpa    #0x05
         bne     L8FBE  
-        jsr     (0x8DE4)
 
+        jsr     LCDMSG1 
         .ascis  'Pasqually'
 
         ldx     #0x9145
@@ -2033,15 +2059,14 @@ L8FA9:
 L8FBE:
         cmpa    #0x06
         bne     L8FD3  
-        jsr     (0x8DE4)
 
+        jsr     LCDMSG1 
         .ascis  'Munch    '
 
         ldx     #0x91BA
         bra     L8FE1  
 L8FD3:
-        jsr     (0x8DE4)
-
+        jsr     LCDMSG1 
         .ascis  'Helen   '
 
         ldx     #0x9226
@@ -2139,10 +2164,10 @@ L9295:
         ldab    #0x01
         jsr     (0x8C30)
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  '  Diagnostics   '
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  '                '
 
         ldab    #0x01
@@ -2155,10 +2180,10 @@ L9295:
         jsr     L86C4
         clrb
         stab    (0x0062)
-        jsr     (0xF9C5)
-        ldaa    (0x1804)
+        jsr     BUTNLIT 
+        ldaa    PIA0PRA 
         anda    #0xBF
-        staa    (0x1804)
+        staa    PIA0PRA 
         jmp     (0x81D7)
 L92E6:
         cmpa    #0x03
@@ -2208,7 +2233,7 @@ L9338:
         jsr     (0x9F1E)
         bcs     L935B  
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'Reset System!'
 
         jmp     (0xA249)
@@ -2221,25 +2246,25 @@ L935B:
         jsr     (0x8B48)
         clrb
         stab    (0x0062)
-        jsr     (0xF9C5)
-        ldaa    (0x1804)
+        jsr     BUTNLIT 
+        ldaa    PIA0PRA 
         anda    #0xBF
-        staa    (0x1804)
+        staa    PIA0PRA 
         jmp     (0x9292)
 L9373:
         cmpa    #0x0D
         bne     L93A5  
         jsr     (0x8CE9)
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  '  Button  test'
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  '   PROG exits'
 
         jsr     (0xA526)
         clrb
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         jmp     (0x9295)
 L93A5:
         cmpa    #0x0E
@@ -2272,19 +2297,19 @@ L93D0:
         tst     (0x042A)
         beq     L94C6  
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'King is Enabled'
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'ENTER to disable'
 
         bra     L94EB  
 
 L94C6:
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'King is Disabled'
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'ENTER to enable'
 
 L94EB:
@@ -2397,17 +2422,17 @@ L95B3:
         ldaa    (0x045C)
         beq     L95D3  
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'Current: CNR   '
 
         bra     L95E5  
 
 L95D3:
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'Current: R12   '
 
 L95E5:
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  '<Enter> to chg.'
 
 L95F7:
@@ -2428,7 +2453,7 @@ L960F:
         .ascis  "Chuck,Jasper,Pasqually,Munch,Helen,Light 1,Light 2,Light 3,Star EFX,Wink Spot,Gobo,Clear All Rnd,Exit"
 
 ; code again
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'Random          '
 
         ldx     #0x9610
@@ -2444,7 +2469,7 @@ L9697:
         clr     (0x0401)
         clr     (0x042B)
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'All Rnd Cleared!'
 
         ldab    #0x64
@@ -2625,7 +2650,7 @@ L97DB:
         ldab    (0x007B)
         orab    #0x20
         andb    #0xF7
-        jsr     (0x8748)
+        jsr     L8748   
         jmp     (0x85A4)
         clr     (0x0076)
         clr     (0x0075)
@@ -2633,7 +2658,7 @@ L97DB:
         clr     (0x004E)
         ldab    (0x007B)
         orab    #0x0C
-        jsr     (0x8748)
+        jsr     L8748   
         jsr     (0xA31E)
         jsr     L86C4
         jsr     (0x9C51)
@@ -2644,7 +2669,7 @@ L97DB:
         ldab    (0x007B)
         orab    #0x24
         andb    #0xF7
-        jsr     (0x8748)
+        jsr     L8748   
         jsr     (0x87AE)
         jsr     (0x8E95)
         jmp     (0x844D)
@@ -2665,7 +2690,7 @@ L97DB:
         std     CDTIMR2
         clr     (0x005A)
 L9864:
-        jsr     (0x9B19)
+        jsr     L9B19   
         tst     (0x0031)
         bne     L9870  
         ldaa    (0x005A)
@@ -2675,7 +2700,7 @@ L9870:
         ldab    (0x0062)
         andb    #0xFE
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         jsr     (0xAA13)
         ldab    #0xFB
         jsr     (0x86E7)
@@ -2687,7 +2712,7 @@ L9889:
         ldab    (0x0062)
         eorb    #0x01
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         andb    #0x01
         bne     L989F  
         jsr     (0xAA0C)
@@ -2729,14 +2754,14 @@ L98D4:
         andb    #0xF7
         orab    #0x02
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         jsr     (0xAA18)
         ldaa    #0x01
         staa    (0x004E)
         staa    (0x0075)
         ldab    (0x007B)
         andb    #0xDF
-        jsr     (0x8748)
+        jsr     L8748   
         jsr     (0x87AE)
         jsr     (0xA313)
         jsr     (0xAADB)
@@ -2746,7 +2771,7 @@ L9909:
         andb    #0xF5
         orab    #0x40
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         jsr     (0xAA1D)
         tst     (0x00AF)
         bne     L9920  
@@ -2761,8 +2786,8 @@ L9920:
         ldab    (0x007B)
         orab    #0x24
         andb    #0xF7
-        jsr     (0x8748)
-        jsr     (0x8791)
+        jsr     L8748   
+        jsr     L8791   
 L9939:
         clr     (0x00AF)
         jmp     (0x85A4)
@@ -2776,64 +2801,64 @@ L9939:
         andb    #0xFD
 L9953:
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         jsr     (0xAA1D)
         clr     (0x005B)
         jsr     (0x87AE)
         ldab    (0x007B)
         orab    #0x20
-        jsr     (0x8748)
+        jsr     L8748   
         clr     (0x0075)
         clr     (0x0076)
         jmp     (0x9815)
         ldab    (0x007B)
         andb    #0xFB
-        jsr     (0x8748)
+        jsr     L8748   
         jmp     (0x85A4)
         ldab    (0x007B)
         orab    #0x04
-        jsr     (0x8748)
+        jsr     L8748   
         jmp     (0x85A4)
         ldab    (0x007B)
         andb    #0xF7
-        jsr     (0x8748)
+        jsr     L8748   
         jmp     (0x85A4)
         tst     (0x0077)
         bne     L999B  
         ldab    (0x007B)
         orab    #0x08
-        jsr     (0x8748)
+        jsr     L8748   
 L999B:
         jmp     (0x85A4)
         ldab    (0x007B)
         andb    #0xF3
-        jsr     (0x8748)
+        jsr     L8748   
         rts
 
 ; main2
 L99A6:
         ldab    (0x007B)
         andb    #0xDF        ; clear bit 5
-        jsr     (0x8748)
-        jsr     (0x8791)
+        jsr     L8748
+        jsr     L8791   
         rts
 
         ldab    (0x007B)
         orab    #0x20
-        jsr     (0x8748)
+        jsr     L8748   
         jsr     (0x87AE)
         rts
 
         ldab    (0x007B)
         andb    #0xDF
-        jsr     (0x8748)
+        jsr     L8748   
         jsr     (0x87AE)
         rts
 
         ldab    (0x007B)
         orab    #0x20
-        jsr     (0x8748)
-        jsr     (0x8791)
+        jsr     L8748   
+        jsr     L8791   
         rts
 
         ldaa    #0x01
@@ -2885,10 +2910,10 @@ L9A25:
         sec
         rts
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'Serial# '
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  '               '
 
 ; display 4-digit serial number
@@ -2927,12 +2952,12 @@ L9A4A:
         ldab    (0x007B)
         orab    #0x0C
         andb    #0xDF
-        jsr     (0x8748)
-        jsr     (0x8791)
+        jsr     L8748   
+        jsr     L8791   
         jsr     L86C4
         jsr     (0x9C51)
         ldab    #0x06            ; delay 6 secs
-        jsr     (0x8C02)         ;
+        jsr     L8C02            ;
         jsr     (0x8E95)
         jsr     L99A6
         jmp     (0x81BD)
@@ -2945,14 +2970,14 @@ L9A4A:
         ldd     #0x7530
         std     CDTIMR2
 L9AB8:
-        jsr     (0x9B19)
+        jsr     L9B19   
         ldab    (0x0062)
         eorb    #0x04
         stab    (0x0062)
-        jsr     (0xF9C5)
-        ldab    (0x1804)
+        jsr     BUTNLIT 
+        ldab    PIA0PRA 
         eorb    #0x08
-        stab    (0x1804)
+        stab    PIA0PRA 
         tst     (0x005C)
         bne     L9AE3  
         jsr     (0x8E95)
@@ -2967,7 +2992,7 @@ L9AE3:
         ldab    (0x0062)
         andb    #0xFB
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         jsr     (0xA354)
         ldab    #0xFB
         jsr     (0x86E7)
@@ -2986,6 +3011,7 @@ L9AE3:
         rts
 
 ; validate a bunch of ram locations against bytes in ROM???
+L9B19:
         psha
         pshb
         ldaa    (0x004E)
@@ -3227,10 +3253,10 @@ L9CE1:
 L9CF0:
         rts
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  '   Program by   '
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'David  Philipsen'
 
         rts
@@ -3244,7 +3270,7 @@ L9CF0:
         ldd     #0x0BB8
         std     CDTIMR1
 L9D2C:
-        jsr     (0x9B19)
+        jsr     L9B19   
         ldaa    (0x0049)
         cmpa    #0x41
         beq     L9D39  
@@ -3298,7 +3324,7 @@ L9D7E:
         clr     (0x004A)
         ldx     #0x0299
 L9D8E:
-        jsr     (0x9B19)
+        jsr     L9B19   
         ldaa    (0x004A)
         beq     L9D8E  
         clr     (0x004A)
@@ -3321,7 +3347,7 @@ L9DB0:
         cmpa    #0x39
         bne     L9DD3  
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'Generic Showtape'
 
         clc
@@ -3353,7 +3379,7 @@ L9DEA:
         beq     L9E68  
         ldx     #0x00A8
 L9DFF:
-        jsr     (0x9B19)
+        jsr     L9B19   
         ldaa    (0x004A)
         beq     L9DFF  
         clr     (0x004A)
@@ -3440,7 +3466,7 @@ L9E80:
         staa    (0x0403)
         staa    (0x0404)
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'Reg # cleared!'
 
         rts
@@ -3451,7 +3477,7 @@ L9E80:
         staa    (0x0406)
         staa    (0x0407)
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'Liv # cleared!'
 
         rts
@@ -3515,7 +3541,7 @@ L9F1B:
         bhi     L9F4D  
 
 L9F33:
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'Password bypass '
 
         ldab    #0x04
@@ -3527,7 +3553,7 @@ L9F4D:
         jsr     (0x8CF2)
         jsr     (0x8D03)
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  'Code:'
 
         ldx     #0x0290
@@ -3556,7 +3582,7 @@ L9F7D:
         bra     L9F63  
 
 L9F86:
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'Pswd:'
 
         ldx     #0x0288
@@ -3727,7 +3753,7 @@ LA0C6:
 
         jsr     (0x8CF2)
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'Failed!         '
 
         ldab    #0x02
@@ -3738,22 +3764,22 @@ LA0C6:
         jsr     (0x8C30)
         clr     (0x004E)
         ldab    #0xD3
-        jsr     (0x8748)
+        jsr     L8748   
         jsr     (0x87AE)
         jsr     (0x8CE9)
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  '   VCR adjust'
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'UP to clear bits'
 
         clrb
         stab    (0x0062)
-        jsr     (0xF9C5)
-        ldaa    (0x1804)
+        jsr     BUTNLIT 
+        ldaa    PIA0PRA 
         anda    #0xBF
-        staa    (0x1804)
+        staa    PIA0PRA 
         jsr     (0x8E95)
         clr     (0x0048)
         clr     (0x0049)
@@ -3781,7 +3807,7 @@ LA155:
         jsr     L86C4
         inc     (0x004E)
         ldab    #0xD3
-        jsr     (0x8748)
+        jsr     L8748   
         jsr     (0x87AE)
         ldaa    (0x0049)
         cmpa    #0x43
@@ -3824,8 +3850,8 @@ LA1C4:
         clr     (0x0076)
         clr     (0x004E)
         ldab    #0xDF
-        jsr     (0x8748)
-        jsr     (0x8791)
+        jsr     L8748   
+        jsr     L8791   
         jmp     (0x81D7)
         ldaa    #0x07
         staa    (0x0400)
@@ -3925,15 +3951,15 @@ LA28E:
         anda    #0xFE        ; stop erasing
         clr     PPROG  
 
-        jsr     (0xF9D8)     ; display "enter serial number"
+        jsr     SERMSGW           ; display "enter serial number"
         .ascis  'Enter serial #: '
 
         ldx     #0x0E20
 LA2AF:
-        jsr     (0xF945)     ; wait for serial data
+        jsr     SERIALR     ; wait for serial data
         bcc     LA2AF  
 
-        jsr     (0xF96F)     ; read serial data
+        jsr     SERIALW     ; read serial data
         ldab    #0x02
         stab    PPROG       ; protect only 0x0e20-0x0e5f
         staa    0,X         
@@ -3962,12 +3988,13 @@ LA2E8:
         sec
         rts
 
-; validate security code?
+; enter and validate security code
+LA2EA:
         ldx     #0x0288
-        ldab    #0x03        ; 3 character code
+        ldab    #0x03       ; 3 character code
 
 LA2EF:
-        jsr     (0xF945)     ; check if available
+        jsr     SERIALR     ; check if available
         bcc     LA2EF  
         staa    0,X     
         inx
@@ -4025,30 +4052,31 @@ LA319:
         staa    (0x1086)
         rts
 
-        ldab    (0x1804)
+        ldab    PIA0PRA 
         orab    #0x08
-        stab    (0x1804)
+        stab    PIA0PRA 
         rts
 
-        ldab    (0x1804)
+        ldab    PIA0PRA 
         andb    #0xF7
-        stab    (0x1804)
+        stab    PIA0PRA 
         rts
 
 ;'$' command goes here?
+LA366:
         clr     (0x004E)
         jsr     L86C4
         clr     (0x042A)
 
-        jsr     (0xF9D8)
+        jsr     SERMSGW      
         .ascis  'Enter security code:' 
 
-        jsr     (0xA2EA)
+        jsr     LA2EA
         bcc     LA38E  
         jmp     (0x8331)
 
 LA38E:
-        jsr     (0xF9D8)
+        jsr     SERMSGW      
         .ascii  "\f\n\rDave's Setup Utility\n\r"
         .ascii  '<K>ing enable\n\r'
         .ascii  '<C>lear random\n\r'
@@ -4063,7 +4091,7 @@ LA38E:
         .ascis  '<J>ump to system\n\r'
 
 LA495:
-        jsr     (0xF945)
+        jsr     SERIALR     
         bcc     LA495  
         cmpa    #0x43        ;'C'
         bne     LA4A7  
@@ -4126,20 +4154,20 @@ LA507:
 LA511:
         jmp     (0xA495)
         ldaa    #0x07
-        jsr     (0xF96F)
+        jsr     SERIALW      
         ldab    #0x01
         jsr     (0x8C30)
         ldaa    #0x07
-        jsr     (0xF96F)
+        jsr     SERIALW      
         jmp     (0xA38E)
 
 ; bulb test
         clrb
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
 LA52A:
         ldab    PORTE
         eorb    #0xFF
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         cmpb    #0x80
         bne     LA52A  
         ldab    #0x02
@@ -4166,7 +4194,7 @@ LA52A:
         rts
 
 ; test driver boards
-        jsr     (0xF945)
+        jsr     SERIALR     
         bcc     LA572  
         cmpa    #0x1B
         bne     LA572  
@@ -4180,10 +4208,10 @@ LA572:
 LA57B:
         psha
         tab
-        jsr     (0xF9C5)
-        ldaa    (0x1804)
+        jsr     BUTNLIT 
+        ldaa    PIA0PRA 
         eora    #0x08
-        staa    (0x1804)
+        staa    PIA0PRA 
         pula
         staa    (0x1080)
         staa    (0x1084)
@@ -4200,7 +4228,7 @@ LA57B:
         ldab    (0x0015)
         decb
         stab    (0x0015)
-        jsr     (0xF995)         ; write digit to the diag display
+        jsr     DIAGDGT          ; write digit to the diag display
         pshb
         ldab    #0x27
         ldaa    (0x0015)
@@ -4231,7 +4259,7 @@ LA5C9:
         ldab    (0x0015)
         decb
         stab    (0x0015)
-        jsr     (0xF995)          ; write digit to the diag display
+        jsr     DIAGDGT           ; write digit to the diag display
         pshb
         ldab    #0x27
         ldaa    (0x0015)
@@ -4258,7 +4286,7 @@ LA60A:
         staa    2,X     
         incb
         pshx
-        jsr     (0xF995)              ; write digit to the diag display
+        jsr     DIAGDGT               ; write digit to the diag display
         pshb
         ldab    #0x27
         pula
@@ -4353,10 +4381,10 @@ LA65D:
 
         jsr     (0xA32E)
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  '    Warm-Up  '
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'Curtains opening'
 
         ldab    #0x14
@@ -4502,16 +4530,16 @@ LA975:
 LA994:
         ldab    #0x40
         stab    (0x0062)
-        jsr     (0xF9C5)
+        jsr     BUTNLIT 
         ldab    #0x64
         jsr     (0x8C22)
         jsr     L86C4
         jsr     (0x8CE9)
 
-        jsr     (0x8DE4)
+        jsr     LCDMSG1 
         .ascis  '     STUDIO'
 
-        jsr     (0x8DDD)
+        jsr     LCDMSG2 
         .ascis  'programming mode'
 
         jsr     (0xA32E)
@@ -4574,7 +4602,7 @@ LAA3C:
         ldaa    (0x10A9)
         staa    0,X     
         cli
-        jsr     (0xF96F)
+        jsr     SERIALW      
         inx
         clr     (0x004F)
         ldd     #0x0001
@@ -4754,23 +4782,23 @@ LAB7F:
         bcs     LABA3  
         cmpa    #0x39
         bhi     LABA3  
-        jsr     (0xF96F)
+        jsr     SERIALW      
         inx
         ldaa    0,X     
-        jsr     (0xF96F)
+        jsr     SERIALW      
         inx
         ldaa    0,X     
-        jsr     (0xF96F)
+        jsr     SERIALW      
         inx
         ldaa    #0x20
-        jsr     (0xF96F)
+        jsr     SERIALW      
         cpx     #0x045C
         bcs     LAB7F  
 LABA3:
         ldaa    #0x0D
-        jsr     (0xF96F)
+        jsr     SERIALW      
         ldaa    #0x0A
-        jsr     (0xF96F)
+        jsr     SERIALW      
         rts
 
         clr     (0x004A)
@@ -4779,7 +4807,7 @@ LABA3:
 LABB6:
         ldaa    (0x004A)
         bne     LABC2  
-        jsr     (0x9B19)
+        jsr     L9B19   
         ldd     CDTIMR5
         bne     LABB6  
 LABC1:
@@ -4827,7 +4855,7 @@ LABCA:
         ldab    (0x0062)    ; and toggle bit 3 of 62
         eorb    #0x08
         stab    (0x0062)
-        jsr     (0xF9C5)     ; and toggle the "special" button light
+        jsr     BUTNLIT      ; and toggle the "special" button light
 
 ; 
 LABFC:
@@ -5267,30 +5295,30 @@ LB21F:
         clc
         rts
 
-        ldaa    (0x180D)
+        ldaa    SCCCTRLB
         lsra
         bcs     LB234  
         clra
-        staa    (0x180D)
+        staa    SCCCTRLB
         ldaa    #0x30
-        staa    (0x180D)
+        staa    SCCCTRLB
         clc
         rts
 
 LB234:
         ldaa    #0x01
-        staa    (0x180D)
+        staa    SCCCTRLB
         ldaa    #0x70
-        bita    (0x180D)
+        bita    SCCCTRLB
         bne     LB245  
         sec
-        ldaa    (0x180F)
+        ldaa    SCCDATAB
         rts
 
 LB245:
-        ldaa    (0x180F)
+        ldaa    SCCDATAB
         ldaa    #0x30
-        staa    (0x180C)
+        staa    SCCCTRLA
         clc
         rts
 
@@ -5351,10 +5379,11 @@ LB2AA:
         .asciz  'You have selected #11'
 
 ; code
-        ldx     #0xB2C7     ; strange table
+        ldx     #LB2C7      ; strange table
         jsr     L8A1A  
         rts
 
+LB2C7:
         .asciz  "^2001%^2101%^2201%^2301%^2401%^2001"
 
         .byte   0xfa,0x20,0xfa,0x20,0xf6,0x22,0xf5,0x20
@@ -5547,14 +5576,14 @@ RESET:
         ldaa    #0x03
         staa    TMSK2       ; disable irqs, set prescaler to 16
         ldaa    #0x80
-        staa    TMSK1       ; enable OC1 (LCD?) irq
+        staa    TMSK1       ; enable OC1 irq
         ldaa    #0xFE
         staa    BPROT       ; protect everything except $xE00-$xE1F
-        ldaa    (0x0007)    ;
+        ldaa    0x0007      ;
         cmpa    #0xDB       ; special unprotect mode???
         bne     LF81C       ; if not, jump ahead
         clr     BPROT       ; else unprotect everything
-        clr     (0x0007)    ; reset special unprotect mode???
+        clr     0x0007     ; reset special unprotect mode???
 LF81C:
         lds     #0x01FF     ; init SP
         ldaa    #0xA5
@@ -5570,24 +5599,24 @@ LF81C:
         staa    CSGADR      ; CSGEN,  RAMSEL = $0000-$7FFF (except internal regs)
         ldaa    #0xF0
         staa    CSSTRH      ; 3 cycle clock stretching on BUSSEL and LCRS
-        clr     (0x0000)    ; ????? Done with basic init?
+        clr     0x0000      ; ????? Done with basic init?
 
 ; Initialize Main PIA
         ldaa    #0x30       ;
-        staa    (0x1805)    ; control register A, CA2=0, sel DDRA
-        staa    (0x1807)    ; control register B, CB2=0, sel DDRB
+        staa    PIA0CRA     ; control register A, CA2=0, sel DDRA
+        staa    PIA0CRB     ; control register B, CB2=0, sel DDRB
         ldaa    #0xFF
-        staa    (0x1806)    ; select B0-B7 to be outputs
+        staa    PIA0DDRB    ; select B0-B7 to be outputs
         ldaa    #0x78       ;
-        staa    (0x1804)    ; select A3-A6 to be outputs
+        staa    PIA0DDRA    ; select A3-A6 to be outputs
         ldaa    #0x34       ;
-        staa    (0x1805)    ; select output register A
-        staa    (0x1807)    ; select output register B
+        staa    PIA0CRA     ; select output register A
+        staa    PIA0CRB     ; select output register B
         ldab    #0xFF
-        jsr     (0xF9C5)    ; clear dignostic digit display
+        jsr     BUTNLIT     ; turn on all button lights
         bra     LF86A       ; jump past data table
 
-; Data loaded into (0x180D) SCC
+; Data loaded into SCCCTRLB SCC
         .byte   0x09,0x4a   ; channel reset B, master irq enable, no vector
         .byte   0x01,0x10   ; irq on all character received
         .byte   0x0c,0x18   ; Lower byte of time constant
@@ -5598,6 +5627,7 @@ LF81C:
         .byte   0x0b,0x56   ; Rx & Tx & TRxC clk from BR gen
         .byte   0x03,0xc1   ; Rx 8 bits/char, Rx Enable
         ;   tc = 4Mhz / (2 * DesiredRate * BRClockPeriod) - 2
+        ;   DesiredRate=~4800 bps with tc=0x18 and BRClockPeriod=16
         .byte   0xff        ; end of table marker
 
 ; init SCC (8530)
@@ -5607,7 +5637,7 @@ LF86D:
         ldaa    0,X
         cmpa    #0xFF
         beq     LF879
-        staa    (0x180D)
+        staa    SCCCTRLB
         inx
         bra     LF86D
 
@@ -5636,7 +5666,7 @@ LF88D:
         cpx     #0x013C
         bcs     LF88D
         ldab    #0xF0
-        stab    (0x1804)    ; enable LCD backlight, disable RESET button light
+        stab    PIA0PRA     ; enable LCD backlight, disable RESET button light
         ldaa    #0x7E
         staa    (0x0003)    ; Put a jump instruction here???
 
@@ -5670,12 +5700,12 @@ LF8BF:
         bra     LF8CA
 
 LF8C6:
-        ldaa    #0x01       ; Mark Failed RAM test?
+        ldaa    #0x01       ; Mark Failed RAM test
         staa    (0x0000)
 ; 
 LF8CA:
         ldab    #0x01
-        jsr     (0xF995)    ; write digit 1 to diag display
+        jsr     DIAGDGT     ; write digit 1 to diag display
         ldaa    BPROT  
         bne     LF8E3       ; if something is protected, jump ahead
         ldaa    (0x3000)    ; NVRAM
@@ -5684,7 +5714,7 @@ LF8CA:
 
 ; error?
         ldab    #0x0E
-        jsr     (0xF995)     ; write digit E to diag display
+        jsr     DIAGDGT      ; write digit E to diag display
         jmp     (0x3000)     ; jump to routine in NVRAM?
 
 ; checking for serial connection
@@ -5696,32 +5726,34 @@ LF8E6:
         nop
         dex
         beq     LF8F6       ; if time is up, jump ahead
-        jsr     (0xF945)    ; else read serial data if available
+        jsr     SERIALR     ; else read serial data if available
         bcc     LF8E6       ; if no data available, loop
         cmpa    #0x1B       ; if serial data was read, is it an ESC?
         beq     LF91D       ; if so, jump to echo hex char routine?
         bra     LF8E6       ; else loop
 LF8F6:
-        ldaa    (0x8000)    ; check if this is a regular rom?
+        ldaa    L8000       ; check if this is a regular rom?
         cmpa    #0x7E        
-        bne     LF908       ; if not, jump ahead
+        bne     MINIMON     ; if not, jump ahead
 
         ldab    #0x0A
-        jsr     (0xF995)    ; else write digit A to diag display
+        jsr     DIAGDGT     ; else write digit A to diag display
 
-        jsr     (0x8000)    ; jump to start of rom routine
+        jsr     L8000       ; jump to start of rom routine
         sei                 ; if we ever come return, just loop and do it all again
         bra     LF8F6
 
-LF908:
-        ldab    #0x10       ; not a regular rom
-        jsr     LF995       ; blank the diag display
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-        jsr     LF9D8       ; enter the mini-monitor???
+MINIMON:
+        ldab    #0x10       ; not a regular rom
+        jsr     DIAGDGT     ; blank the diag display
+
+        jsr     SERMSGW     ; enter the mini-monitor???
         .ascis  'MINI-MON'
 
         ldab    #0x10
-        jsr     LF995       ; blank the diag display
+        jsr     DIAGDGT     ; blank the diag display
 
 LF91D:
         clr     (0x0005)
@@ -5729,10 +5761,13 @@ LF91D:
         clr     (0x0002)
         clr     (0x0006)
 
-        jsr     LF9D8
+        jsr     SERMSGW
         .ascis  '\r\n>'
 
-; convert A to 2 hex digits and transmit??
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; convert A to 2 hex digits and transmit
+SERHEXW:
         psha
         lsra
         lsra
@@ -5747,20 +5782,23 @@ LF938:
         bcs     LF942
         adda    #0x07
 LF942:
-        jmp     LF96F
+        jmp     SERIALW
 
-; get serial char if available
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; serial read non-blocking
+SERIALR:
         ldaa    SCSR  
         bita    #0x20
         bne     LF955
         clc
         rts
 
-; wait for a serial character
-LF94E:
+; serial blocking read
+SERBLKR:
         ldaa    SCSR        ; read serial status
         bita    #0x20
-        beq     LF94E       ; if RDRF=0, loop
+        beq     SERBLKR     ; if RDRF=0, loop
 
 ; read serial data, (assumes it's ready)
 LF955:
@@ -5776,40 +5814,48 @@ LF955:
 LF965:
         ldaa    SCDR        ; clear any error
         ldaa    #0x2F       ; '/'   
-        jsr     LF96F
-        bra     LF94E       ; go to wait for a character
+        jsr     SERIALW
+        bra     SERBLKR     ; go to wait for a character
 
-; Send to SCI with CR turned to CRLF
-LF96F:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Send A to SCI with CR turned to CRLF
+SERIALW:
         cmpa    #0x0D       ; CR?
         beq     LF975       ; if so echo CR+LF
-        bra     LF97C       ; else just echo it
+        bra     SERRAWW     ; else just echo it
 LF975:
         ldaa    #0x0D
-        jsr     LF97C
+        jsr     SERRAWW
         ldaa    #0x0A
 
 ; send a char to SCI
-LF97C:
+SERRAWW:
         ldab    SCSR        ; wait for ready to send
         bitb    #0x40
-        beq     LF97C
+        beq     SERRAWW
         staa    SCDR        ; send it
         rts
 
-        jsr     LF94E       ; get a serial char
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Unused?
+LF987:
+        jsr     SERBLKR     ; get a serial char
         cmpa    #0x7A       ;'z'
         bhi     LF994
         cmpa    #0x61       ;'a'
         bcs     LF994
-        sbca    #0x20       ;convert to pper case?
+        sbca    #0x20       ;convert to upper case?
 LF994:
         rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Write hex digit arg in B to diagnostic lights
 ; or B=0x10 or higher for blank
 
-LF995:
+DIAGDGT:
         psha
         cmpb    #0x11
         bcs     LF99C
@@ -5818,12 +5864,12 @@ LF99C:
         ldx     #LF9B4
         abx
         ldaa    0,X
-        staa    (0x1806)    ; write arg to local data bus
-        ldaa    (0x1804)    ; read from Port A
+        staa    PIA0PRB     ; write arg to local data bus
+        ldaa    PIA0PRA     ; read from Port A
         oraa    #0x20       ; bit 5 high
-        staa    (0x1804)    ; write back to Port A
+        staa    PIA0PRA     ; write back to Port A
         anda    #0xDF       ; bit 5 low
-        staa    (0x1804)    ; write back to Port A
+        staa    PIA0PRA     ; write back to Port A
         pula
         rts
 
@@ -5847,27 +5893,30 @@ LF9B4:
         .byte   0x8e    ; F
         .byte   0xff    ; blank
 
-; Write arg in B to Button Lights
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; Write arg in B to Button Lights
+BUTNLIT:
         psha
-        stab    (0x1806)    ; write arg to local data bus
-        ldaa    (0x1804)    ; read from Port A
+        stab    PIA0PRB     ; write arg to local data bus
+        ldaa    PIA0PRA     ; read from Port A
         anda    #0xEF       ; bit 4 low
-        staa    (0x1804)    ; write back to Port A
+        staa    PIA0PRA     ; write back to Port A
         oraa    #0x10       ; bit 4 high
-        staa    (0x1804)    ; write this to Port A
+        staa    PIA0PRA     ; write this to Port A
         pula
         rts
 
-; Send rom message via SCI
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-LF9D8:
+; Send rom message via SCI
+SERMSGW:
         puly
 LF9DA:
         ldaa    0,Y
         beq     LF9E8       ; if zero terminated, return
         bmi     LF9ED       ; if high bit set..do last char and return
-        jsr     LF97C       ; else send char
+        jsr     SERRAWW     ; else send char
         iny
         bra     LF9DA       ; and loop for next one
 
@@ -5878,50 +5927,53 @@ LF9E8:
 
 LF9ED:
         anda    #0x7F       ; remove top bit
-        jsr     LF97C       ; send char
+        jsr     SERRAWW     ; send char
         bra     LF9E8       ; and we're done
         rts
+
+DORTS:
         rts
+DORTI:        
         rti
 
 ; all 0xffs in this gap
 
         .org    0xffa0
 
-       jmp (0xF9F5)
-       jmp (0xF9F5)
-       jmp (0xF9F5)
-       jmp (0xF92F)
-       jmp (0xF9D8)
-       jmp (0xF945)
-       jmp (0xF96F)
-       jmp (0xF908)
-       jmp (0xF995)
-       jmp (0xF9C5)
+        jmp     DORTS
+        jmp     DORTS
+        jmp     DORTS
+        jmp     SERHEXW
+        jmp     SERMSGW      
+        jmp     SERIALR     
+        jmp     SERIALW      
+        jmp     MINIMON
+        jmp     DIAGDGT 
+        jmp     BUTNLIT 
 
        .byte    0xff
        .byte    0xff
 
 ; Vectors
 
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
-       .word   0xf9f6       ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
+       .word   DORTI        ; Stub RTI
 
         .word  0x0100       ; SCI
         .word  0x0103       ; SPI
         .word  0x0106       ; PA accum. input edge
         .word  0x0109       ; PA Overflow
 
-        .word  0xf9f6       ; Stub RTI
+        .word  DORTI        ; Stub RTI
 
         .word  0x010c       ; TI4O5
         .word  0x010f       ; TOC4
