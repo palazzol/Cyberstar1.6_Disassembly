@@ -1,5 +1,5 @@
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 1
-Hexadecimal [16-Bits]                                 Thu Dec 28 01:20:05 2023
+Hexadecimal [16-Bits]                                 Fri Dec 29 01:28:56 2023
 
 Symbol Table
 
@@ -14,6 +14,8 @@ Symbol Table
     CSGADR         =   105E     |     CSGSIZ         =   105F 
     CSSTRH         =   105C     |     DDRA           =   1001 
     DDRG           =   1003     |   2 DIAGDGT            F995 R
+  2 DLY1MIN            8C11 R   |   2 DLYSECS            8C02 R
+  2 DLYSECSBY100       8C22 R   |   2 DLYSECSBY2         8C30 R
   2 DORTI              F9F6 R   |   2 DORTS              F9F5 R
     ERASEFLG       =   040F     |   2 L8000              8000 R
   2 L8050              8050 R   |   2 L807E              807E R
@@ -23,21 +25,22 @@ Symbol Table
   2 L8157              8157 R   |   2 L8159              8159 R
   2 L8179              8179 R   |   2 L8193              8193 R
   2 L8199              8199 R   |   2 L81BD              81BD R
-  2 L81FF              81FF R   |   2 L8220              8220 R
-  2 L8241              8241 R   |   2 L8254              8254 R
-  2 L8259              8259 R   |   2 L8267              8267 R
-  2 L8283              8283 R   |   2 L8292              8292 R
-  2 L829C              829C R   |   2 L82A1              82A1 R
-  2 L82A4              82A4 R   |   2 L82AB              82AB R
-  2 L8331              8331 R   |   2 L8333              8333 R
-  2 L8349              8349 R   |   2 L8351              8351 R
-  2 L8383              8383 R   |   2 L8387              8387 R
-  2 L839B              839B R   |   2 L83AA              83AA R
-  2 L83AF              83AF R   |   2 L83D4              83D4 R
-  2 L83DB              83DB R   |   2 L8430              8430 R
-  2 L8440              8440 R   |   2 L844D              844D R
-  2 L8454              8454 R   |   2 L8463              8463 R
-  2 L846F              846F R   |   2 L847B              847B R
+  2 L81D7              81D7 R   |   2 L81FF              81FF R
+  2 L8220              8220 R   |   2 L8241              8241 R
+  2 L8254              8254 R   |   2 L8259              8259 R
+  2 L8267              8267 R   |   2 L8283              8283 R
+  2 L8292              8292 R   |   2 L829C              829C R
+  2 L82A1              82A1 R   |   2 L82A4              82A4 R
+  2 L82AB              82AB R   |   2 L8331              8331 R
+  2 L8333              8333 R   |   2 L8349              8349 R
+  2 L8351              8351 R   |   2 L8383              8383 R
+  2 L8387              8387 R   |   2 L839B              839B R
+  2 L83AA              83AA R   |   2 L83AF              83AF R
+  2 L83D4              83D4 R   |   2 L83DB              83DB R
+  2 L8430              8430 R   |   2 L8440              8440 R
+  2 L844D              844D R   |   2 L8454              8454 R
+  2 L8463              8463 R   |   2 L846F              846F R
+  2 L847B              847B R   |   2 L847F              847F R
   2 L849B              849B R   |   2 L84A2              84A2 R
   2 L84A9              84A9 R   |   2 L84B0              84B0 R
   2 L84B9              84B9 R   |   2 L84C0              84C0 R
@@ -55,177 +58,229 @@ Symbol Table
   2 L85BF              85BF R   |   2 L85D7              85D7 R
   2 L85F4              85F4 R   |   2 L85FF              85FF R
   2 L8614              8614 R   |   2 L8630              8630 R
-  2 L863C              863C R   |   2 L8641              8641 R
-  2 L8658              8658 R   |   2 L8675              8675 R
-  2 L8680              8680 R   |   2 L86A1              86A1 R
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 2
-Hexadecimal [16-Bits]                                 Thu Dec 28 01:20:05 2023
+Hexadecimal [16-Bits]                                 Fri Dec 29 01:28:56 2023
 
 Symbol Table
 
-  2 L86B5              86B5 R   |   2 L86B7              86B7 R
-  2 L86C4              86C4 R   |   2 L86C7              86C7 R
+  2 L863C              863C R   |   2 L8641              8641 R
+  2 L8658              8658 R   |   2 L8675              8675 R
+  2 L8680              8680 R   |   2 L86A1              86A1 R
+  2 L86A4              86A4 R   |   2 L86B5              86B5 R
+  2 L86B7              86B7 R   |   2 L86C4              86C4 R
+  2 L86C7              86C7 R   |   2 L86E7              86E7 R
   2 L86F5              86F5 R   |   2 L86FD              86FD R
   2 L8703              8703 R   |   2 L873A              873A R
   2 L8748              8748 R   |   2 L8756              8756 R
   2 L875C              875C R   |   2 L8762              8762 R
   2 L8775              8775 R   |   2 L8783              8783 R
   2 L8791              8791 R   |   2 L879D              879D R
-  2 L87BC              87BC R   |   2 L87BF              87BF R
-  2 L87D1              87D1 R   |   2 L87E8              87E8 R
+  2 L87AE              87AE R   |   2 L87BC              87BC R
+  2 L87BF              87BF R   |   2 L87D1              87D1 R
+  2 L87D2              87D2 R   |   2 L87E8              87E8 R
   2 L87EB              87EB R   |   2 L87FD              87FD R
-  2 L8815              8815 R   |   2 L8869              8869 R
-  2 L8878              8878 R   |   2 L8891              8891 R
-  2 L8896              8896 R   |   2 L88B9              88B9 R
-  2 L88D1              88D1 R   |   2 L88DD              88DD R
-  2 L88DE              88DE R   |   2 L88E0              88E0 R
+  2 L8815              8815 R   |   2 L8832              8832 R
+  2 L883E              883E R   |   2 L8862              8862 R
+  2 L8869              8869 R   |   2 L8878              8878 R
+  2 L8891              8891 R   |   2 L8896              8896 R
+  2 L88B9              88B9 R   |   2 L88D1              88D1 R
+  2 L88DD              88DD R   |   2 L88DE              88DE R
+  2 L88E0              88E0 R   |   2 L88E5              88E5 R
   2 L88FB              88FB R   |   2 L8936              8936 R
   2 L8940              8940 R   |   2 L8944              8944 R
   2 L8954              8954 R   |   2 L8960              8960 R
   2 L8961              8961 R   |   2 L897A              897A R
-  2 L899D              899D R   |   2 L89A0              89A0 R
-  2 L89B6              89B6 R   |   2 L89C9              89C9 R
-  2 L89DC              89DC R   |   2 L89FB              89FB R
-  2 L8A1A              8A1A R   |   2 L8A1B              8A1B R
-  2 L8A29              8A29 R   |   2 L8A4B              8A4B R
-  2 L8A5B              8A5B R   |   2 L8A66              8A66 R
-  2 L8A71              8A71 R   |   2 L8A7C              8A7C R
-  2 L8A8A              8A8A R   |   2 L8A9A              8A9A R
-  2 L8AA8              8AA8 R   |   2 L8AB3              8AB3 R
-  2 L8AC1              8AC1 R   |   2 L8ACC              8ACC R
-  2 L8ADA              8ADA R   |   2 L8AE7              8AE7 R
-  2 L8AF5              8AF5 R   |   2 L8B03              8B03 R
-  2 L8B1B              8B1B R   |   2 L8B3C              8B3C R
-  2 L8BB5              8BB5 R   |   2 L8BC0              8BC0 R
-  2 L8BEE              8BEE R   |   2 L8BF4              8BF4 R
-  2 L8C02              8C02 R   |   2 L8C08              8C08 R
+  2 L8993              8993 R   |   2 L899D              899D R
+  2 L89A0              89A0 R   |   2 L89B6              89B6 R
+  2 L89C9              89C9 R   |   2 L89DC              89DC R
+  2 L89FB              89FB R   |   2 L8A1A              8A1A R
+  2 L8A1B              8A1B R   |   2 L8A29              8A29 R
+  2 L8A4B              8A4B R   |   2 L8A5B              8A5B R
+  2 L8A66              8A66 R   |   2 L8A71              8A71 R
+  2 L8A7C              8A7C R   |   2 L8A8A              8A8A R
+  2 L8A9A              8A9A R   |   2 L8AA8              8AA8 R
+  2 L8AB3              8AB3 R   |   2 L8AC1              8AC1 R
+  2 L8ACC              8ACC R   |   2 L8ADA              8ADA R
+  2 L8AE7              8AE7 R   |   2 L8AF5              8AF5 R
+  2 L8B03              8B03 R   |   2 L8B1B              8B1B R
+  2 L8B21              8B21 R   |   2 L8B23              8B23 R
+  2 L8B3B              8B3B R   |   2 L8B3C              8B3C R
+  2 L8B48              8B48 R   |   2 L8BB5              8BB5 R
+  2 L8BC0              8BC0 R   |   2 L8BEE              8BEE R
+  2 L8BF4              8BF4 R   |   2 L8C08              8C08 R
   2 L8C14              8C14 R   |   2 L8C26              8C26 R
   2 L8C36              8C36 R   |   2 L8C3C              8C3C R
-  2 L8C6A              8C6A R   |   2 L8C7E              8C7E R
-  2 L8C91              8C91 R   |   2 L8CC1              8CC1 R
+  2 L8C6A              8C6A R   |   2 L8C70              8C70 R
+  2 L8C7E              8C7E R   |   2 L8C86              8C86 R
+  2 L8C91              8C91 R   |   2 L8C98              8C98 R
+  2 L8CBD              8CBD R   |   2 L8CC1              8CC1 R
   2 L8CDE              8CDE R   |   2 L8CE1              8CE1 R
+  2 L8CE9              8CE9 R   |   2 L8CF2              8CF2 R
+  2 L8D03              8D03 R   |   2 L8D14              8D14 R
   2 L8D1B              8D1B R   |   2 L8D29              8D29 R
-  2 L8D4D              8D4D R   |   2 L8D61              8D61 R
-  2 L8D63              8D63 R   |   2 L8D85              8D85 R
-  2 L8D87              8D87 R   |   2 L8D8C              8D8C R
-  2 L8DA0              8DA0 R   |   2 L8DA3              8DA3 R
-  2 L8DC2              8DC2 R   |   2 L8DCE              8DCE R
-  2 L8DE9              8DE9 R   |   2 L8DFD              8DFD R
-  2 L8E00              8E00 R   |   2 L8E1D              8E1D R
-  2 L8E3A              8E3A R   |   2 L8E62              8E62 R
-  2 L8E87              8E87 R   |   2 L8EA2              8EA2 R
-  2 L8EAE              8EAE R   |   2 L8EBA              8EBA R
-  2 L8EDF              8EDF R   |   2 L8EF9              8EF9 R
-  2 L8EFB              8EFB R   |   2 L8F05              8F05 R
-  2 L8F08              8F08 R   |   2 L8F09              8F09 R
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 3
-Hexadecimal [16-Bits]                                 Thu Dec 28 01:20:05 2023
+Hexadecimal [16-Bits]                                 Fri Dec 29 01:28:56 2023
 
 Symbol Table
 
-  2 L8F10              8F10 R   |   2 L8F1A              8F1A R
-  2 L8F32              8F32 R   |   2 L8F34              8F34 R
-  2 L8F3E              8F3E R   |   2 L8F41              8F41 R
-  2 L8F66              8F66 R   |   2 L8F94              8F94 R
+  2 L8D2F              8D2F R   |   2 L8D35              8D35 R
+  2 L8D42              8D42 R   |   2 L8D4D              8D4D R
+  2 L8D61              8D61 R   |   2 L8D63              8D63 R
+  2 L8D85              8D85 R   |   2 L8D87              8D87 R
+  2 L8D8C              8D8C R   |   2 L8DA0              8DA0 R
+  2 L8DA3              8DA3 R   |   2 L8DB5              8DB5 R
+  2 L8DC2              8DC2 R   |   2 L8DCE              8DCE R
+  2 L8DE9              8DE9 R   |   2 L8DFD              8DFD R
+  2 L8E00              8E00 R   |   2 L8E1D              8E1D R
+  2 L8E3A              8E3A R   |   2 L8E4B              8E4B R
+  2 L8E62              8E62 R   |   2 L8E70              8E70 R
+  2 L8E87              8E87 R   |   2 L8E95              8E95 R
+  2 L8EA2              8EA2 R   |   2 L8EAE              8EAE R
+  2 L8EBA              8EBA R   |   2 L8EC6              8EC6 R
+  2 L8EDF              8EDF R   |   2 L8EF9              8EF9 R
+  2 L8EFB              8EFB R   |   2 L8F05              8F05 R
+  2 L8F08              8F08 R   |   2 L8F09              8F09 R
+  2 L8F10              8F10 R   |   2 L8F12              8F12 R
+  2 L8F1A              8F1A R   |   2 L8F32              8F32 R
+  2 L8F34              8F34 R   |   2 L8F3E              8F3E R
+  2 L8F41              8F41 R   |   2 L8F46              8F46 R
+  2 L8F58              8F58 R   |   2 L8F66              8F66 R
+  2 L8F73              8F73 R   |   2 L8F94              8F94 R
   2 L8FA9              8FA9 R   |   2 L8FBE              8FBE R
   2 L8FD3              8FD3 R   |   2 L8FE1              8FE1 R
   2 L8FF3              8FF3 R   |   2 L8FFF              8FFF R
   2 L9006              9006 R   |   2 L9016              9016 R
   2 L9036              9036 R   |   2 L9044              9044 R
-  2 L9064              9064 R   |   2 L9295              9295 R
-  2 L92E6              92E6 R   |   2 L92F3              92F3 R
-  2 L92FF              92FF R   |   2 L9310              9310 R
-  2 L931C              931C R   |   2 L9322              9322 R
-  2 L932E              932E R   |   2 L9331              9331 R
-  2 L9338              9338 R   |   2 L935B              935B R
-  2 L9373              9373 R   |   2 L93A5              93A5 R
-  2 L93B1              93B1 R   |   2 L93B9              93B9 R
-  2 L93C3              93C3 R   |   2 L93D0              93D0 R
-  2 L94C6              94C6 R   |   2 L94EB              94EB R
-  2 L94F7              94F7 R   |   2 L9501              9501 R
+  2 L9064              9064 R   |   2 L9072              9072 R
+  2 L9292              9292 R   |   2 L9295              9295 R
+  2 L92D2              92D2 R   |   2 L92E6              92E6 R
+  2 L92F3              92F3 R   |   2 L92FF              92FF R
+  2 L9310              9310 R   |   2 L931C              931C R
+  2 L9322              9322 R   |   2 L932E              932E R
+  2 L9331              9331 R   |   2 L9338              9338 R
+  2 L935B              935B R   |   2 L9373              9373 R
+  2 L93A5              93A5 R   |   2 L93B1              93B1 R
+  2 L93B9              93B9 R   |   2 L93C3              93C3 R
+  2 L93D0              93D0 R   |   2 L93D3              93D3 R
+  2 L949A              949A R   |   2 L94C6              94C6 R
+  2 L94EB              94EB R   |   2 L94F7              94F7 R
+  2 L9501              9501 R   |   2 L9504              9504 R
   2 L9517              9517 R   |   2 L9529              9529 R
   2 L952E              952E R   |   2 L9542              9542 R
   2 L9544              9544 R   |   2 L954C              954C R
   2 L9566              9566 R   |   2 L956E              956E R
   2 L957C              957C R   |   2 L958F              958F R
   2 L95A1              95A1 R   |   2 L95A9              95A9 R
-  2 L95B3              95B3 R   |   2 L95D3              95D3 R
-  2 L95E5              95E5 R   |   2 L95F7              95F7 R
-  2 L960A              960A R   |   2 L960F              960F R
-  2 L9697              9697 R   |   2 L96BC              96BC R
-  2 L96C5              96C5 R   |   2 L96C7              96C7 R
-  2 L96D1              96D1 R   |   2 L96E1              96E1 R
-  2 L96E4              96E4 R   |   2 L96F2              96F2 R
-  2 L9701              9701 R   |   2 L9719              9719 R
-  2 L9721              9721 R   |   2 L972C              972C R
-  2 L973F              973F R   |   2 L9747              9747 R
-  2 L9753              9753 R   |   2 L9766              9766 R
-  2 L97A6              97A6 R   |   2 L97B7              97B7 R
-  2 L97C2              97C2 R   |   2 L97D2              97D2 R
-  2 L97DB              97DB R   |   2 L9864              9864 R
-  2 L9870              9870 R   |   2 L9889              9889 R
-  2 L989F              989F R   |   2 L98A2              98A2 R
-  2 L98AD              98AD R   |   2 L98B5              98B5 R
-  2 L98CB              98CB R   |   2 L98D4              98D4 R
-  2 L9909              9909 R   |   2 L9920              9920 R
-  2 L9939              9939 R   |   2 L9953              9953 R
-  2 L999B              999B R   |   2 L99A6              99A6 R
-  2 L9A0C              9A0C R   |   2 L9A25              9A25 R
-  2 L9A4A              9A4A R   |   2 L9AB8              9AB8 R
-  2 L9AE3              9AE3 R   |   2 L9B19              9B19 R
-  2 L9B31              9B31 R   |   2 L9B33              9B33 R
-  2 L9B36              9B36 R   |   2 L9B40              9B40 R
-  2 L9B4A              9B4A R   |   2 L9B54              9B54 R
-  2 L9B5E              9B5E R   |   2 L9B68              9B68 R
-  2 L9B88              9B88 R   |   2 L9B8B              9B8B R
+  2 L95B3              95B3 R   |   2 L95BA              95BA R
+  2 L95D3              95D3 R   |   2 L95E5              95E5 R
+  2 L95F7              95F7 R   |   2 L960A              960A R
+  2 L960F              960F R   |   2 L9610              9610 R
+  2 L9675              9675 R   |   2 L9697              9697 R
+  2 L96BC              96BC R   |   2 L96C5              96C5 R
+  2 L96C7              96C7 R   |   2 L96D1              96D1 R
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 4
-Hexadecimal [16-Bits]                                 Thu Dec 28 01:20:05 2023
+Hexadecimal [16-Bits]                                 Fri Dec 29 01:28:56 2023
 
 Symbol Table
 
-  2 L9BB6              9BB6 R   |   2 L9BB9              9BB9 R
+  2 L96E1              96E1 R   |   2 L96E4              96E4 R
+  2 L96F2              96F2 R   |   2 L9701              9701 R
+  2 L9719              9719 R   |   2 L9721              9721 R
+  2 L972C              972C R   |   2 L973F              973F R
+  2 L9747              9747 R   |   2 L9753              9753 R
+  2 L975B              975B R   |   2 L975F              975F R
+  2 L9766              9766 R   |   2 L979B              979B R
+  2 L97A6              97A6 R   |   2 L97B7              97B7 R
+  2 L97BA              97BA R   |   2 L97C2              97C2 R
+  2 L97D2              97D2 R   |   2 L97DB              97DB R
+  2 L9802              9802 R   |   2 L9815              9815 R
+  2 L9824              9824 R   |   2 L983C              983C R
+  2 L9864              9864 R   |   2 L9870              9870 R
+  2 L9889              9889 R   |   2 L989F              989F R
+  2 L98A2              98A2 R   |   2 L98AD              98AD R
+  2 L98B5              98B5 R   |   2 L98CB              98CB R
+  2 L98D4              98D4 R   |   2 L9909              9909 R
+  2 L9920              9920 R   |   2 L9939              9939 R
+  2 L993F              993F R   |   2 L9953              9953 R
+  2 L9971              9971 R   |   2 L997B              997B R
+  2 L9985              9985 R   |   2 L998F              998F R
+  2 L999B              999B R   |   2 L999E              999E R
+  2 L99A6              99A6 R   |   2 L99B1              99B1 R
+  2 L99D2              99D2 R   |   2 L99D9              99D9 R
+  2 L9A0C              9A0C R   |   2 L9A25              9A25 R
+  2 L9A27              9A27 R   |   2 L9A4A              9A4A R
+  2 L9A60              9A60 R   |   2 L9A7F              9A7F R
+  2 L9AA4              9AA4 R   |   2 L9AB8              9AB8 R
+  2 L9AE3              9AE3 R   |   2 L9AF7              9AF7 R
+  2 L9B19              9B19 R   |   2 L9B31              9B31 R
+  2 L9B33              9B33 R   |   2 L9B36              9B36 R
+  2 L9B40              9B40 R   |   2 L9B4A              9B4A R
+  2 L9B54              9B54 R   |   2 L9B5E              9B5E R
+  2 L9B68              9B68 R   |   2 L9B6B              9B6B R
+  2 L9B88              9B88 R   |   2 L9B8B              9B8B R
+  2 L9B99              9B99 R   |   2 L9BB6              9BB6 R
+  2 L9BB9              9BB9 R   |   2 L9BC7              9BC7 R
   2 L9BE4              9BE4 R   |   2 L9BE7              9BE7 R
-  2 L9C12              9C12 R   |   2 L9C15              9C15 R
+  2 L9BF5              9BF5 R   |   2 L9C12              9C12 R
+  2 L9C15              9C15 R   |   2 L9C23              9C23 R
   2 L9C40              9C40 R   |   2 L9C43              9C43 R
-  2 L9C9D              9C9D R   |   2 L9CB4              9CB4 R
-  2 L9CC3              9CC3 R   |   2 L9CD2              9CD2 R
-  2 L9CE1              9CE1 R   |   2 L9CF0              9CF0 R
-  2 L9D2C              9D2C R   |   2 L9D39              9D39 R
-  2 L9D3D              9D3D R   |   2 L9D45              9D45 R
-  2 L9D4C              9D4C R   |   2 L9D54              9D54 R
-  2 L9D5B              9D5B R   |   2 L9D66              9D66 R
-  2 L9D71              9D71 R   |   2 L9D7E              9D7E R
-  2 L9D8E              9D8E R   |   2 L9DB0              9DB0 R
-  2 L9DD3              9DD3 R   |   2 L9DE8              9DE8 R
-  2 L9DEA              9DEA R   |   2 L9DFF              9DFF R
+  2 L9C51              9C51 R   |   2 L9C9D              9C9D R
+  2 L9CB4              9CB4 R   |   2 L9CC3              9CC3 R
+  2 L9CD2              9CD2 R   |   2 L9CE1              9CE1 R
+  2 L9CF0              9CF0 R   |   2 L9CF1              9CF1 R
+  2 L9D18              9D18 R   |   2 L9D2C              9D2C R
+  2 L9D39              9D39 R   |   2 L9D3D              9D3D R
+  2 L9D45              9D45 R   |   2 L9D4C              9D4C R
+  2 L9D54              9D54 R   |   2 L9D5B              9D5B R
+  2 L9D66              9D66 R   |   2 L9D71              9D71 R
+  2 L9D7E              9D7E R   |   2 L9D8E              9D8E R
+  2 L9DB0              9DB0 R   |   2 L9DD3              9DD3 R
+  2 L9DE8              9DE8 R   |   2 L9DEA              9DEA R
+  2 L9DF5              9DF5 R   |   2 L9DFF              9DFF R
   2 L9E1A              9E1A R   |   2 L9E37              9E37 R
+ASxxxx Assembler V05.44  (Motorola 6811)                                Page 5
+Hexadecimal [16-Bits]                                 Fri Dec 29 01:28:56 2023
+
+Symbol Table
+
   2 L9E45              9E45 R   |   2 L9E50              9E50 R
   2 L9E5C              9E5C R   |   2 L9E68              9E68 R
   2 L9E6A              9E6A R   |   2 L9E71              9E71 R
-  2 L9E80              9E80 R   |   2 L9EDF              9EDF R
-  2 L9EED              9EED R   |   2 L9F15              9F15 R
-  2 L9F1B              9F1B R   |   2 L9F33              9F33 R
-  2 L9F4D              9F4D R   |   2 L9F61              9F61 R
-  2 L9F63              9F63 R   |   2 L9F7D              9F7D R
-  2 L9F86              9F86 R   |   2 L9F99              9F99 R
-  2 L9FA3              9FA3 R   |   2 L9FBC              9FBC R
-  2 L9FCF              9FCF R   |   2 L9FE2              9FE2 R
-  2 L9FF6              9FF6 R   |   2 LA065              A065 R
+  2 L9E73              9E73 R   |   2 L9E80              9E80 R
+  2 L9E92              9E92 R   |   2 L9EAF              9EAF R
+  2 L9ECC              9ECC R   |   2 L9EDF              9EDF R
+  2 L9EED              9EED R   |   2 L9EFA              9EFA R
+  2 L9F0F              9F0F R   |   2 L9F15              9F15 R
+  2 L9F1B              9F1B R   |   2 L9F1E              9F1E R
+  2 L9F33              9F33 R   |   2 L9F4D              9F4D R
+  2 L9F61              9F61 R   |   2 L9F63              9F63 R
+  2 L9F7D              9F7D R   |   2 L9F86              9F86 R
+  2 L9F99              9F99 R   |   2 L9FA3              9FA3 R
+  2 L9FBC              9FBC R   |   2 L9FCF              9FCF R
+  2 L9FE2              9FE2 R   |   2 L9FF6              9FF6 R
+  2 LA001              A001 R   |   2 LA065              A065 R
   2 LA07D              A07D R   |   2 LA08E              A08E R
   2 LA090              A090 R   |   2 LA09C              A09C R
-  2 LA0AD              A0AD R   |   2 LA0B2              A0B2 R
-  2 LA0BE              A0BE R   |   2 LA0C6              A0C6 R
+  2 LA0AD              A0AD R   |   2 LA0AF              A0AF R
+  2 LA0B2              A0B2 R   |   2 LA0BE              A0BE R
+  2 LA0C6              A0C6 R   |   2 LA0E9              A0E9 R
   2 LA14B              A14B R   |   2 LA155              A155 R
-  2 LA181              A181 R   |   2 LA1A6              A1A6 R
-  2 LA1B2              A1B2 R   |   2 LA1BD              A1BD R
-  2 LA1C4              A1C4 R   |   2 LA1E6              A1E6 R
+  2 LA175              A175 R   |   2 LA181              A181 R
+  2 LA1A6              A1A6 R   |   2 LA1B2              A1B2 R
+  2 LA1BD              A1BD R   |   2 LA1C4              A1C4 R
+  2 LA1D5              A1D5 R   |   2 LA1E6              A1E6 R
   2 LA1FB              A1FB R   |   2 LA20D              A20D R
-  2 LA23D              A23D R   |   2 LA24D              A24D R
-  2 LA25E              A25E R   |   2 LA265              A265 R
-  2 LA275              A275 R   |   2 LA28E              A28E R
-  2 LA2AF              A2AF R   |   2 LA2E8              A2E8 R
+  2 LA226              A226 R   |   2 LA232              A232 R
+  2 LA23D              A23D R   |   2 LA249              A249 R
+  2 LA24D              A24D R   |   2 LA25E              A25E R
+  2 LA265              A265 R   |   2 LA275              A275 R
+  2 LA28E              A28E R   |   2 LA2AF              A2AF R
+  2 LA2DF              A2DF R   |   2 LA2E8              A2E8 R
   2 LA2EA              A2EA R   |   2 LA2EF              A2EF R
-  2 LA311              A311 R   |   2 LA319              A319 R
+  2 LA311              A311 R   |   2 LA313              A313 R
+  2 LA319              A319 R   |   2 LA31E              A31E R
+  2 LA326              A326 R   |   2 LA32E              A32E R
+  2 LA341              A341 R   |   2 LA354              A354 R
   2 LA366              A366 R   |   2 LA38E              A38E R
   2 LA495              A495 R   |   2 LA4A7              A4A7 R
   2 LA4B8              A4B8 R   |   2 LA4C2              A4C2 R
@@ -233,35 +288,49 @@ Symbol Table
   2 LA4E0              A4E0 R   |   2 LA4EA              A4EA R
   2 LA4F6              A4F6 R   |   2 LA4FD              A4FD R
   2 LA507              A507 R   |   2 LA511              A511 R
-  2 LA52A              A52A R   |   2 LA572              A572 R
+  2 LA514              A514 R   |   2 LA526              A526 R
+  2 LA52A              A52A R   |   2 LA53C              A53C R
+  2 LA565              A565 R   |   2 LA572              A572 R
   2 LA57B              A57B R   |   2 LA5C9              A5C9 R
   2 LA60A              A60A R   |   2 LA63B              A63B R
-  2 LA656              A656 R   |   2 LA65D              A65D R
-  2 LA8B3              A8B3 R   |   2 LA8E3              A8E3 R
-ASxxxx Assembler V05.44  (Motorola 6811)                                Page 5
-Hexadecimal [16-Bits]                                 Thu Dec 28 01:20:05 2023
+  2 LA652              A652 R   |   2 LA656              A656 R
+  2 LA65D              A65D R   |   2 LA855              A855 R
+  2 LA86A              A86A R   |   2 LA895              A895 R
+  2 LA8A4              A8A4 R   |   2 LA8B3              A8B3 R
+  2 LA8E3              A8E3 R   |   2 LA8F3              A8F3 R
+ASxxxx Assembler V05.44  (Motorola 6811)                                Page 6
+Hexadecimal [16-Bits]                                 Fri Dec 29 01:28:56 2023
 
 Symbol Table
 
-  2 LA8F3              A8F3 R   |   2 LA8FB              A8FB R
-  2 LA903              A903 R   |   2 LA91C              A91C R
-  2 LA935              A935 R   |   2 LA94F              A94F R
-  2 LA95D              A95D R   |   2 LA966              A966 R
+  2 LA8FB              A8FB R   |   2 LA903              A903 R
+  2 LA91C              A91C R   |   2 LA935              A935 R
+  2 LA941              A941 R   |   2 LA94C              A94C R
+  2 LA94F              A94F R   |   2 LA95D              A95D R
+  2 LA95E              A95E R   |   2 LA966              A966 R
   2 LA974              A974 R   |   2 LA975              A975 R
-  2 LA994              A994 R   |   2 LA9D3              A9D3 R
-  2 LA9D7              A9D7 R   |   2 LA9E5              A9E5 R
+  2 LA97C              A97C R   |   2 LA994              A994 R
+  2 LA9D3              A9D3 R   |   2 LA9D7              A9D7 R
+  2 LA9E5              A9E5 R   |   2 LA9F4              A9F4 R
   2 LA9FB              A9FB R   |   2 LAA0B              AA0B R
-  2 LAA0F              AA0F R   |   2 LAA2D              AA2D R
-  2 LAA3C              AA3C R   |   2 LAA59              AA59 R
-  2 LAA75              AA75 R   |   2 LAAED              AAED R
-  2 LAB02              AB02 R   |   2 LAB03              AB03 R
-  2 LAB05              AB05 R   |   2 LAB1C              AB1C R
-  2 LAB28              AB28 R   |   2 LAB45              AB45 R
-  2 LAB59              AB59 R   |   2 LAB70              AB70 R
-  2 LAB7A              AB7A R   |   2 LAB7F              AB7F R
-  2 LABA3              ABA3 R   |   2 LABB6              ABB6 R
-  2 LABC1              ABC1 R   |   2 LABC2              ABC2 R
-  2 LABCA              ABCA R   |   2 LABFC              ABFC R
+  2 LAA0C              AA0C R   |   2 LAA0F              AA0F R
+  2 LAA13              AA13 R   |   2 LAA18              AA18 R
+  2 LAA1D              AA1D R   |   2 LAA22              AA22 R
+  2 LAA2D              AA2D R   |   2 LAA3C              AA3C R
+  2 LAA59              AA59 R   |   2 LAA75              AA75 R
+  2 LAADB              AADB R   |   2 LAAE8              AAE8 R
+  2 LAAED              AAED R   |   2 LAB02              AB02 R
+  2 LAB03              AB03 R   |   2 LAB05              AB05 R
+  2 LAB17              AB17 R   |   2 LAB1C              AB1C R
+  2 LAB25              AB25 R   |   2 LAB28              AB28 R
+  2 LAB45              AB45 R   |   2 LAB46              AB46 R
+  2 LAB56              AB56 R   |   2 LAB59              AB59 R
+  2 LAB70              AB70 R   |   2 LAB7A              AB7A R
+  2 LAB7C              AB7C R   |   2 LAB7F              AB7F R
+  2 LABA3              ABA3 R   |   2 LABAE              ABAE R
+  2 LABB6              ABB6 R   |   2 LABC1              ABC1 R
+  2 LABC2              ABC2 R   |   2 LABCA              ABCA R
+  2 LABCC              ABCC R   |   2 LABFC              ABFC R
   2 LAC10              AC10 R   |   2 LAC1B              AC1B R
   2 LAC26              AC26 R   |   2 LAC31              AC31 R
   2 LAC3C              AC3C R   |   2 LAC47              AC47 R
@@ -271,72 +340,82 @@ Symbol Table
   2 LACC7              ACC7 R   |   2 LACD0              ACD0 R
   2 LACD9              ACD9 R   |   2 LACE2              ACE2 R
   2 LACEB              ACEB R   |   2 LAD0B              AD0B R
-  2 LAD29              AD29 R   |   2 LAD2E              AD2E R
-  2 LAD3C              AD3C R   |   2 LAD54              AD54 R
-  2 LAD57              AD57 R   |   2 LAD76              AD76 R
-  2 LADA0              ADA0 R   |   2 LADD9              ADD9 R
-  2 LADDD              ADDD R   |   2 LADE1              ADE1 R
-  2 LADE5              ADE5 R   |   2 LADE9              ADE9 R
-  2 LADED              ADED R   |   2 LADF1              ADF1 R
-  2 LADF5              ADF5 R   |   2 LADF9              ADF9 R
-  2 LADFD              ADFD R   |   2 LAE0A              AE0A R
-  2 LAE13              AE13 R   |   2 LAE16              AE16 R
-  2 LAE1E              AE1E R   |   2 LAE22              AE22 R
-  2 LAE27              AE27 R   |   2 LAE2C              AE2C R
-  2 LAE38              AE38 R   |   2 LB1D8              B1D8 R
+  2 LAD0C              AD0C R   |   2 LAD29              AD29 R
+  2 LAD2E              AD2E R   |   2 LAD3C              AD3C R
+  2 LAD54              AD54 R   |   2 LAD57              AD57 R
+  2 LAD76              AD76 R   |   2 LAD7E              AD7E R
+  2 LADA0              ADA0 R   |   2 LADAE              ADAE R
+  2 LADB6              ADB6 R   |   2 LADB8              ADB8 R
+  2 LADD9              ADD9 R   |   2 LADDD              ADDD R
+  2 LADE1              ADE1 R   |   2 LADE5              ADE5 R
+  2 LADE9              ADE9 R   |   2 LADED              ADED R
+  2 LADF1              ADF1 R   |   2 LADF5              ADF5 R
+  2 LADF9              ADF9 R   |   2 LADFD              ADFD R
+  2 LAE0A              AE0A R   |   2 LAE13              AE13 R
+  2 LAE16              AE16 R   |   2 LAE1E              AE1E R
+  2 LAE22              AE22 R   |   2 LAE27              AE27 R
+  2 LAE2C              AE2C R   |   2 LAE31              AE31 R
+  2 LAE38              AE38 R   |   2 LB1D2              B1D2 R
+  2 LB1D8              B1D8 R   |   2 LB1DD              B1DD R
   2 LB1E6              B1E6 R   |   2 LB1FE              B1FE R
-  2 LB207              B207 R   |   2 LB20D              B20D R
-  2 LB215              B215 R   |   2 LB21D              B21D R
-  2 LB21F              B21F R   |   2 LB234              B234 R
-  2 LB245              B245 R   |   2 LB254              B254 R
-  2 LB262              B262 R   |   2 LB269              B269 R
-  2 LB26D              B26D R   |   2 LB274              B274 R
-  2 LB294              B294 R   |   2 LB295              B295 R
-  2 LB2AA              B2AA R   |   2 LB2C7              B2C7 R
-  2 LCDMSG1            8DE4 R   |   2 LCDMSG1A           8DCF R
-  2 LCDMSG2            8DDD R   |   2 LCDMSG2A           8DD6 R
-  2 LF81C              F81C R   |   2 LF86A              F86A R
-  2 LF86D              F86D R   |   2 LF879              F879 R
-  2 LF88D              F88D R   |   2 LF8A3              F8A3 R
-ASxxxx Assembler V05.44  (Motorola 6811)                                Page 6
-Hexadecimal [16-Bits]                                 Thu Dec 28 01:20:05 2023
+ASxxxx Assembler V05.44  (Motorola 6811)                                Page 7
+Hexadecimal [16-Bits]                                 Fri Dec 29 01:28:56 2023
 
 Symbol Table
 
-  2 LF8BF              F8BF R   |   2 LF8C6              F8C6 R
-  2 LF8CA              F8CA R   |   2 LF8E3              F8E3 R
-  2 LF8E6              F8E6 R   |   2 LF8F6              F8F6 R
-  2 LF91D              F91D R   |   2 LF938              F938 R
-  2 LF942              F942 R   |   2 LF955              F955 R
-  2 LF965              F965 R   |   2 LF975              F975 R
-  2 LF987              F987 R   |   2 LF994              F994 R
-  2 LF99C              F99C R   |   2 LF9B4              F9B4 R
-  2 LF9DA              F9DA R   |   2 LF9E8              F9E8 R
-  2 LF9ED              F9ED R   |   2 LOCKUP             8119 R
-  2 MINIMON            F908 R   |     NUMBOOT        =   0426 
-    OFFCNT1        =   0070     |     OFFCNT2        =   0071 
-    OFFCNT3        =   0072     |     OFFCNT4        =   0073 
-    OFFCNT5        =   0074     |     PIA0CRA        =   1805 
-    PIA0CRB        =   1807     |     PIA0DDRA       =   1804 
-    PIA0DDRB       =   1806     |     PIA0PRA        =   1804 
-    PIA0PRB        =   1806     |     PORTA          =   1000 
-    PORTE          =   100A     |     PORTG          =   1002 
-    PPROG          =   103B     |   2 RESET              F800 R
-    SCCCTRLA       =   180C     |     SCCCTRLB       =   180D 
-    SCCDATAA       =   180E     |     SCCDATAB       =   180F 
-    SCCR1          =   102C     |     SCCR2          =   102D 
-    SCDR           =   102F     |     SCSR           =   102E 
-  2 SERBLKR            F94E R   |   2 SERHEXW            F92F R
-  2 SERIALR            F945 R   |   2 SERIALW            F96F R
-  2 SERMSGW            F9D8 R   |   2 SERRAWW            F97C R
-    T1NXT          =   0010     |     T30MS          =   0027 
-  2 TASK2              AD1D R   |     TFLG1          =   1023 
-    TMSK1          =   1022     |     TMSK2          =   1024 
-    TOC1           =   1016     |     TOC2           =   1018 
-    TSCNT          =   00B0 
+  2 LB207              B207 R   |   2 LB20D              B20D R
+  2 LB215              B215 R   |   2 LB21D              B21D R
+  2 LB21F              B21F R   |   2 LB223              B223 R
+  2 LB234              B234 R   |   2 LB245              B245 R
+  2 LB24F              B24F R   |   2 LB254              B254 R
+  2 LB262              B262 R   |   2 LB269              B269 R
+  2 LB26D              B26D R   |   2 LB271              B271 R
+  2 LB274              B274 R   |   2 LB294              B294 R
+  2 LB295              B295 R   |   2 LB2AA              B2AA R
+  2 LB2C0              B2C0 R   |   2 LB2C7              B2C7 R
+  2 LB2EB              B2EB R   |   2 LB3BD              B3BD R
+  2 LB475              B475 R   |   2 LB531              B531 R
+  2 LB5C3              B5C3 R   |   2 LCDMSG1            8DE4 R
+  2 LCDMSG1A           8DCF R   |   2 LCDMSG2            8DDD R
+  2 LCDMSG2A           8DD6 R   |   2 LF780              F780 R
+  2 LF7A0              F7A0 R   |   2 LF7C0              F7C0 R
+  2 LF81C              F81C R   |   2 LF857              F857 R
+  2 LF86A              F86A R   |   2 LF86D              F86D R
+  2 LF879              F879 R   |   2 LF88D              F88D R
+  2 LF8A3              F8A3 R   |   2 LF8BF              F8BF R
+  2 LF8C6              F8C6 R   |   2 LF8CA              F8CA R
+  2 LF8E3              F8E3 R   |   2 LF8E6              F8E6 R
+  2 LF8F6              F8F6 R   |   2 LF91D              F91D R
+  2 LF938              F938 R   |   2 LF942              F942 R
+  2 LF955              F955 R   |   2 LF965              F965 R
+  2 LF975              F975 R   |   2 LF987              F987 R
+  2 LF994              F994 R   |   2 LF99C              F99C R
+  2 LF9B4              F9B4 R   |   2 LF9DA              F9DA R
+  2 LF9E8              F9E8 R   |   2 LF9ED              F9ED R
+  2 LOCKUP             8119 R   |   2 MINIMON            F908 R
+    NUMBOOT        =   0426     |     OFFCNT1        =   0070 
+    OFFCNT2        =   0071     |     OFFCNT3        =   0072 
+    OFFCNT4        =   0073     |     OFFCNT5        =   0074 
+    PIA0CRA        =   1805     |     PIA0CRB        =   1807 
+    PIA0DDRA       =   1804     |     PIA0DDRB       =   1806 
+    PIA0PRA        =   1804     |     PIA0PRB        =   1806 
+    PORTA          =   1000     |     PORTE          =   100A 
+    PORTG          =   1002     |     PPROG          =   103B 
+  2 RESET              F800 R   |     SCCCTRLA       =   180C 
+    SCCCTRLB       =   180D     |     SCCDATAA       =   180E 
+    SCCDATAB       =   180F     |     SCCR1          =   102C 
+    SCCR2          =   102D     |     SCDR           =   102F 
+    SCSR           =   102E     |   2 SERBLKR            F94E R
+  2 SERHEXW            F92F R   |   2 SERIALR            F945 R
+  2 SERIALW            F96F R   |   2 SERMSGW            F9D8 R
+  2 SERRAWW            F97C R   |     T1NXT          =   0010 
+    T30MS          =   0027     |   2 TASK2              AD1D R
+    TFLG1          =   1023     |     TMSK1          =   1022 
+    TMSK2          =   1024     |     TOC1           =   1016 
+    TOC2           =   1018     |     TSCNT          =   00B0 
 
-ASxxxx Assembler V05.44  (Motorola 6811)                                Page 7
-Hexadecimal [16-Bits]                                 Thu Dec 28 01:20:05 2023
+ASxxxx Assembler V05.44  (Motorola 6811)                                Page 8
+Hexadecimal [16-Bits]                                 Fri Dec 29 01:28:56 2023
 
 Area Table
 
