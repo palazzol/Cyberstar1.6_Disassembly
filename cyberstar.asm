@@ -65,22 +65,22 @@ TSCNT       .equ    0x00B0
 ;           .equ    0x0401          ; Rnd bits? (clears to 0x00)
 ;           .equ    0x0402-0x0404   ; Reg digits (BCD)
 ;           .equ    0x0405-0x0407   ; Liv digits (BCD)
-;           .equ    0x0408          ; 0x29 (rts) for CPU test?
+;           .equ    0x0408          ; 0x39 (rts) for CPU test?
 
 CPYRTCS     .equ    0x040B          ; 0x040B/0x040C - copyright message checksum
 ;           .equ    0x040D-0x040E   ; some counter? (600/65000?)
 ERASEFLG    .equ    0x040F          ; 0 = normal boot, 1 = erasing EEPROM
 ;           .equ    0x0410-0x0411   ; some counter
 ;           .equ    0x0412-0x0413   ; some counter
-;           .equ    0x0414-0x0415   ; some counter
-;           .equ    0x0416-0x0417   ; some counter
+;           .equ    0x0414-0x0415   ; counter - number of bad code validations
+;           .equ    0x0416-0x0417   ; counter - number of good code validations
 ;           .equ    0x0418-0x0419   ; some counter
 ;           .equ    0x041A-0x041B   ; some counter
 
 ;           .equ    0x0420-0x0421   ; some counter
 ;           .equ    0x0422-0x0423   ; some counter
 ;           .equ    0x0424-0x0425   ; some counter
-NUMBOOT     .equ    0x0426          ; 0x0426/0x0427
+NUMBOOT     .equ    0x0426          ; counter - number of boots (0x0426/0x0427)
 
 ;           .equ    0x042A          ; King enable (bit 0?)
 ;           .equ    0x042B          ; other Rnd? (clears to 0x00)
@@ -159,7 +159,7 @@ L807E:
         anda    #0xBF
         staa    PIA0PRA 
         ldaa    #0xFF
-        staa    (0x00AC)        ; ???
+        staa    (0x00AC)        ; diagnostic indicator (all off)
 
         jsr     L86C4           ; Reset boards 1-10
         jsr     L99A6           ; do some stuff with diag digit??
@@ -179,42 +179,44 @@ L807E:
 L80C1:
         ldd     CPYRTCS         ; copyright checksum
         cpd     #CHKSUM         ; check against copyright checksum value
-        bne     LOCKUP          ; bye bye
+        bne     LOCKUP          ; if fail, bye bye
         clrb
         stab    (0x0062)        ; button light buffer?
         jsr     BUTNLIT         ; turn off all button lights
         jsr     LA341           ; fire 3 bits on board 2
         ldaa    (0x0400)
         cmpa    #0x07
-        beq     L811C           ; go to CPU test?
-        bcs     L8105           ; go to init setup for CPU test?
+        beq     L811C           ; if 7, go directly to CPU test
+        bcs     L8105           ; higher than 7, go to init setup, retaining L/R counts
         cmpa    #0x06
-        beq     L8105           ; go to init setup for CPU test?
-        ldd     #0x0000
-        std     (0x040D)
-        ldd     #0x00C8
-        std     CDTIMR1
+        beq     L8105           ; 6, go to init setup, retaining L/R counts
+        ldd     #0x0000         ; 5 or lower...
+        std     (0x040D)        ; clear 040D/040E counter
+        ldd     #0x00C8         ; wait up to 2 seconds for a serial byte
+        std     CDTIMR1 
 L80EB:
         ldd     CDTIMR1
-        beq     L80FA
-        jsr     SERIALR     
+        beq     L80FA           ; timeout
+        jsr     SERIALR
         bcc     L80EB
-        cmpa    #0x44           ; 'D'
-        bne     L80EB
-        bra     L80FF
+        cmpa    #0x44           ; if it's a 'D', do init setup + reset L/R counts
+        bne     L80EB           ; else keep looping for 2 seconds
+        bra     L80FF           ; go to init setup
 L80FA:
         jsr     L9F1E
         bcs     LOCKUP          ; bye bye
+; init setup + reset L and R counts
 L80FF:
         jsr     L9EAF           ; reset L counts
         jsr     L9E92           ; reset R counts
+; init setup
 L8105:
         ldaa    #0x39
-        staa    0x0408          ; rts here for later CPU test
-        jsr     LA1D5
-        jsr     LAB17
+        staa    0x0408          ; set rts here for later CPU test
+        jsr     LA1D5           ; set 0400 to 7, reprogram EE sig if needed
+        jsr     LAB17           ; erase revalid tape section
         ldaa    LF7C0           ; a 00
-        staa    0x045C          ; ??? NVRAM
+        staa    0x045C          ; set to R12 mode?
         jmp     RESET           ; reset!
 
 LOCKUP: jmp     LOCKUP          ; infinite loop
@@ -225,13 +227,13 @@ L811C:
         clr     (0x007C)
         jsr     0x0408          ; rts should be here
         jsr     (0x8013)        ; rts is here '9'
-        ldab    #0xFD
+        ldab    #0xFD           ; tape deck STOP
         jsr     L86E7
         ldab    #0xDF
         jsr     L8748   
         jsr     L8791   
         jsr     L9AF7
-        jsr     L9C51
+        jsr     L9C51           ; Reset random motions, init board 7/8 bits
         clr     (0x0062)
         jsr     L99D9
         bcc     L8159           ; if carry clear, test is passed
@@ -278,8 +280,8 @@ L8199:
         jsr     DLYSECS         ;
 
         jsr     L9A27           ; display Serial #
-        jsr     L9ECC           ; display R and L counts?
-        jsr     L9B19           ; do the random tasks???
+        jsr     L9ECC           ; display R and L counts
+        jsr     L9B19           ; do the random motions if enabled
 
         ldab    #0x02           ; delay 2 secs
         jsr     DLYSECS         ;
@@ -287,22 +289,22 @@ L8199:
 L81BD:
         ldab    SCCR2           ; disable receive data interrupts
         andb    #0xDF
-        stab    SCCR2  
+        stab    SCCR2
 
         jsr     L9AF7           ; clear a bunch of ram
-        ldab    #0xFD
-        jsr     L86E7
-        jsr     L8791   
+        ldab    #0xFD           ; tape deck STOP
+        jsr     L86E7           ;
+        jsr     L8791           ; Reset AVSEL1
 
         ldab    #0x00           ; turn off button lights
         stab    (0x0062)
-        jsr     BUTNLIT 
+        jsr     BUTNLIT
 
 L81D7:
         jsr     LCDMSG1 
         .ascis  ' Cyberstar v1.6'
 
-        jsr     LA2DF
+        jsr     LA2DF           ; was I called from jsr 0x8000?
         bcc     L81FF
         ldd     #0x520F
         jsr     L8DB5           ; display 'R' at far right of 1st line
@@ -353,12 +355,12 @@ L8259:
         cpx     (0x00AD)
         bne     L8259
 L8267:
-        jsr     L9C51
+        jsr     L9C51           ; Reset random motions, init board 7/8 bits
         clr     (0x005B)
         clr     (0x005A)
         clr     (0x005E)
         clr     (0x0060)
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         ldaa    (0x0060)
         beq     L8283
         jsr     LA97C
@@ -376,14 +378,14 @@ L8292:
         bne     L829C
         jmp     L9292
 L829C:
-        jsr     SERIALR     
+        jsr     SERIALR
         bcs     L82A4
 L82A1:
         jmp     L8333
 L82A4:
         cmpa    #0x44       ;'$'
         bne     L82AB
-        jmp     LA366
+        jmp     LA366       ; go to security code & setup utility
 L82AB:
         cmpa    #0x53       ;'S'
         bne     L82A1
@@ -464,13 +466,13 @@ L839B:
         addd    #0x0001
         std     (0x040D)
 L83AA:
-        ldab    #0xF7
+        ldab    #0xF7           ; tape deck REWIND
         jsr     L86E7
 L83AF:
         clr     (0x0030)
         clr     (0x0031)
         clr     (0x0032)
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled   
         jsr     L86A4
         bcs     L83AF
         ldaa    (0x0079)
@@ -494,7 +496,7 @@ L83DB:
         orab    #0x80
         stab    (0x0062)
         jsr     BUTNLIT 
-        ldab    #0xFB
+        ldab    #0xFB           ; tape deck PLAY
         jsr     L86E7
 
         jsr     LCDMSG1A
@@ -716,7 +718,7 @@ L85BA:
 L85BF:
         ldd     CDTIMR5
         beq     L85D7
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         ldaa    PIA0PRA 
         eora    #0xFF
         anda    #0x06
@@ -743,7 +745,7 @@ L85F4:
         jsr     DLYSECSBY100           ; delay 0.3 sec
         clr     (0x0030)
 L85FF:
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         ldaa    PORTE
         anda    #0x10
         beq     L8614
@@ -776,7 +778,7 @@ L863C:
 L8641:
         ldd     CDTIMR5
         beq     L8658
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         ldaa    PIA0PRA 
         eora    #0xFF
         anda    #0x06
@@ -811,7 +813,7 @@ L8680:
         clrb
         stab    (0x0062)
         jsr     BUTNLIT 
-        ldab    #0xFD
+        ldab    #0xFD           ; tape deck STOP
         jsr     L86E7
         ldab    #0x04           ; delay 4 secs
         jsr     DLYSECS         ;
@@ -819,7 +821,7 @@ L8680:
 L86A1:
         jmp     L844D
 L86A4:
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         clr     CDTIMR5
         ldaa    #0x19
         staa    CDTIMR5+1
@@ -866,47 +868,48 @@ L86C7:
         ble     L86C7
         rts
 
-; *** Should look at this
+; Set the tape deck to STOP, PLAY, REWIND, or EJECT
+;                B =   0xFD, 0xFB,   0xF7, or  0xEF
 L86E7:
         psha
-        jsr     L9B19   
-        ldaa    (0x00AC)
-        cmpb    #0xFB
+        jsr     L9B19           ; do the random motions if enabled
+        ldaa    (0x00AC)        ; A = diag buffer?
+        cmpb    #0xFB           ; if bit 2 of B is 0 (PLAY)
         bne     L86F5
-        anda    #0xFE
+        anda    #0xFE           ; clear A bit 0 (top)
         bra     L8703
 L86F5:
-        cmpb    #0xF7
+        cmpb    #0xF7           ; if bit 3 of B is 0 (REWIND)
         bne     L86FD
-        anda    #0xBF
+        anda    #0xBF           ; clear A bit 6 (middle)
         bra     L8703
 L86FD:
-        cmpb    #0xFD
+        cmpb    #0xFD           ; if bit 1 of B is 0 (STOP)
         bne     L8703
-        anda    #0xF7
+        anda    #0xF7           ; clear A bit 3 (bottom)
 L8703:
-        staa    (0x00AC)
-        staa    PIA0PRB 
-        jsr     L873A        ; clock diagnostic indicator
-        ldaa    (0x007A)
-        anda    #0x01
-        staa    (0x007A)
-        andb    #0xFE
-        orab    (0x007A)
-        stab    PIA0PRB 
-        jsr     L8775   
+        staa    (0x00AC)        ; update diag display buffer
+        staa    PIA0PRB         ; init bus based on A
+        jsr     L873A           ; clock diagnostic indicator
+        ldaa    (0x007A)        ; buffer for tape deck / av switcher?
+        anda    #0x01           ; preserve a/v switcher bit
+        staa    (0x007A)        ; 
+        andb    #0xFE           ; set bits 7-1 based on B arg
+        orab    (0x007A)        
+        stab    PIA0PRB         ; put that on the bus
+        jsr     L8775           ; clock the tape deck
         ldab    #0x32
-        jsr     DLYSECSBY100       ; delay 0.5 sec
+        jsr     DLYSECSBY100    ; delay 0.5 sec
         ldab    #0xFE
-        orab    (0x007A)
-        stab    PIA0PRB 
+        orab    (0x007A)        ; all tape bits off
+        stab    PIA0PRB         ; unpress tape buttons
         stab    (0x007A)
-        jsr     L8775   
+        jsr     L8775           ; clock the tape deck
         ldaa    (0x00AC)
-        oraa    #0x49
+        oraa    #0x49           ; reset bits top,mid,bot
         staa    (0x00AC)
         staa    PIA0PRB 
-        jsr     L873A        ; clock diagnostic indicator
+        jsr     L873A           ; clock diagnostic indicator
         pula
         rts
 
@@ -948,34 +951,37 @@ L8762:
         pula
         rts
 
+; High pulse on CB2, clock bits0-4 - 4 tape deck and 1 A/V switcher bit
 L8775:
         ldaa    PIA0CRB 
-        oraa    #0x38       ; bits 3-4-5 on
-        staa    PIA0CRB 
-        anda    #0xF7       ; bit 3 off
-        staa    PIA0CRB 
+        oraa    #0x38           
+        staa    PIA0CRB         ; CB2 High
+        anda    #0xF7
+        staa    PIA0CRB         ; CB2 Low
         rts
 
+; High pulse on CA2
 L8783:
         ldaa    PIA0CRA 
-        oraa    #0x38       ; bits 3-4-5 on
-        staa    PIA0CRA 
-        anda    #0xF7       ; bit 3 off
-        staa    PIA0CRA 
+        oraa    #0x38
+        staa    PIA0CRA         ; CA2 High
+        anda    #0xF7
+        staa    PIA0CRA         ; CA2 High
         rts
 
+; AVSEL1 = 0
 L8791:
         ldaa    (0x007A)
         anda    #0xFE
         psha
         ldaa    (0x00AC)
-        oraa    #0x04
+        oraa    #0x04           ; clear segment C (lower right)
         staa    (0x00AC)
         pula
 L879D:
-        staa    (0x007A)
+        staa    (0x007A)        
         staa    PIA0PRB 
-        jsr     L8775
+        jsr     L8775           ; AVSEL1 = low
         ldaa    (0x00AC)
         staa    PIA0PRB 
         jsr     L873A           ; clock diagnostic indicator
@@ -1341,18 +1347,19 @@ L89FB:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 L8A1A:
-; Read from table location in X
+; Parse text with compressed ANSI stuff from table location in X
         pshx
 L8A1B:
         ldaa    #0x04
         bita    SCCCTRLB
         beq     L8A1B  
         ldaa    0,X     
-        bne     L8A29       ; is it a nul?
-        jmp     L8B21       ; if so jump to exit
+        bne     L8A29       ; if not nul, continue
+        jmp     L8B21       ; else jump to exit
+; process ^0123 into ESC[01;23H - ANSI Cursor positioning - (1 based)
 L8A29:
         inx
-        cmpa    #0x5E       ; is is a caret? '^'
+        cmpa    #0x5E       ; is it a '^' ?
         bne     L8A4B       ; no, jump ahead
         ldaa    0,X         ; yes, get the next char
         inx
@@ -1368,16 +1375,16 @@ L8A29:
         staa    (0x0596)
         jsr     L8B23
         bra     L8A1B  
-
+; process @...
 L8A4B:
-        cmpa    #0x40
+        cmpa    #0x40       ; is it a '@' ?
         bne     L8A8A  
-        ldy     0,X     
+        ldy     0,X
         inx
         inx
         ldaa    #0x30
         staa    (0x00B1)
-        ldaa    0,Y     
+        ldaa    0,Y
 L8A5B:
         cmpa    #0x64
         bcs     L8A66  
@@ -1404,9 +1411,10 @@ L8A7C:
         pula
         adda    #0x30
         jsr     L8B3B
-        bra     L8A1B  
+        bra     L8A1B
+; process |...
 L8A8A:
-        cmpa    #0x7C
+        cmpa    #0x7C       ; is it a '|' ?
         bne     L8AE7  
         ldy     0,X     
         inx
@@ -1453,8 +1461,9 @@ L8ADA:
         staa    (0x00B1)
         tba
         jmp     L8A71
+; process ~...
 L8AE7:
-        cmpa    #0x7E
+        cmpa    #0x7E       ; is it a '~' ?
         bne     L8B03  
         ldab    0,X     
         subb    #0x30
@@ -1469,8 +1478,9 @@ L8AF5:
         decb
         bne     L8AF5  
         jmp     L8A1B
+; process %...
 L8B03:
-        cmpa    #0x25
+        cmpa    #0x25       ; is it a '%' ?
         bne     L8B1B  
         ldx     #0x0590
         ldd     #0x1B5B
@@ -1487,25 +1497,28 @@ L8B21:
         pulx
         rts
 
+; generate cursor positioning code
 L8B23:
         pshx
         ldx     #0x0590
         ldd     #0x1B5B
         std     0,X     
-        ldaa    #0x48
+        ldaa    #0x48       ;'H'
         staa    7,X
-        ldaa    #0x3B
+        ldaa    #0x3B       ;';'
         staa    4,X
         clr     8,X
-        jsr     L8A1A  
+        jsr     L8A1A       ;012345678 - esc[01;23H;
         pulx
         rts
+
+;
 L8B3B:
         psha
 L8B3C:
         ldaa    #0x04
         bita    SCCCTRLB
-        beq     L8B3C  
+        beq     L8B3C
         pula
         staa    SCCDATAB
         rts
@@ -1590,7 +1603,7 @@ DLYSECS:
         mul
         std     CDTIMR5     ; store B*100 here
 L8C08:
-        jsr     L9B19   
+        jsr     L9B19       ; do the random motions if enabled
         ldd     CDTIMR5     ; housekeeping
         bne     L8C08  
         pula
@@ -1620,7 +1633,7 @@ DLYSECSBY100:
         clra
         std     CDTIMR5
 L8C26:
-        jsr     L9B19   
+        jsr     L9B19       ; do the random motions if enabled
         tst     CDTIMR5+1
         bne     L8C26       ; housekeeping?
         pula
@@ -2774,12 +2787,12 @@ L9802:
         jsr     L8748
 L9815:
         jsr     LA31E
-        jsr     L86C4               ; Reset boards 1-10
-        jsr     L9C51
+        jsr     L86C4           ; Reset boards 1-10
+        jsr     L9C51           ; Reset random motions, init board 7/8 bits
         jsr     L8E95
         jmp     L844D
 L9824:
-        jsr     L9C51
+        jsr     L9C51           ; Reset random motions, init board 7/8 bits
         clr     (0x004E)
         ldab    (0x007B)
         orab    #0x24
@@ -2798,7 +2811,7 @@ L983C:
         ldaa    (0x0062)
         anda    #0x01
         beq     L98AD  
-        ldab    #0xFD
+        ldab    #0xFD           ; tape deck STOP
         jsr     L86E7
         ldd     #0x0032
         std     CDTIMR1
@@ -2806,7 +2819,7 @@ L983C:
         std     CDTIMR2
         clr     (0x005A)
 L9864:
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         tst     (0x0031)
         bne     L9870  
         ldaa    (0x005A)
@@ -2818,7 +2831,7 @@ L9870:
         stab    (0x0062)
         jsr     BUTNLIT 
         jsr     LAA13
-        ldab    #0xFB
+        ldab    #0xFB           ; tape deck PLAY
         jsr     L86E7
         clr     (0x005A)
         bra     L98D4  
@@ -2894,7 +2907,7 @@ L9909:
         ldab    #0x01
         stab    (0x00B6)
 L9920:
-        jsr     L9C51
+        jsr     L9C51           ; Reset random motions, init board 7/8 bits
         clr     (0x004E)
         clr     (0x0075)
         ldaa    #0x01
@@ -2909,7 +2922,7 @@ L9939:
         jmp     L85A4
 L993F:
         clr     (0x0077)
-        jsr     L9C51
+        jsr     L9C51           ; Reset random motions, init board 7/8 bits
         clr     (0x004E)
         ldab    (0x0062)
         andb    #0xBF
@@ -3076,7 +3089,7 @@ L9A60:
         anda    #0x06
         staa    (0x007E)
 L9A7F:
-        ldab    #0xEF
+        ldab    #0xEF           ; tape deck EJECT
         jsr     L86E7
         ldab    (0x007B)
         orab    #0x0C
@@ -3084,9 +3097,9 @@ L9A7F:
         jsr     L8748   
         jsr     L8791   
         jsr     L86C4           ; Reset boards 1-10
-        jsr     L9C51
-        ldab    #0x06            ; delay 6 secs
-        jsr     DLYSECS          ;
+        jsr     L9C51           ; Reset random motions, init board 7/8 bits
+        ldab    #0x06           ; delay 6 secs
+        jsr     DLYSECS         ;
         jsr     L8E95
         jsr     L99A6
         jmp     L81BD
@@ -3094,13 +3107,13 @@ L9AA4:
         clr     (0x005C)
         ldaa    #0x01
         staa    (0x0079)
-        ldab    #0xFD
+        ldab    #0xFD           ; tape deck STOP
         jsr     L86E7
         jsr     L8E95
         ldd     #0x7530
         std     CDTIMR2
 L9AB8:
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         ldab    (0x0062)
         eorb    #0x04
         stab    (0x0062)
@@ -3124,7 +3137,7 @@ L9AE3:
         stab    (0x0062)
         jsr     BUTNLIT 
         jsr     LA354
-        ldab    #0xFB
+        ldab    #0xFB           ; tape deck PLAY
         jsr     L86E7
         jmp     L85A4
 L9AF7:
@@ -3141,18 +3154,18 @@ L9AF7:
         clr     (0x00AF)
         rts
 
-; validate a bunch of ram locations against bytes in ROM???
+; do the random motions if enabled
 L9B19:
         psha
         pshb
         ldaa    (0x004E)
         beq     L9B36       ; go to 0401 logic
-        ldaa    (0x0063)
+        ldaa    (0x0063)    ; check countdown timer
         bne     L9B33       ; exit
         tst     (0x0064)
         beq     L9B31       ; go to 0401 logic
         jsr     L86C4       ; Reset boards 1-10
-        jsr     L9C51       ; RTC stuff???
+        jsr     L9C51       ; Reset random motions, init board 7/8 bits
         clr     (0x0064)
 L9B31:
         bra     L9B36       ; go to 0401 logic
@@ -3207,7 +3220,7 @@ L9B6B:
         bcs     L9B88  
         iny
         ldaa    0,Y     
-        staa    (0x1080)
+        staa    (0x1080)        ; do some stuff to board 1
         iny
         sty     (0x0065)
 L9B88:
@@ -3219,6 +3232,8 @@ L9B8B:
         ldaa    #0xFA
         staa    OFFCNT1
         jmp     L9B88
+
+; bit 1 routine
 L9B99:
         pshy
         ldy     (0x0067)
@@ -3229,14 +3244,12 @@ L9B99:
         bcs     L9BB6  
         iny
         ldaa    0,Y     
-        staa    (0x1084)
+        staa    (0x1084)        ; do some stuff to board 2
         iny
         sty     (0x0067)
 L9BB6:
         puly
         rts
-
-; bit 1 routine
 L9BB9:
         ldy     #LB3BD
         sty     (0x0067)
@@ -3255,7 +3268,7 @@ L9BC7:
         bcs     L9BE4  
         iny
         ldaa    0,Y     
-        staa    (0x1088)
+        staa    (0x1088)        ; do some stuff to board 3
         iny
         sty     (0x0069)
 L9BE4:
@@ -3279,7 +3292,7 @@ L9BF5:
         bcs     L9C12  
         iny
         ldaa    0,Y     
-        staa    (0x108C)
+        staa    (0x108C)        ; do some stuff to board 4
         iny
         sty     (0x006B)
 L9C12:
@@ -3303,7 +3316,7 @@ L9C23:
         bcs     L9C40  
         iny
         ldaa    0,Y     
-        staa    (0x1090)
+        staa    (0x1090)        ; do some stuff to board 5
         iny
         sty     (0x006D)
 L9C40:
@@ -3329,6 +3342,7 @@ L9C51:
         ldaa    #0xAA
         staa    OFFCNT5
 
+        ; int random movement table pointers
         ldy     #LB2EB
         sty     (0x0065)
         ldy     #LB3BD
@@ -3340,15 +3354,18 @@ L9C51:
         ldy     #LB5C3
         sty     (0x006D)
 
+        ; clear board 8
         clr     (0x109C)
         clr     (0x109E)
 
+        ; if bit 5 of 0401 is set, turn on 3 bits on board 8
         ldaa    (0x0401)
         anda    #0x20
-        beq     L9C9D  
+        beq     L9C9D
         ldaa    (0x109C)
         oraa    #0x19
         staa    (0x109C)
+        ; if bit 6 of 0401 is set, turn on 3 bits on board 8
 L9C9D:
         ldaa    (0x0401)
         anda    #0x40
@@ -3359,6 +3376,7 @@ L9C9D:
         ldaa    (0x109E)
         oraa    #0x40
         staa    (0x109E)
+        ; if bit 7 of 0401 is set, turn on 3 bits on board 8
 L9CB4:
         ldaa    (0x0401)
         anda    #0x80
@@ -3366,7 +3384,9 @@ L9CB4:
         ldaa    (0x109C)
         oraa    #0xA2
         staa    (0x109C)
+
 L9CC3:
+        ; if bit 0 of 042B is set, turn on 1 bit on board 7
         ldaa    (0x042B)
         anda    #0x01
         beq     L9CD2  
@@ -3374,6 +3394,7 @@ L9CC3:
         oraa    #0x80
         staa    (0x109A)
 L9CD2:
+        ; if bit 1 of 042B is set, turn on 1 bit on board 8
         ldaa    (0x042B)
         anda    #0x02
         beq     L9CE1  
@@ -3381,6 +3402,7 @@ L9CD2:
         oraa    #0x04
         staa    (0x109E)
 L9CE1:
+        ; if bit 2 of 042B is set, turn on 1 bit on board 8
         ldaa    (0x042B)
         anda    #0x04
         beq     L9CF0  
@@ -3410,7 +3432,7 @@ L9D18:
         ldd     #0x0BB8         ; start 30 second timer?
         std     CDTIMR1
 L9D2C:
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         ldaa    (0x0049)
         cmpa    #0x41
         beq     L9D39  
@@ -3464,7 +3486,7 @@ L9D7E:
         clr     (0x004A)
         ldx     #0x0299
 L9D8E:
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         ldaa    (0x004A)
         beq     L9D8E  
         clr     (0x004A)
@@ -3520,7 +3542,7 @@ L9DF5:
         beq     L9E68  
         ldx     #0x00A8
 L9DFF:
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         ldaa    (0x004A)
         beq     L9DFF  
         clr     (0x004A)
@@ -3679,15 +3701,17 @@ L9F1B:
         suba    #0x30
         rts
 
+; different behavior based on serial number
 L9F1E:
         ldd     (0x029C)
-        cpd     #0x0001     ; 1
-        beq     L9F33       ; password bypass?
+        cpd     #0x0001     ; if 1, password bypass
+        beq     L9F33       ; 
         cpd     #0x03E8     ; 1000
-        bcs     L9F4D       ; code
+        bcs     L9F4D       ; if > 1000, code
         cpd     #0x044B     ; 1099
-        bhi     L9F4D       ; code
-
+        bhi     L9F4D       ; if < 1099, code
+                            ; else 1 < x < 1000, bypass
+                            
 L9F33:
         jsr     LCDMSG1 
         .ascis  'Password bypass '
@@ -3704,15 +3728,17 @@ L9F4D:
         jsr     LCDMSG1 
         .ascis  'Code:'
 
+; Generate a random 5-digit code in 0x0290-0x0294, and display to user
+
         ldx     #0x0290
-        clr     (0x0016)
+        clr     (0x0016)    ; 0x00
 L9F61:
-        ldaa    #0x41
+        ldaa    #0x41       ; 'A'
 L9F63:
-        staa    (0x0015)
-        jsr     L8E95
+        staa    (0x0015)    ; 0x41
+        jsr     L8E95       ; roll the dice
         cmpa    #0x0D
-        bne     L9F7D  
+        bne     L9F7D
         ldaa    (0x0015)
         staa    0,X     
         inx
@@ -3725,18 +3751,19 @@ L9F63:
 L9F7D:
         ldaa    (0x0015)
         inca
-        cmpa    #0x5B
+        cmpa    #0x5B       ; '['
         beq     L9F61  
         bra     L9F63  
 
+; Let the user type in a corresponding password to the code
 L9F86:
         jsr     LCDMSG2 
         .ascis  'Pswd:'
 
         ldx     #0x0288
-        ldaa    #0x41
+        ldaa    #0x41       ; 'A'
         staa    (0x0016)
-        ldaa    #0xC5
+        ldaa    #0xC5       ; 
         staa    (0x0015)
 L9F99:
         ldaa    (0x0015)
@@ -3780,35 +3807,38 @@ L9FCF:
         staa    (0x0016)
         bra     L9F99  
 L9FE2:
-        jsr     LA001
-        bcs     L9FF6  
+        jsr     LA001           ; validate
+        bcs     L9FF6           ; if bad, jump
         ldaa    #0xDB
-        staa    (0x00AB)
-        ldd     (0x0416)
+        staa    (0x00AB)        ; good password
+        ldd     (0x0416)        ; increment number of good validations counter
         addd    #0x0001
         std     (0x0416)
         clc
         rts
 
 L9FF6:
-        ldd     (0x0414)
+        ldd     (0x0414)        ; increment number of bad validations counter
         addd    #0x0001
         std     (0x0414)
         sec
         rts
 
+; Validate password?
 LA001:
-        ldaa    (0x0290)
+        ; scramble 5 letters
+        ldaa    (0x0290)        ; 0 -> 1
         staa    (0x0281)
-        ldaa    (0x0291)
+        ldaa    (0x0291)        ; 1 -> 3
         staa    (0x0283)
-        ldaa    (0x0292)
+        ldaa    (0x0292)        ; 2 -> 4
         staa    (0x0284)
-        ldaa    (0x0293)
+        ldaa    (0x0293)        ; 3 -> 0
         staa    (0x0280)
-        ldaa    (0x0294)
+        ldaa    (0x0294)        ; 4 -> 2
         staa    (0x0282)
-        ldaa    (0x0280)
+        ; transform each letter
+        ldaa    (0x0280)    
         eora    #0x13
         adda    #0x03
         staa    (0x0280)
@@ -3828,23 +3858,28 @@ LA001:
         eora    #0x01
         adda    #0x10
         staa    (0x0284)
+        ; keep them modulo 26 (A-Z)
         jsr     LA0AF
+        ; put some of the original bits into 0x0015/0x0016
         ldaa    (0x0294)
         anda    #0x17
         staa    (0x0015)
         ldaa    (0x0290)
         anda    #0x17
         staa    (0x0016)
+        ; do some eoring with these bits
         ldx     #0x0280
 LA065:
-        ldaa    0,X     
+        ldaa    0,X
         eora    (0x0015)
         eora    (0x0016)
-        staa    0,X     
+        staa    0,X
         inx
         cpx     #0x0285
-        bne     LA065  
+        bne     LA065
+        ; keep them modulo 26 (A-Z)
         jsr     LA0AF
+        ; compare them to code in 0x0288-0x028C
         ldx     #0x0280
         ldy     #0x0288
 LA07D:
@@ -3855,13 +3890,14 @@ LA07D:
         iny
         cpx     #0x0285
         bne     LA07D  
-        clc
+        clc                 ; carry clear if good
         rts
 
 LA08E:
-        sec
+        sec                 ; carry set if bad
         rts
 
+; trivial password validation - not used??
 LA090:
         .ascii  'YADDA'
 
@@ -3881,20 +3917,21 @@ LA0AD:
         sec
         rts
 
+; keep the password modulo 26, each letter in range 'A-Z'
 LA0AF:
         ldx     #0x0280
 LA0B2:
-        ldaa    0,X     
+        ldaa    0,X
         cmpa    #0x5B
-        bcs     LA0BE  
+        bcs     LA0BE
         suba    #0x1A
-        staa    0,X     
-        bra     LA0C6  
+        staa    0,X
+        bra     LA0C6
 LA0BE:
         cmpa    #0x41
-        bcc     LA0C6  
+        bcc     LA0C6
         adda    #0x1A
-        staa    0,X     
+        staa    0,X
 LA0C6:
         inx
         cpx     #0x0285
@@ -3934,10 +3971,10 @@ LA0E9:
         jsr     L8E95
         clr     (0x0048)
         clr     (0x0049)
-        jsr     L86C4               ; Reset boards 1-10
+        jsr     L86C4           ; Reset boards 1-10
         ldaa    #0x28
         staa    (0x0063)
-        ldab    #0xFD
+        ldab    #0xFD           ; tape deck STOP
         jsr     L86E7
         jsr     LA32E
         inc     (0x0076)
@@ -3973,13 +4010,13 @@ LA181:
         ldd     (0x029C)
         cpd     #0x0001
         beq     LA1A6  
-        ldab    #0xEF
+        ldab    #0xEF           ; tape deck EJECT
         jsr     L86E7
-        jsr     L86C4               ; Reset boards 1-10
+        jsr     L86C4           ; Reset boards 1-10
         clr     (0x004E)
         clr     (0x0076)
         ldab    #0x0A
-        jsr     DLYSECSBY2           ; delay 5 sec
+        jsr     DLYSECSBY2      ; delay 5 sec
         jmp     L81D7
 LA1A6:
         jsr     L8E95
@@ -4006,19 +4043,21 @@ LA1C4:
         jsr     L8791   
         jmp     L81D7
 
+; reprogram EEPROM signature if needed
 LA1D5:
         ldaa    #0x07
         staa    (0x0400)
         ldd     #0x0E09
-        cmpa    #0x65
-        bne     LA1E6  
-        cmpb    #0x63
-        bne     LA1E6  
+        cmpa    #0x65           ;'e'
+        bne     LA1E6
+        cmpb    #0x63           ;'c'
+        bne     LA1E6
         rts
 
+; erase and reprogram EEPROM signature
 LA1E6:
         ldaa    #0x0E
-        staa    PPROG  
+        staa    PPROG
         ldaa    #0xFF
         staa    (0x0E00)
         ldaa    PPROG  
@@ -4046,7 +4085,7 @@ LA20D:
         clr     PPROG  
         rts
 
-; initial data for 0x0E00 NVRAM??
+; data for 0x0E00-0x0E0B EEPROM
 LA226:
         .ascii  ')d*!2::4!ecq'
 
@@ -4146,7 +4185,7 @@ LA2E8:
         sec
         rts
 
-; enter and validate security code
+; enter and validate security code via serial
 LA2EA:
         ldx     #0x0288
         ldab    #0x03       ; 3 character code
@@ -4233,11 +4272,11 @@ LA366:
         jsr     L86C4           ; Reset boards 1-10
         clr     (0x042A)
 
-        jsr     SERMSGW      
+        jsr     SERMSGW
         .ascis  'Enter security code:' 
 
         jsr     LA2EA
-        bcc     LA38E  
+        bcc     LA38E
         jmp     L8331
 
 LA38E:
@@ -4299,7 +4338,7 @@ LA4E0:
 LA4EA:
         cmpa    #0x37       ;'7'
         bne     LA4F6  
-        ldab    #0xFB
+        ldab    #0xFB       ; tape deck PLAY
         jsr     L86E7       ;5% adjustment
         jmp     LA514
 LA4F6:
@@ -4343,21 +4382,21 @@ LA52A:
 
 ; deck test
 LA53C:
-        ldab    #0xFD
+        ldab    #0xFD           ; tape deck STOP
         jsr     L86E7
         ldab    #0x06
-        jsr     DLYSECSBY2           ; delay 3 sec
-        ldab    #0xFB
+        jsr     DLYSECSBY2      ; delay 3 sec
+        ldab    #0xFB           ; tape deck PLAY
         jsr     L86E7
         ldab    #0x06
-        jsr     DLYSECSBY2           ; delay 3 sec
-        ldab    #0xFD
+        jsr     DLYSECSBY2      ; delay 3 sec
+        ldab    #0xFD           ; tape deck STOP
         jsr     L86E7
         ldab    #0xF7
-        jsr     L86E7
+        jsr     L86E7           ; tape deck REWIND
         ldab    #0x06
-        jsr     DLYSECSBY2           ; delay 3 sec
-        ldab    #0xEF
+        jsr     DLYSECSBY2      ; delay 3 sec
+        ldab    #0xEF           ; tape deck EJECT
         jsr     L86E7
         rts
 
@@ -4907,6 +4946,7 @@ LAB05:
         pulx
         bra     LAAED
 
+; erase revalid tape section in EEPROM
 LAB17:
         ldx     #0x042C
         ldaa    #0xFF
@@ -4914,7 +4954,7 @@ LAB1C:
         staa    0,X     
         inx
         cpx     #0x045C
-        bcs     LAB1C  
+        bcs     LAB1C
         rts
 
 LAB25:
@@ -5007,7 +5047,7 @@ LABAE:
 LABB6:
         ldaa    (0x004A)
         bne     LABC2  
-        jsr     L9B19   
+        jsr     L9B19           ; do the random motions if enabled
         ldd     CDTIMR5
         bne     LABB6  
 LABC1:
@@ -5455,8 +5495,9 @@ LB1D2:
         ldx     #LB1D8       ; escape sequence?
         jmp     L8A1A  
 
+; ANSI control sequence - Clear Screen and Home Cursor
 LB1D8:
-        ; esc[2J ?
+        ; esc[2J
         .byte   0x1b
         .asciz  '[2J'
 
@@ -5596,6 +5637,9 @@ LB2C0:
 LB2C7:
         .asciz  "^2001%^2101%^2201%^2301%^2401%^2001"
 
+; Random movement tables
+
+; board 1
 LB2EB:
         .byte   0xfa,0x20,0xfa,0x20,0xf6,0x22,0xf5,0x20
         .byte   0xf5,0x20,0xf3,0x22,0xf2,0x20,0xe5,0x22
@@ -5625,6 +5669,7 @@ LB2EB:
         .byte   0x10,0x30,0x07,0x34,0x06,0x30,0x05,0x30
         .byte   0xff,0xff
 
+; board 2
 LB3BD:
         .byte   0xd7,0x22,0xd5,0x20,0xc9,0x22
         .byte   0xc7,0x20,0xc4,0x24,0xc3,0x20,0xc2,0x24
@@ -5651,6 +5696,7 @@ LB3BD:
         .byte   0x15,0x22,0x14,0xa0,0x13,0xa2,0x11,0xa0
         .byte   0xff,0xff
 
+; board 4
 LB475:
         .byte   0xbe,0x00,0xbc,0x22,0xbb,0x30
         .byte   0xb9,0x32,0xb9,0x32,0xb7,0x30,0xb6,0x32
@@ -5677,6 +5723,7 @@ LB475:
         .byte   0x13,0x00,0x11,0x24,0x10,0x30,0x07,0x34
         .byte   0x06,0x30,0x05,0x30,0xff,0xff
 
+; board 3
 LB531:
         .byte   0xcd,0x20
         .byte   0xcc,0x20,0xcb,0x20,0xcb,0x20,0xca,0x00
@@ -5698,6 +5745,7 @@ LB531:
         .byte   0x47,0x10,0x45,0x30,0x35,0x30,0x33,0x10
         .byte   0x31,0x30,0x31,0x30,0x1d,0x20,0xff,0xff
 
+; board 5
 LB5C3:
         .byte   0xa9,0x20,0xa3,0x20,0xa2,0x20,0xa1,0x20
         .byte   0xa0,0x20,0xa0,0x20,0x9f,0x20,0x9f,0x20
