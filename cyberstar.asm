@@ -111,10 +111,10 @@ PIA0DDRB    .equ    0x1806      ; CRB-2 = 0
 PIA0CRB     .equ    0x1807
 
 ; Zilog 8530 SCC - A is aux serial, B is sync data
-SCCCTRLA    .equ    0x180C
-SCCCTRLB    .equ    0x180D
-SCCDATAA    .equ    0x180E
-SCCDATAB    .equ    0x180F
+SCCCTRLB    .equ    0x180C
+SCCCTRLA    .equ    0x180D
+SCCDATAB    .equ    0x180E
+SCCDATAA    .equ    0x180F
 
         .area   region1 (ABS)
         .org    0x8000
@@ -997,6 +997,7 @@ L87AE:
         pula
         bra     L879D
 
+; SCC init, aux serial
 L87BC:
         ldx     #L87D2
 L87BF:
@@ -1004,15 +1005,15 @@ L87BF:
         cmpa    #0xFF
         beq     L87D1
         inx
-        staa    SCCCTRLB
+        staa    SCCCTRLA
         ldaa    0,X
         inx
-        staa    SCCCTRLB
+        staa    SCCCTRLA
         bra     L87BF
 L87D1:
         rts
 
-; data table, sync data init
+; data table for aux serial config
 L87D2:
         .byte   0x09,0x8a       ; channel reset B, MIE on, DLC off, no vector
         .byte   0x01,0x00       ; irq on special condition only
@@ -1028,7 +1029,7 @@ L87D2:
         .byte   0x0f,0x00       ; end of table marker
         .byte   0xff,0xff
 
-; SCC init, aux serial
+; SCC init, sync tape data
 L87E8:
         ldx     #LF857
 L87EB:
@@ -1036,25 +1037,25 @@ L87EB:
         cmpa    #0xFF
         beq     L87FD
         inx
-        staa    SCCCTRLA
+        staa    SCCCTRLB
         ldaa    0,X
         inx
-        staa    SCCCTRLA
+        staa    SCCCTRLB
         bra     L87EB
 L87FD:
         bra     L8815
 
-; data table for aux serial config
-        .byte   0x09,0x8a
-        .byte   0x01,0x10
-        .byte   0x0c,0x18
-        .byte   0x0d,0x00
-        .byte   0x04,0x04
-        .byte   0x0e,0x63
-        .byte   0x05,0x68
-        .byte   0x0b,0x01
-        .byte   0x03,0xc1
-        .byte   0x0f,0x00
+; data table for sync tape data config
+        .byte   0x09,0x8a       ; channel reset B, MIE on, DLC off, no vector
+        .byte   0x01,0x10       ; irq on all character received
+        .byte   0x0c,0x18       ; Lower byte of time constant
+        .byte   0x0d,0x00       ; Upper byte of time constant
+        .byte   0x04,0x04       ; X1 clock mode, 8-bit sync char, 1 stop bit, no parity
+        .byte   0x0e,0x63       ; Disable DPLL, BR enable & source
+        .byte   0x05,0x68       ; No DTR/RTS, Tx 8 bits/char, Tx enable
+        .byte   0x0b,0x01       ; ~RTxC pin is Recv/Xmit clock, ~TRxC is xmit clk
+        .byte   0x03,0xc1       ; Rx 8 bits/char, Rx Enable
+        .byte   0x0f,0x00       ; end of table marker
         .byte   0xff,0xff
 
 ; Install IRQ and SCI interrupt handlers
@@ -1085,54 +1086,54 @@ L8832:
 
 L883E:
         ldaa    #0x01
-        staa    SCCCTRLA
-        ldaa    SCCCTRLA        ; read 3 error bits
+        staa    SCCCTRLB
+        ldaa    SCCCTRLB        ; read 3 error bits
         anda    #0x70
         bne     L8869           ; if errors, jump ahead
         ldaa    #0x0A
-        staa    SCCCTRLA
-        ldaa    SCCCTRLA        ; read clocks missing bits
+        staa    SCCCTRLB
+        ldaa    SCCCTRLB        ; read clocks missing bits
         anda    #0xC0
         bne     L8878           ; clocks missing, jump ahead
-        ldaa    SCCCTRLA
+        ldaa    SCCCTRLB        ; check character available
         lsra
-        bcc     L8891           ;
+        bcc     L8891           ; if no char available, clear register and exit
         inc     (0x0048)        ; increment bytes received
-        ldaa    SCCDATAA        ; read good data byte
+        ldaa    SCCDATAB        ; read good data byte
 
 ; handle incoming data byte
 L8862:
         jsr     SERIALW         ; echo it to serial
         staa    (0x004A)        ; store it here
-        bra     L8896           
+        bra     L8896
 
 ; errors reading from SCC
 L8869:
-        ldaa    SCCDATAA        ; read bad byte
+        ldaa    SCCDATAB        ; read bad byte
         ldaa    #0x30
-        staa    SCCCTRLA
+        staa    SCCCTRLB        ; send error reset (Register 0)
         ldaa    #0x07
-        jsr     SERIALW         ; bell to serial?
+        jsr     SERIALW         ; send bell to serial
         clc
         rti
 
 ; clocks missing?
 L8878:
         ldaa    #0x07
-        jsr     SERIALW         ; bell to serial?
+        jsr     SERIALW         ; send bell to serial
         ldaa    #0x0E
-        staa    SCCCTRLA
+        staa    SCCCTRLB
         ldaa    #0x43
-        staa    SCCCTRLA
-        ldaa    SCCDATAA
+        staa    SCCCTRLB        ; send reset missing clock
+        ldaa    SCCDATAB
         ldaa    #0x07
-        jsr     SERIALW         ; 2nd bell to serial?
+        jsr     SERIALW         ; send 2nd bell to serial
         sec
         rti
 
-; ???
+; clear receive data reg and return
 L8891:
-        ldaa    SCCDATAA
+        ldaa    SCCDATAB
         clc
         rti
 
@@ -1158,9 +1159,9 @@ L8896:
 L88B9:
         tst     (0x004E)        ; is 4E 0??? (related to random motions?)
         beq     L88DD           ; if so, exit
-        ldaa    #0x78
-        staa    (0x0063)
-        staa    (0x0064)        ; start countdown timer
+        ldaa    #0x78           ; 120
+        staa    (0x0063)        ; start 12 second timer
+        staa    (0x0064)        ; reset boards before next random motion
         ldaa    (0x0012)
         cmpa    #0x40
         bcc     L88D1           ; if char >= 0x40, jump ahead
@@ -1185,26 +1186,26 @@ L88E5:
         ldab    (0x004B)        
         ldaa    (0x004C)
         tst     (0x045C)        ; R12/CNR?
-        beq     L88FB  
+        beq     L88FB           ; if R12, jump ahead
         cmpa    #0x3C
-        bcs     L88FB  
+        bcs     L88FB           ; if char < 0x3C, jump ahead
         cmpa    #0x3F
-        bhi     L88FB  
-        jsr     L8993
-        bra     L8960  
+        bhi     L88FB           ; if char > 0x3F, jump ahead 
+        jsr     L8993           ; process char (0x3C-0x3F)
+        bra     L8960           ; rts
 L88FB:
         cpd     #0x3048
-        beq     L897A           ; turn off 3 bits on boards 1 and 3
+        beq     L897A           ; turn off 3 bits on boards 1,3,4
         cpd     #0x3148
-        beq     L8961           ; turn on 3 bits on boards 1 and 3
+        beq     L8961           ; turn on 3 bits on boards 1,3,4
         cpd     #0x344D
-        beq     L897A           ; turn off 3 bits on boards 1 and 3
+        beq     L897A           ; turn off 3 bits on boards 1,3,4
         cpd     #0x354D
-        beq     L8961           ; turn on 3 bits on boards 1 and 3
+        beq     L8961           ; turn on 3 bits on boards 1,3,4
         cpd     #0x364D
-        beq     L897A           ; turn off 3 bits on boards 1 and 3
+        beq     L897A           ; turn off 3 bits on boards 1,3,4
         cpd     #0x374D
-        beq     L8961           ; turn on 3 bits on boards 1 and 3
+        beq     L8961           ; turn on 3 bits on boards 1,3,4
         ldx     #0x1080
         ldab    (0x004C)
         subb    #0x30
@@ -1214,13 +1215,13 @@ L88FB:
         abx
         ldab    (0x004B)
         cmpb    #0x50
-        bcc     L8960  
-        cmpb    #0x47
-        bls     L8936  
-        inx
+        bcc     L8960           ; if char >= 0x50, return
+        cmpb    #0x47           
+        bls     L8936           ; if char <= 0x47, skip increments
+        inx                     ; skip to port B of this PIA
         inx
 L8936:
-        subb    #0x40
+        subb    #0x40           ; 
         andb    #0x07
         clra
         sec
@@ -1235,11 +1236,13 @@ L8944:
         staa    (0x0050)
         ldaa    (0x004C)
         anda    #0x01
-        beq     L8954  
+        beq     L8954
+; set bit to a 1 using the mask
         ldaa    0,X
         oraa    (0x0050)
         staa    0,X
-        bra     L8960  
+        bra     L8960
+; set bit to 0 using the mask
 L8954:
         ldaa    (0x0050)
         eora    #0xFF
@@ -1250,20 +1253,20 @@ L8954:
 L8960:
         rts
 
-; turn on 3 bits on boards 1 and 3
+; turn on 3 bits on boards 1,3,4
 L8961:
         ldaa    (0x1082)
-        oraa    #0x01
+        oraa    #0x01           ; board 1, PIA A, bit 0
         staa    (0x1082)
         ldaa    (0x108A)
-        oraa    #0x20
+        oraa    #0x20           ; board 3, PIA B, bit 5
         staa    (0x108A)
-        ldaa    (0x108E)
+        ldaa    (0x108E)        ; board 4, PIA B, bit 5
         oraa    #0x20
         staa    (0x108E)
         rts
 
-; turn off 3 bits on boards 1 and 3
+; turn off 3 bits on boards 1,3,4
 L897A:
         ldaa    (0x1082)
         anda    #0xFE
@@ -1276,30 +1279,31 @@ L897A:
         staa    (0x108E)
         rts
 
+; process 0x3C-0x3F in CNR mode
 L8993:
         pshx
         cmpa    #0x3D
-        bhi     L899D  
+        bhi     L899D           ; if char > 0x3D use second table
         ldx     #LF780          ; table at the end
-        bra     L89A0  
+        bra     L89A0           ; else use first table
 L899D:
         ldx     #LF7A0          ; table at the end
 L89A0:
-        subb    #0x40
+        subb    #0x40           
         aslb
         abx
         cmpa    #0x3C
-        beq     L89DC           ; board 7  
+        beq     L89DC           ; board 7 - turn off A & B with table value mask 
         cmpa    #0x3D
-        beq     L89B6           ; board 7
+        beq     L89B6           ; board 7 - turn on A & B with table value mask
         cmpa    #0x3E
-        beq     L89FB           ; board 8
+        beq     L89FB           ; board 8 - turn off A & B with table value mask 
         cmpa    #0x3F
-        beq     L89C9           ; board 8
+        beq     L89C9           ; board 8 - turn on A & B with table value mask
         pulx
         rts
 
-; board 7
+; board 7 - turn on A & B with table value mask
 L89B6:
         ldaa    (0x1098)
         oraa    0,X
@@ -1311,7 +1315,7 @@ L89B6:
         pulx
         rts
 
-; board 8
+; board 8 - turn on A & B with table value mask
 L89C9:
         ldaa    (0x109C)
         oraa    0,X
@@ -1323,7 +1327,7 @@ L89C9:
         pulx
         rts
 
-; board 7
+; board 7 - turn off A & B with table value mask
 L89DC:
         ldab    0,X
         eorb    #0xFF
@@ -1341,7 +1345,7 @@ L89DC:
         pulx
         rts
 
-; board 8
+; board 8 - turn off A & B with table value mask
 L89FB:
         ldab    0,X
         eorb    #0xFF
@@ -1366,7 +1370,7 @@ L8A1A:
         pshx
 L8A1B:
         ldaa    #0x04
-        bita    SCCCTRLB
+        bita    SCCCTRLA
         beq     L8A1B  
         ldaa    0,X     
         bne     L8A29           ; if not nul, continue
@@ -1506,7 +1510,7 @@ L8B03:
         jsr     L8A1A  
         jmp     L8A1B
 L8B1B:
-        staa    SCCDATAB
+        staa    SCCDATAA
         jmp     L8A1B
 L8B21:
         pulx
@@ -1532,10 +1536,10 @@ L8B3B:
         psha
 L8B3C:
         ldaa    #0x04
-        bita    SCCCTRLB
+        bita    SCCCTRLA
         beq     L8B3C
         pula
-        staa    SCCDATAB
+        staa    SCCDATAA
         rts
 
 L8B48:
@@ -5560,30 +5564,30 @@ LB21F:
         rts
 
 LB223:
-        ldaa    SCCCTRLB
+        ldaa    SCCCTRLA
         lsra
         bcs     LB234  
         clra
-        staa    SCCCTRLB
+        staa    SCCCTRLA
         ldaa    #0x30
-        staa    SCCCTRLB
+        staa    SCCCTRLA
         clc
         rts
 
 LB234:
         ldaa    #0x01
-        staa    SCCCTRLB
+        staa    SCCCTRLA
         ldaa    #0x70
-        bita    SCCCTRLB
+        bita    SCCCTRLA
         bne     LB245  
         sec
-        ldaa    SCCDATAB
+        ldaa    SCCDATAA
         rts
 
 LB245:
-        ldaa    SCCDATAB
+        ldaa    SCCDATAA
         ldaa    #0x30
-        staa    SCCCTRLA
+        staa    SCCCTRLB
         clc
         rts
 
@@ -5850,7 +5854,7 @@ LF81C:
         jsr     BUTNLIT         ; turn on all button lights
         bra     LF86A           ; jump past data table
 
-; Data loaded into SCCCTRLB SCC
+; data table for aux serial config
 LF857:
         .byte   0x09,0x4a       ; channel reset B, MIE off, DLC on, no vector
         .byte   0x01,0x10       ; irq on all character received
@@ -5865,14 +5869,14 @@ LF857:
         ;   DesiredRate=~4800 bps with tc=0x18 and BRClockPeriod=16
         .byte   0xff            ; end of table marker
 
-; init SCC (8530)
+; init SCC (8530), aux serial config
 LF86A:
         ldx     #LF857
 LF86D:
         ldaa    0,X
         cmpa    #0xFF
         beq     LF879
-        staa    SCCCTRLB
+        staa    SCCCTRLA
         inx
         bra     LF86D
 
@@ -5882,11 +5886,11 @@ LF86D:
 
 LF879:
         ldaa    #0x00
-        staa    SCCR1  
+        staa    SCCR1
         ldaa    #0x0C
-        staa    SCCR2  
+        staa    SCCR2
         ldaa    #0x31
-        staa    BAUD  
+        staa    BAUD
 
 ; Initialize all RAM vectors to RTI: 
 ; Opcode 0x3b into vectors at 0x0100 through 0x0139
