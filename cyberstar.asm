@@ -368,7 +368,7 @@ L8267:
 L8283:
         ldaa    PIA0PRA 
         anda    #0x06
-        bne     L8292
+        bne     L8292           ; skip credits if up and down are pressed?
         jsr     L9CF1           ; print credits
         ldab    #0x32
         jsr     DLYSECSBY100    ; delay 0.5 sec
@@ -2019,16 +2019,17 @@ L8E87:
         sty     (0x0046)
         rts
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Read SCD switches
 L8E95:
         ldaa    (0x0030)
-        bne     L8EA2  
+        bne     L8EA2       ; UP - return A=0x01
         ldaa    (0x0031)
-        bne     L8EAE  
+        bne     L8EAE       ; DOWN - return A=0x02
         ldaa    (0x0032)
-        bne     L8EBA  
-        rts
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;
+        bne     L8EBA       ; ENTER - return A=0x0D
+        rts                 ; return A=0x00
 
 L8EA2:
         clr     (0x0030)
@@ -2051,33 +2052,36 @@ L8EBA:
         ldaa    #0x0D
         rts
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Scan SCD keys into up=0x30,down=0x31,enter=0x32
 L8EC6:
         ldaa    PIA0PRA 
-        anda    #0x07
+        anda    #0x07       ; get button state
         staa    (0x002C)
         asl     (0x002C)
         asl     (0x002C)
         asl     (0x002C)
         asl     (0x002C)
-        asl     (0x002C)
+        asl     (0x002C)    ; put in upper 3 bits of 002C 
         ldx     #0x0000
 L8EDF:
         cpx     #0x0003
-        beq     L8F08  
-        asl     (0x002C)
-        bcs     L8EFB  
+        beq     L8F08
+        asl     (0x002C)    
+        bcs     L8EFB       ; if button not pressed, jump
         ldaa    0x2D,X
-        cmpa    #0x0F
-        bcc     L8F09  
-        inc     0x2D,X
+        cmpa    #0x0F       ; has it been pressed for 15
+        bcc     L8F09       ; do key repeat, if not enter
+        inc     0x2D,X      ; nope, inc it
         ldaa    0x2D,X
-        cmpa    #0x02
-        bne     L8EF9  
-        staa    0x30,X
+        cmpa    #0x02       ; has it been pressed for 2?
+        bne     L8EF9       ; nope
+        staa    0x30,X      ; short press - store count (2) in 0x30/0x31/0x32
 L8EF9:
         bra     L8F05  
-L8EFB:
-        clr     0x2D,X
+L8EFB:                      ; 
+        clr     0x2D,X      ; clear 2D/2E/2F if not pressed
         bra     L8F05  
         ldaa    0x2D,X
         beq     L8F05  
@@ -2091,10 +2095,13 @@ L8F08:
 L8F09:
         cpx     #0x0002
         beq     L8F10  
-        clr     0x2D,X
+        clr     0x2D,X      ; do kbd repeat for up and down
 L8F10:
         bra     L8F05
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Read Front Panel Switches
 L8F12:
         ldaa    PORTE
         staa    (0x0051)
@@ -2127,6 +2134,8 @@ L8F41:
 
         clr     0x52,X
         bra     L8F3E  
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 L8F46:
         .ascii      '0.5'
@@ -2177,7 +2186,7 @@ L8F94:
         jsr     LCDMSG1 
         .ascis  'Jasper   '
 
-        ldx     #0x90DE
+        ldx     #L90DE
         bra     L8FE1  
 L8FA9:
         cmpa    #0x05
@@ -2186,7 +2195,7 @@ L8FA9:
         jsr     LCDMSG1 
         .ascis  'Pasqually'
 
-        ldx     #0x9145
+        ldx     #L9145
         bra     L8FE1  
 L8FBE:
         cmpa    #0x06
@@ -2195,13 +2204,13 @@ L8FBE:
         jsr     LCDMSG1 
         .ascis  'Munch    '
 
-        ldx     #0x91BA
+        ldx     #L91BA
         bra     L8FE1  
 L8FD3:
         jsr     LCDMSG1 
         .ascis  'Helen   '
 
-        ldx     #0x9226
+        ldx     #L9226
 L8FE1:
         ldaa    (0x00B4)
         suba    #0x03
@@ -2286,9 +2295,13 @@ L9064:
 
 L9072:
         .ascis  'Mouth,Head left,Head right,Head up,Eyes right,Eyelids,Right hand,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
+L90DE:
         .ascis  'Mouth,Head left,Head right,Head up,Eyes right,Eyelids,Hands,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
+L9145:
         .ascis  'Mouth-Mustache,Head left,Head right,Left arm,Eyes right,Eyelids,Right arm,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
+L91BA:
         .ascis  'Mouth,Head left,Head right,Left arm,Eyes right,Eyelids,Right arm,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
+L9226:
         .ascis  'Mouth,Head left,Head right,Head up,Eyes right,Eyelids,Right hand,Eyes left,DS9,DS10,DS11,DS12,DS13,DS14,Exit'
         
 ; code again
@@ -5186,8 +5199,8 @@ LAC47:
         clr     T30MS
 
 ; do these two tasks every 30ms
-        jsr     L8EC6           ; ???
-        jsr     L8F12           ; ???
+        jsr     L8EC6           ; Scan SCD keys
+        jsr     L8F12           ; Scan Front Panel Switches
 
 ; back to every 2.5ms here
 ; LCD update???

@@ -1,5 +1,5 @@
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 1
-Hexadecimal [16-Bits]                                 Mon Jan 01 23:48:44 2024
+Hexadecimal [16-Bits]                                 Thu Jan 04 22:57:41 2024
 
 Symbol Table
 
@@ -59,7 +59,7 @@ Symbol Table
   2 L85F4              85F4 R   |   2 L85FF              85FF R
   2 L8614              8614 R   |   2 L8630              8630 R
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 2
-Hexadecimal [16-Bits]                                 Mon Jan 01 23:48:44 2024
+Hexadecimal [16-Bits]                                 Thu Jan 04 22:57:41 2024
 
 Symbol Table
 
@@ -119,7 +119,7 @@ Symbol Table
   2 L8D03              8D03 R   |   2 L8D14              8D14 R
   2 L8D1B              8D1B R   |   2 L8D29              8D29 R
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 3
-Hexadecimal [16-Bits]                                 Mon Jan 01 23:48:44 2024
+Hexadecimal [16-Bits]                                 Thu Jan 04 22:57:41 2024
 
 Symbol Table
 
@@ -152,6 +152,8 @@ Symbol Table
   2 L9006              9006 R   |   2 L9016              9016 R
   2 L9036              9036 R   |   2 L9044              9044 R
   2 L9064              9064 R   |   2 L9072              9072 R
+  2 L90DE              90DE R   |   2 L9145              9145 R
+  2 L91BA              91BA R   |   2 L9226              9226 R
   2 L9292              9292 R   |   2 L9295              9295 R
   2 L92D2              92D2 R   |   2 L92E6              92E6 R
   2 L92F3              92F3 R   |   2 L92FF              92FF R
@@ -176,13 +178,13 @@ Symbol Table
   2 L95F7              95F7 R   |   2 L960A              960A R
   2 L960F              960F R   |   2 L9610              9610 R
   2 L9675              9675 R   |   2 L9697              9697 R
-  2 L96BC              96BC R   |   2 L96C5              96C5 R
-  2 L96C7              96C7 R   |   2 L96D1              96D1 R
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 4
-Hexadecimal [16-Bits]                                 Mon Jan 01 23:48:44 2024
+Hexadecimal [16-Bits]                                 Thu Jan 04 22:57:41 2024
 
 Symbol Table
 
+  2 L96BC              96BC R   |   2 L96C5              96C5 R
+  2 L96C7              96C7 R   |   2 L96D1              96D1 R
   2 L96E1              96E1 R   |   2 L96E4              96E4 R
   2 L96F2              96F2 R   |   2 L9701              9701 R
   2 L9719              9719 R   |   2 L9721              9721 R
@@ -236,13 +238,13 @@ Symbol Table
   2 L9D7E              9D7E R   |   2 L9D8E              9D8E R
   2 L9DB0              9DB0 R   |   2 L9DD3              9DD3 R
   2 L9DE8              9DE8 R   |   2 L9DEA              9DEA R
-  2 L9DF5              9DF5 R   |   2 L9DFF              9DFF R
-  2 L9E1A              9E1A R   |   2 L9E37              9E37 R
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 5
-Hexadecimal [16-Bits]                                 Mon Jan 01 23:48:44 2024
+Hexadecimal [16-Bits]                                 Thu Jan 04 22:57:41 2024
 
 Symbol Table
 
+  2 L9DF5              9DF5 R   |   2 L9DFF              9DFF R
+  2 L9E1A              9E1A R   |   2 L9E37              9E37 R
   2 L9E45              9E45 R   |   2 L9E50              9E50 R
   2 L9E5C              9E5C R   |   2 L9E68              9E68 R
   2 L9E6A              9E6A R   |   2 L9E71              9E71 R
@@ -296,13 +298,13 @@ Symbol Table
   2 LA652              A652 R   |   2 LA656              A656 R
   2 LA65D              A65D R   |   2 LA855              A855 R
   2 LA86A              A86A R   |   2 LA895              A895 R
-  2 LA8A4              A8A4 R   |   2 LA8B3              A8B3 R
-  2 LA8E3              A8E3 R   |   2 LA8F3              A8F3 R
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 6
-Hexadecimal [16-Bits]                                 Mon Jan 01 23:48:44 2024
+Hexadecimal [16-Bits]                                 Thu Jan 04 22:57:41 2024
 
 Symbol Table
 
+  2 LA8A4              A8A4 R   |   2 LA8B3              A8B3 R
+  2 LA8E3              A8E3 R   |   2 LA8F3              A8F3 R
   2 LA8FB              A8FB R   |   2 LA903              A903 R
   2 LA91C              A91C R   |   2 LA935              A935 R
   2 LA941              A941 R   |   2 LA94C              A94C R
@@ -356,13 +358,13 @@ Symbol Table
   2 LAE22              AE22 R   |   2 LAE27              AE27 R
   2 LAE2C              AE2C R   |   2 LAE31              AE31 R
   2 LAE38              AE38 R   |   2 LB1D2              B1D2 R
-  2 LB1D8              B1D8 R   |   2 LB1DD              B1DD R
-  2 LB1E6              B1E6 R   |   2 LB1FE              B1FE R
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 7
-Hexadecimal [16-Bits]                                 Mon Jan 01 23:48:44 2024
+Hexadecimal [16-Bits]                                 Thu Jan 04 22:57:41 2024
 
 Symbol Table
 
+  2 LB1D8              B1D8 R   |   2 LB1DD              B1DD R
+  2 LB1E6              B1E6 R   |   2 LB1FE              B1FE R
   2 LB207              B207 R   |   2 LB20D              B20D R
   2 LB215              B215 R   |   2 LB21D              B21D R
   2 LB21F              B21F R   |   2 LB223              B223 R
@@ -415,7 +417,7 @@ Symbol Table
     TOC2           =   1018     |     TSCNT          =   00B0 
 
 ASxxxx Assembler V05.44  (Motorola 6811)                                Page 8
-Hexadecimal [16-Bits]                                 Mon Jan 01 23:48:44 2024
+Hexadecimal [16-Bits]                                 Thu Jan 04 22:57:41 2024
 
 Area Table
 
