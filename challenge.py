@@ -1,6 +1,7 @@
 
 #   Program to Validate Cyberstar v1.6 
 #   Challenge-Response code
+#   Frank Palazzolo - 2024
 
 def Modulo(code):
     for i in range(0,len(code)):
@@ -38,12 +39,37 @@ def GenerateResponse(challenge):
 
     newcode = Modulo(newcode)
 
-    return newcode.decode("ascii")
+    return newcode.decode('ascii')
 
+def Validate(challenge):
+    if len(challenge) != 5:
+        print("Keyword is invalid length!\n")
+        return False
+    bs = challenge.encode('ascii')
+    for c in bs:
+        if c < ord('A') or c > ord('Z'):
+            print("Keyword is invalid format!\n")
+            return False
+    return True
 
 def main():
-    challenge = input("Code: ")
-    response = GenerateResponse(challenge)
-    print(f'Pass: {response}')
+    print('''
+    Workalike for "Tim's World Rules" (c) djp
+    (Logic regenerated from reverse engineering of 68HC11 code,
+                                        Frank Palazzolo - 2024)
+
+    This program asks for a 5-letter keyword. The keyword must be ALL
+    capital letters from A-Z. After you have entered the keyword, the
+    program will display the password associated with that keyword. To
+    exit the program, simply press <ENTER> when asked for the keyword.
+    ''')
+    while True:
+        challenge = input("Please enter the 5-letter keyword: ")
+        if challenge == "":
+            break
+        ok = Validate(challenge)
+        if ok:
+            response = GenerateResponse(challenge)
+            print(f"                  The password is: {response}\n")
 
 main()
