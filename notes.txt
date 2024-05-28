@@ -47,3 +47,11 @@ PB0-PB7 - local DATA bus, output (DA0-DA7)
 
 CA2 - A/V Connector clock, output, rising edge active
 CB2 - Tape Deck Connector clock, output, rising edge active
+
+---
+
+Serial port:
+
+Read routines:
+    80EF - Looking for a 'D'
+    829C - After Printing credits

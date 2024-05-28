@@ -373,10 +373,10 @@ L8283:
         ldab    #0x32
         jsr     DLYSECSBY100    ; delay 0.5 sec
 L8292:
-        jsr     L8E95
+        jsr     L8E95           ; Was ENTER pressed?
         cmpa    #0x0D
         bne     L829C
-        jmp     L9292
+        jmp     L9292           ; If so, go to diagnostics menu
 L829C:
         jsr     SERIALR
         bcs     L82A4
@@ -2672,15 +2672,15 @@ L96F2:
         ldd     #0x2034         ;' '
         jsr     L8DB5           ; display char here on LCD display
 L9701:
-        jsr     L8E95
+        jsr     L8E95           ; wait for an SCD key
         beq     L9701  
-        cmpa    #0x01
-        bne     L972C  
+        cmpa    #0x01           ; is it up?
+        bne     L972C           ; no jump ahead
         pulb
         pshb
         tstb
-        beq     L9719  
-        ldaa    (0x042B)
+        beq     L9719           ; if B=0, modify 0401 mask  
+        ldaa    (0x042B)        ; else modify 042B mask
         oraa    (0x0012)
         staa    (0x042B)
         bra     L9721  
@@ -3180,7 +3180,7 @@ L9AF7:
         clr     (0x0025)
         clr     (0x0026)
         clr     (0x004E)
-        clr     (0x0030)
+        clr     (0x0030)        ; clear SCD key states
         clr     (0x0031)
         clr     (0x0032)
         clr     (0x00AF)
@@ -3768,7 +3768,7 @@ L9F61:
         ldaa    #0x41           ; 'A'
 L9F63:
         staa    (0x0015)        ; 0x41
-        jsr     L8E95           ; roll the dice
+        jsr     L8E95           ; read SCD keys
         cmpa    #0x0D
         bne     L9F7D
         ldaa    (0x0015)
@@ -4678,7 +4678,7 @@ LA8E3:
         jsr     L8E95
         cmpa    #0x0D
         bne     LA8F3  
-        jsr     LA975
+        jsr     LA975           ; Wait for SCD Keypress
         bra     LA903  
 LA8F3:
         cmpa    #0x01
@@ -4762,6 +4762,7 @@ LA966:
 LA974:
         rts
 
+; Wait for SCD Keypress
 LA975:
         jsr     L8E95
         tsta
